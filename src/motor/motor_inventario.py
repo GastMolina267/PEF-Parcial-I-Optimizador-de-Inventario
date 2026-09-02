@@ -215,6 +215,8 @@ class MotorInventario:
 
         return resultados
 
+    calcular_top_productos = obtener_top_solicitados
+
     def agrupar_pedidos(
         self, pedidos: Sequence[Pedido] | None = None
     ) -> LotePickingConsolidado:
@@ -229,6 +231,7 @@ class MotorInventario:
         producto_original: Producto | None = None,
         max_combinaciones: int = 15,
         forzar_memoizacion: bool | None = None,
+        max_candidatos: int | None = None,
     ) -> ResultadoAlternativas:
         """Calcula alternativas y combinaciones para productos agotados o pedidos parciales."""
         usar_memo = forzar_memoizacion if forzar_memoizacion is not None else self.es_optimizado
@@ -238,6 +241,7 @@ class MotorInventario:
             producto_original=producto_original,
             max_combinaciones=max_combinaciones,
             usar_memoizacion=usar_memo,
+            max_candidatos=max_candidatos,
         )
 
     def obtener_estadisticas(self) -> dict[str, Any]:

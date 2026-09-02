@@ -1,0 +1,462 @@
+================================================================================
+ REPORTE DE PERFILADO LÍNEA A LÍNEA (LINE_PROFILER)
+ Dataset base: mediano.json
+================================================================================
+
+Timer unit: 1e-07 s
+
+Total time: 0.154783 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_lineal.py
+Function: CatalogoLineal.buscar_por_id at line 39
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    39                                               def buscar_por_id(self, id_producto: int) -> Producto | None:
+    40                                                   """Busca un producto por su identificador recorriendo linealmente la lista.
+    41                                           
+    42                                                   Complejidad temporal: O(n) en el peor y caso promedio. O(1) si está al inicio.
+    43                                                   """
+    44    197850     763598.0      3.9     49.3          for producto in self._productos:
+    45    197850     780598.0      3.9     50.4              if producto.id == id_producto:
+    46       696       3631.0      5.2      0.2                  return producto
+    47                                                   return None
+
+Total time: 0.0190309 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_lineal.py
+Function: CatalogoLineal.buscar_por_nombre at line 49
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    49                                               def buscar_por_nombre(self, texto: str) -> list[Producto]:
+    50                                                   """Busca productos cuyo nombre contenga el texto buscado (insensible a mayúsculas).
+    51                                           
+    52                                                   Complejidad temporal: O(n * L), donde n es la cantidad de productos y L la longitud media del texto.
+    53                                                   """
+    54        20        125.0      6.2      0.1          texto_norm = texto.lower()
+    55        20         90.0      4.5      0.0          coincidencias: list[Producto] = []
+    56     20020      69543.0      3.5     36.5          for producto in self._productos:
+    57     20000     119221.0      6.0     62.6              if texto_norm in producto.nombre.lower():
+    58       300       1202.0      4.0      0.6                  coincidencias.append(producto)
+    59        20        128.0      6.4      0.1          return coincidencias
+
+Total time: 0.0011553 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py
+Function: CatalogoHash.buscar_por_id at line 69
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    69                                               def buscar_por_id(self, id_producto: int) -> Producto | None:
+    70                                                   """Busca un producto por su clave primaria en la tabla hash.
+    71                                           
+    72                                                   Complejidad temporal: O(1) promedio y en el mejor caso.
+    73                                                   """
+    74      2311      11553.0      5.0    100.0          return self._productos_por_id.get(id_producto)
+
+Total time: 0.0007849 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py
+Function: CatalogoHash.buscar_por_nombre at line 76
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    76                                               def buscar_por_nombre(self, texto: str) -> list[Producto]:
+    77                                                   """Busca productos por texto.
+    78                                           
+    79                                                   Utiliza el índice invertido de palabras clave cuando sea posible,
+    80                                                   garantizando coincidencia por subcadena exacta para mantener
+    81                                                   equivalencia total con CatalogoLineal.
+    82                                                   """
+    83        20        172.0      8.6      2.2          texto_norm = texto.lower().strip()
+    84        20         96.0      4.8      1.2          if not texto_norm:
+    85                                                       return []
+    86                                           
+    87        20       1449.0     72.5     18.5          palabras_busqueda = re.findall(r"\w+", texto_norm)
+    88        20         93.0      4.7      1.2          if palabras_busqueda:
+    89                                                       # Candidatos por intersección de conjuntos hash O(1)
+    90        40        167.0      4.2      2.1              conjuntos_candidatos = [
+    91        40        335.0      8.4      4.3                  self._indice_palabras.get(palabra, set()) for palabra in palabras_busqueda
+    92                                                       ]
+    93        20        763.0     38.1      9.7              if any(len(c) == 0 for c in conjuntos_candidatos):
+    94                                                           # Si alguna palabra no existe en ningún producto, comprobamos subcadena
+    95                                                           candidatos_ids = set()
+    96                                                       else:
+    97        20        221.0     11.1      2.8                  candidatos_ids = set.intersection(*conjuntos_candidatos)
+    98                                           
+    99                                                       # Si el índice invertido arrojó resultados, los devolvemos verificando la subcadena
+   100        20         96.0      4.8      1.2              if candidatos_ids:
+   101        40        145.0      3.6      1.8                  coincidencias = [
+   102       300       1254.0      4.2     16.0                      self._productos_por_id[pid]
+   103       340       1266.0      3.7     16.1                      for pid in candidatos_ids
+   104       300       1637.0      5.5     20.9                      if texto_norm in self._productos_por_id[pid].nombre.lower()
+   105                                                           ]
+   106        20         76.0      3.8      1.0                  if coincidencias:
+   107        20         79.0      4.0      1.0                      return coincidencias
+   108                                           
+   109                                                   # Fallback de coincidencia general por subcadena sobre el universo
+   110                                                   return [
+   111                                                       prod
+   112                                                       for prod in self._productos_por_id.values()
+   113                                                       if texto_norm in prod.nombre.lower()
+   114                                                   ]
+
+Total time: 0.0129927 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\ranking\top_productos.py
+Function: calcular_top_solicitados_lineal at line 15
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    15                                           def calcular_top_solicitados_lineal(
+    16                                               pedidos: Sequence[Pedido],
+    17                                               catalogo,
+    18                                               k: int = 10,
+    19                                           ) -> list[tuple[Producto, int]]:
+    20                                               """Calcula los k productos más solicitados utilizando ordenamiento total (Baseline).
+    21                                           
+    22                                               Estrategia algorítmica:
+    23                                               1. Agrega las cantidades demandadas de cada producto en un mapa de frecuencias.
+    24                                               2. Ordena la totalidad de los pares (id_producto, frecuencia) en O(N log N).
+    25                                               3. Corta los primeros k elementos.
+    26                                               4. Resuelve los objetos Producto contra el catálogo.
+    27                                           
+    28                                               Complejidad temporal: O(L + N log N + k * T_busqueda).
+    29                                               """
+    30        10         60.0      6.0      0.0      if k <= 0 or not pedidos:
+    31                                                   return []
+    32                                           
+    33        10         41.0      4.1      0.0      frecuencias: dict[int, int] = {}
+    34      2010       6712.0      3.3      5.2      for pedido in pedidos:
+    35      7960      29825.0      3.7     23.0          for linea in pedido.lineas:
+    36      5960      28019.0      4.7     21.6              frecuencias[linea.id_producto] = frecuencias.get(linea.id_producto, 0) + linea.cantidad
+    37                                           
+    38        10         48.0      4.8      0.0      if not frecuencias:
+    39                                                   return []
+    40                                           
+    41                                               # Ordenamiento completo de TODAS las frecuencias O(N log N)
+    42        20      22847.0   1142.3     17.6      items_ordenados = sorted(
+    43        10         65.0      6.5      0.1          frecuencias.items(),
+    44        10         61.0      6.1      0.0          key=lambda item: (item[1], item[0]),
+    45        10         44.0      4.4      0.0          reverse=True,
+    46                                               )
+    47        10         96.0      9.6      0.1      top_k_items = items_ordenados[:k]
+    48                                           
+    49        10         53.0      5.3      0.0      resultado: list[tuple[Producto, int]] = []
+    50        60        292.0      4.9      0.2      for id_prod, total in top_k_items:
+    51        50      41282.0    825.6     31.8          prod = catalogo.buscar_por_id(id_prod)
+    52        50        187.0      3.7      0.1          if prod is not None:
+    53        50        256.0      5.1      0.2              resultado.append((prod, total))
+    54                                           
+    55        10         39.0      3.9      0.0      return resultado
+
+Total time: 0.0115231 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\ranking\top_productos.py
+Function: calcular_top_solicitados_heap at line 58
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    58                                           def calcular_top_solicitados_heap(
+    59                                               pedidos: Sequence[Pedido],
+    60                                               catalogo,
+    61                                               k: int = 10,
+    62                                           ) -> list[tuple[Producto, int]]:
+    63                                               """Calcula los k productos más solicitados utilizando un Min/Max Heap (Optimizado).
+    64                                           
+    65                                               Estrategia algorítmica:
+    66                                               1. Agrega las cantidades demandadas en un mapa hash O(1).
+    67                                               2. Utiliza heapq.nlargest para mantener un montículo acotado de tamaño k.
+    68                                                  Para cada uno de los N elementos, la inserción/reemplazo en el heap cuesta O(log k).
+    69                                               3. Resuelve los objetos Producto contra el catálogo (en O(1) si es CatalogoHash).
+    70                                           
+    71                                               Complejidad temporal: O(L + N log k + k * T_busqueda).
+    72                                               Ventaja: Cuando k << N, O(N log k) reduce drásticamente las comparaciones
+    73                                               frente a O(N log N) y solo almacena k elementos en la estructura de selección.
+    74                                               """
+    75        10         59.0      5.9      0.1      if k <= 0 or not pedidos:
+    76                                                   return []
+    77                                           
+    78        10         40.0      4.0      0.0      frecuencias: dict[int, int] = {}
+    79      2010       6650.0      3.3      5.8      for pedido in pedidos:
+    80      7960      29600.0      3.7     25.7          for linea in pedido.lineas:
+    81      5960      27646.0      4.6     24.0              frecuencias[linea.id_producto] = frecuencias.get(linea.id_producto, 0) + linea.cantidad
+    82                                           
+    83        10         49.0      4.9      0.0      if not frecuencias:
+    84                                                   return []
+    85                                           
+    86                                               # Selección óptima mediante heap O(N log k)
+    87        20      49616.0   2480.8     43.1      top_k_items = heapq.nlargest(
+    88        10         40.0      4.0      0.0          k,
+    89        10         54.0      5.4      0.0          frecuencias.items(),
+    90        10         63.0      6.3      0.1          key=lambda item: (item[1], item[0]),
+    91                                               )
+    92                                           
+    93        10         42.0      4.2      0.0      resultado: list[tuple[Producto, int]] = []
+    94        60        233.0      3.9      0.2      for id_prod, total in top_k_items:
+    95        50        738.0     14.8      0.6          prod = catalogo.buscar_por_id(id_prod)
+    96        50        161.0      3.2      0.1          if prod is not None:
+    97        50        205.0      4.1      0.2              resultado.append((prod, total))
+    98                                           
+    99        10         35.0      3.5      0.0      return resultado
+
+Total time: 0.0230889 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\agrupador.py
+Function: agrupar_pedidos_batch at line 70
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    70                                           def agrupar_pedidos_batch(
+    71                                               pedidos: Sequence[Pedido],
+    72                                               catalogo=None,
+    73                                           ) -> LotePickingConsolidado:
+    74                                               """Fusiona y consolida las demandas de una secuencia de pedidos (Batch Picking).
+    75                                           
+    76                                               Estrategia algorítmica:
+    77                                               Recorre las líneas de todos los pedidos y las acumula en un diccionario hash O(1).
+    78                                               Luego resuelve los metadatos del producto contra el catálogo provisto.
+    79                                           
+    80                                               Complejidad temporal: O(L + P_dist), donde L es la sumatoria de todas las líneas
+    81                                               de todos los pedidos y P_dist es la cantidad de productos únicos demandados.
+    82                                               """
+    83         5         30.0      6.0      0.0      if not pedidos:
+    84                                                   return LotePickingConsolidado(total_pedidos=0, total_unidades=0, items=[])
+    85                                           
+    86                                               # Mapa de acumulación: id_producto -> ItemPickingConsolidado
+    87         5         22.0      4.4      0.0      acumulador: dict[int, ItemPickingConsolidado] = {}
+    88         5         19.0      3.8      0.0      total_unidades = 0
+    89                                           
+    90      1005       3534.0      3.5      1.5      for pedido in pedidos:
+    91      3980      14647.0      3.7      6.3          for linea in pedido.lineas:
+    92      2980      13664.0      4.6      5.9              total_unidades += linea.cantidad
+    93      2980      12507.0      4.2      5.4              if linea.id_producto not in acumulador:
+    94      1615      35654.0     22.1     15.4                  prod_obj = catalogo.buscar_por_id(linea.id_producto) if catalogo else None
+    95      3230      47697.0     14.8     20.7                  acumulador[linea.id_producto] = ItemPickingConsolidado(
+    96      1615       5563.0      3.4      2.4                      id_producto=linea.id_producto,
+    97      1615       5378.0      3.3      2.3                      producto=prod_obj,
+    98      1615       5347.0      3.3      2.3                      cantidad_total=linea.cantidad,
+    99      1615       6263.0      3.9      2.7                      demandas_por_pedido=[
+   100      1615      26879.0     16.6     11.6                          DetalleDemandaPedido(id_pedido=pedido.id, cantidad=linea.cantidad)
+   101                                                               ],
+   102                                                           )
+   103                                                       else:
+   104      1365       5380.0      3.9      2.3                  item_existente = acumulador[linea.id_producto]
+   105      1365       5972.0      4.4      2.6                  item_existente.cantidad_total += linea.cantidad
+   106      2730      11355.0      4.2      4.9                  item_existente.demandas_por_pedido.append(
+   107      1365      22897.0     16.8      9.9                      DetalleDemandaPedido(id_pedido=pedido.id, cantidad=linea.cantidad)
+   108                                                           )
+   109                                           
+   110                                               # Ordenar por id_producto o cantidad para presentación predecible
+   111         5       7786.0   1557.2      3.4      items_consolidados = sorted(acumulador.values(), key=lambda it: it.cantidad_total, reverse=True)
+   112                                           
+   113        10        229.0     22.9      0.1      return LotePickingConsolidado(
+   114         5         28.0      5.6      0.0          total_pedidos=len(pedidos),
+   115         5         19.0      3.8      0.0          total_unidades=total_unidades,
+   116         5         19.0      3.8      0.0          items=items_consolidados,
+   117                                               )
+
+Total time: 0.0021137 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\combinaciones.py
+Function: BuscadorAlternativas._resolver_recursivo_puro at line 163
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   163                                               def _resolver_recursivo_puro(
+   164                                                   self,
+   165                                                   candidatos: list[Producto],
+   166                                                   indice: int,
+   167                                                   presupuesto_restante: int,
+   168                                                   limite: int,
+   169                                               ) -> list[list[int]]:
+   170                                                   """Búsqueda exhaustiva sin almacenamiento de estados (O(2^N))."""
+   171       405       1559.0      3.8      7.4          self._contador_llamadas += 1
+   172                                           
+   173       405       1465.0      3.6      6.9          if indice >= len(candidatos) or presupuesto_restante <= 0:
+   174       111        406.0      3.7      1.9              return []
+   175                                           
+   176       294       1530.0      5.2      7.2          precio_actual = int(round(candidatos[indice].precio * 100))
+   177       294       1026.0      3.5      4.9          resultados: list[list[int]] = []
+   178                                           
+   179                                                   # Opción 1: Incluir el producto actual (si el presupuesto lo permite)
+   180       294       1085.0      3.7      5.1          if precio_actual <= presupuesto_restante:
+   181                                                       # La combinación unitaria formada solo por este producto
+   182       126        536.0      4.3      2.5              resultados.append([indice])
+   183                                                       # Combinar con los subsiguientes
+   184       252        881.0      3.5      4.2              sub_combos = self._resolver_recursivo_puro(
+   185       126        477.0      3.8      2.3                  candidatos, indice + 1, presupuesto_restante - precio_actual, limite
+   186                                                       )
+   187       354       1329.0      3.8      6.3              for sc in sub_combos:
+   188       246       1099.0      4.5      5.2                  resultados.append([indice] + sc)
+   189       246        923.0      3.8      4.4                  if len(resultados) >= limite:
+   190        18         77.0      4.3      0.4                      return resultados
+   191                                           
+   192                                                   # Opción 2: Excluir el producto actual y avanzar
+   193       276       1025.0      3.7      4.8          if len(resultados) < limite:
+   194       552       1980.0      3.6      9.4              sub_combos_sin = self._resolver_recursivo_puro(
+   195       276        938.0      3.4      4.4                  candidatos, indice + 1, presupuesto_restante, limite
+   196                                                       )
+   197       501       1934.0      3.9      9.1              for sc in sub_combos_sin:
+   198       240        858.0      3.6      4.1                  resultados.append(sc)
+   199       240        929.0      3.9      4.4                  if len(resultados) >= limite:
+   200        15         50.0      3.3      0.2                      break
+   201                                           
+   202       276       1030.0      3.7      4.9          return resultados
+
+Total time: 0.00264 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\combinaciones.py
+Function: BuscadorAlternativas._resolver_dp_memo at line 204
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   204                                               def _resolver_dp_memo(
+   205                                                   self,
+   206                                                   candidatos: list[Producto],
+   207                                                   indice: int,
+   208                                                   presupuesto_restante: int,
+   209                                                   limite: int,
+   210                                               ) -> list[list[int]]:
+   211                                                   """Búsqueda con Programación Dinámica y Memoización de subproblemas (O(N * P))."""
+   212       405       1512.0      3.7      5.7          self._contador_llamadas += 1
+   213                                           
+   214       405       1565.0      3.9      5.9          if indice >= len(candidatos) or presupuesto_restante <= 0:
+   215       111        409.0      3.7      1.5              return []
+   216                                           
+   217                                                   # Estado del subproblema: (indice_candidato, presupuesto_restante)
+   218       294        996.0      3.4      3.8          clave_estado = (indice, presupuesto_restante)
+   219       294       1202.0      4.1      4.6          if clave_estado in self._memo_cache:
+   220                                                       self._contador_hits += 1
+   221                                                       return [list(c) for c in self._memo_cache[clave_estado]]
+   222                                           
+   223       294       1475.0      5.0      5.6          precio_actual = int(round(candidatos[indice].precio * 100))
+   224       294       1002.0      3.4      3.8          resultados: list[list[int]] = []
+   225                                           
+   226                                                   # Opción 1: Incluir el producto actual
+   227       294       1065.0      3.6      4.0          if precio_actual <= presupuesto_restante:
+   228       126        521.0      4.1      2.0              resultados.append([indice])
+   229       252        873.0      3.5      3.3              sub_combos = self._resolver_dp_memo(
+   230       126        481.0      3.8      1.8                  candidatos, indice + 1, presupuesto_restante - precio_actual, limite
+   231                                                       )
+   232       354       1890.0      5.3      7.2              for sc in sub_combos:
+   233       246       1140.0      4.6      4.3                  resultados.append([indice] + sc)
+   234       246        970.0      3.9      3.7                  if len(resultados) >= limite:
+   235        18         70.0      3.9      0.3                      break
+   236                                           
+   237                                                   # Opción 2: Excluir el producto actual
+   238       294       1179.0      4.0      4.5          if len(resultados) < limite:
+   239       552       1907.0      3.5      7.2              sub_combos_sin = self._resolver_dp_memo(
+   240       276        961.0      3.5      3.6                  candidatos, indice + 1, presupuesto_restante, limite
+   241                                                       )
+   242       501       1983.0      4.0      7.5              for sc in sub_combos_sin:
+   243       240        837.0      3.5      3.2                  resultados.append(sc)
+   244       240        929.0      3.9      3.5                  if len(resultados) >= limite:
+   245        15         55.0      3.7      0.2                      break
+   246                                           
+   247                                                   # Guardar en la tabla de memoización para reusar en subárboles convergentes
+   248       294       2325.0      7.9      8.8          self._memo_cache[clave_estado] = [list(c) for c in resultados]
+   249       294       1053.0      3.6      4.0          return resultados
+
+Total time: 0.151774 s
+File: C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\procesador_secuencial.py
+Function: procesar_pedidos_secuencial at line 19
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    19                                           def procesar_pedidos_secuencial(
+    20                                               catalogo,
+    21                                               pedidos: Sequence[Pedido],
+    22                                               descontar_stock: bool = False,
+    23                                               politica_descuento: str = "solo_cubiertos",
+    24                                           ) -> ResumenProcesamiento:
+    25                                               """Procesa una secuencia de pedidos de manera secuencial (mono-hilo).
+    26                                           
+    27                                               Para cada pedido:
+    28                                               1. Examina cada línea buscando el producto en el catálogo.
+    29                                               2. Determina el stock disponible frente a la demanda.
+    30                                               3. Clasifica el pedido como CUBIERTO, PARCIAL o IMPOSIBLE.
+    31                                               4. Si descontar_stock=True y cumple la política, descuenta el stock del catálogo.
+    32                                           
+    33                                               Complejidad temporal con CatalogoLineal:
+    34                                               O(P * M * N), donde P es la cantidad de pedidos, M la cantidad promedio de líneas
+    35                                               por pedido, y N el tamaño del catálogo (debido a la búsqueda lineal O(N) por línea).
+    36                                               """
+    37         2         33.0     16.5      0.0      inicio = time.perf_counter()
+    38                                           
+    39         2          9.0      4.5      0.0      resultados: list[ResultadoPedido] = []
+    40         2          8.0      4.0      0.0      cubiertos = 0
+    41         2          8.0      4.0      0.0      parciales = 0
+    42         2          8.0      4.0      0.0      imposibles = 0
+    43                                           
+    44       402       1522.0      3.8      0.1      for pedido in pedidos:
+    45       400       1639.0      4.1      0.1          lineas_cubiertas: list[ResultadoLinea] = []
+    46       400       1689.0      4.2      0.1          lineas_faltantes: list[ResultadoLinea] = []
+    47       400       1920.0      4.8      0.1          total_lineas = len(pedido.lineas)
+    48       400       1391.0      3.5      0.1          lineas_satisfechas_count = 0
+    49       400       1379.0      3.4      0.1          lineas_con_algo_asignado_count = 0
+    50                                           
+    51      1592       6438.0      4.0      0.4          for linea in pedido.lineas:
+    52      1192    1377390.0   1155.5     90.8              producto = catalogo.buscar_por_id(linea.id_producto)
+    53      1192       5021.0      4.2      0.3              stock_disp = producto.stock if producto is not None else 0
+    54                                           
+    55      1192       4608.0      3.9      0.3              if stock_disp >= linea.cantidad:
+    56      1142       4113.0      3.6      0.3                  asignada = linea.cantidad
+    57      1142       3935.0      3.4      0.3                  faltante = 0
+    58      1142       4537.0      4.0      0.3                  lineas_satisfechas_count += 1
+    59      1142       4172.0      3.7      0.3                  lineas_con_algo_asignado_count += 1
+    60        50        209.0      4.2      0.0              elif stock_disp > 0:
+    61        12         43.0      3.6      0.0                  asignada = stock_disp
+    62        12         61.0      5.1      0.0                  faltante = linea.cantidad - stock_disp
+    63        12         50.0      4.2      0.0                  lineas_con_algo_asignado_count += 1
+    64                                                       else:
+    65        38        136.0      3.6      0.0                  asignada = 0
+    66        38        138.0      3.6      0.0                  faltante = linea.cantidad
+    67                                           
+    68      2384      35391.0     14.8      2.3              res_linea = ResultadoLinea(
+    69      1192       4269.0      3.6      0.3                  id_producto=linea.id_producto,
+    70      1192       4255.0      3.6      0.3                  cantidad_solicitada=linea.cantidad,
+    71      1192       4168.0      3.5      0.3                  cantidad_asignada=asignada,
+    72      1192       3919.0      3.3      0.3                  faltante=faltante,
+    73                                                       )
+    74                                           
+    75      1192      12132.0     10.2      0.8              if res_linea.satisfecha_completamente:
+    76      1142       4750.0      4.2      0.3                  lineas_cubiertas.append(res_linea)
+    77                                                       else:
+    78        50        211.0      4.2      0.0                  lineas_faltantes.append(res_linea)
+    79                                           
+    80                                                   # Determinar estado del pedido
+    81       400       1650.0      4.1      0.1          if lineas_satisfechas_count == total_lineas:
+    82       352       1804.0      5.1      0.1              estado = EstadoPedido.CUBIERTO
+    83       352       1410.0      4.0      0.1              cubiertos += 1
+    84        48        180.0      3.8      0.0          elif lineas_con_algo_asignado_count == 0:
+    85                                                       estado = EstadoPedido.IMPOSIBLE
+    86                                                       imposibles += 1
+    87                                                   else:
+    88        48        376.0      7.8      0.0              estado = EstadoPedido.PARCIAL
+    89        48        183.0      3.8      0.0              parciales += 1
+    90                                           
+    91       800      12567.0     15.7      0.8          resultado_pedido = ResultadoPedido(
+    92       400       1478.0      3.7      0.1              id_pedido=pedido.id,
+    93       400       1805.0      4.5      0.1              estado=estado,
+    94       400       1403.0      3.5      0.1              lineas_cubiertas=lineas_cubiertas,
+    95       400       1392.0      3.5      0.1              lineas_faltantes=lineas_faltantes,
+    96                                                   )
+    97       400       1887.0      4.7      0.1          resultados.append(resultado_pedido)
+    98                                           
+    99                                                   # Aplicación de descuentos de stock si fue solicitado
+   100       400       1544.0      3.9      0.1          if descontar_stock:
+   101                                                       debe_descontar = (
+   102                                                           (politica_descuento == "solo_cubiertos" and estado == EstadoPedido.CUBIERTO)
+   103                                                           or (politica_descuento == "todo_lo_posible" and estado in (EstadoPedido.CUBIERTO, EstadoPedido.PARCIAL))
+   104                                                       )
+   105                                                       if debe_descontar:
+   106                                                           todas_lineas = lineas_cubiertas + lineas_faltantes
+   107                                                           for rl in todas_lineas:
+   108                                                               if rl.cantidad_asignada > 0:
+   109                                                                   catalogo.descontar_stock(rl.id_producto, rl.cantidad_asignada)
+   110                                           
+   111         2         79.0     39.5      0.0      tiempo_total_ms = (time.perf_counter() - inicio) * 1000.0
+   112                                           
+   113         4        330.0     82.5      0.0      return ResumenProcesamiento(
+   114         2         28.0     14.0      0.0          pedidos_procesados=len(pedidos),
+   115         2         14.0      7.0      0.0          pedidos_cubiertos=cubiertos,
+   116         2         11.0      5.5      0.0          pedidos_parciales=parciales,
+   117         2          8.0      4.0      0.0          pedidos_imposibles=imposibles,
+   118         2         12.0      6.0      0.0          tiempo_ejecucion_ms=tiempo_total_ms,
+   119         2         12.0      6.0      0.0          resultados=resultados,
+   120         2         10.0      5.0      0.0          estrategia="baseline_secuencial",
+   121                                               )
+

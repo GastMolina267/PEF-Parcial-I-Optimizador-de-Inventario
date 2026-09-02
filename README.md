@@ -322,5 +322,5 @@ El proyecto se construye de manera incremental y modular siguiendo las etapas es
 - [x] **Etapa 2 — Baseline y datos:** Modelos de dominio (`Producto`, `Pedido`), catálogo lineal ingenuo y datasets JSON versionados.
 - [x] **Etapa 3 — Motor optimizado:** Catálogo hash, `heapq` para top-N, programación dinámica con memoización, caché LRU reactiva y paralelismo con `ProcessPoolExecutor`.
 - [x] **Etapa 4 — Interfaz gráfica Flet:** Aplicación de escritorio con arquitectura por componentes, métricas integradas y tema accesible.
-- [ ] **Etapa 5 — Medición, análisis y tests:** Suite de scripts de perfilado, generación de la tabla comparativa y pruebas automatizadas de equivalencia.
+- [x] **Etapa 5 — Medición, análisis y tests:** Suite de scripts de perfilado, generación de la tabla comparativa y pruebas automatizadas de equivalencia.
 - [ ] **Etapa 6 — Automatizaciones Origin:** Configuración de triggers y agentes continuos de análisis asintótico y detección de hotspots.

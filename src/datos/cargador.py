@@ -101,6 +101,10 @@ def cargar_dataset_json(ruta: str | Path) -> tuple[list[Producto], list[Pedido]]
     return validar_dataset(contenido)
 
 
+# Alias de conveniencia
+cargar_dataset = cargar_dataset_json
+
+
 def guardar_dataset_json(
     ruta: str | Path,
     productos: list[Producto],

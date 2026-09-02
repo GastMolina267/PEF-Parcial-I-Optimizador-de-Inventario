@@ -75,6 +75,7 @@ class BuscadorAlternativas:
         producto_original: Producto | None = None,
         max_combinaciones: int = 15,
         usar_memoizacion: bool = True,
+        max_candidatos: int | None = None,
     ) -> ResultadoAlternativas:
         """Encuentra combinaciones de productos de la categoría que no superen el presupuesto.
 
@@ -85,6 +86,7 @@ class BuscadorAlternativas:
             max_combinaciones: Cota superior de combinaciones a retornar para presentación.
             usar_memoizacion: Si True, utiliza programación dinámica con memoización;
                              si False, ejecuta búsqueda recursiva exhaustiva.
+            max_candidatos: Límite de productos candidatos a evaluar (útil para benchmarking de O(2^N)).
         """
         inicio = time.perf_counter()
         self._contador_llamadas = 0
@@ -101,6 +103,13 @@ class BuscadorAlternativas:
 
         # Ordenar candidatos por precio para podas de ramas tempranas
         candidatos.sort(key=lambda p: p.precio)
+
+        # Si se especifica o si no se usa memoización, acotar a un conjunto seguro para evitar stack overflow
+        if max_candidatos is not None:
+            candidatos = candidatos[:max_candidatos]
+        elif not usar_memoizacion and len(candidatos) > 16:
+            candidatos = candidatos[:16]
+
         presupuesto_centavos = int(round(presupuesto_maximo * 100))
 
         if not candidatos or presupuesto_centavos <= 0:

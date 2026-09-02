@@ -1,8 +1,14 @@
 """Fachada unificada del Motor de Inventario y Pedidos.
 
-Provee la interfaz común de alto nivel que consumen tanto la interfaz gráfica Flet
-como los scripts de benchmarking y los tests automatizados.
-Permite alternar entre la estrategia baseline y la estrategia optimizada.
+Provee la interfaz común de alto nivel que consumen la interfaz gráfica Flet,
+los scripts de benchmarking y los tests automatizados.
+
+Permite alternar dinámicamente entre:
+- Estrategia 'baseline': Catálogo lineal O(n), ordenamiento completo O(n log n),
+  procesamiento secuencial y búsqueda de combinaciones puramente recursiva sin caché.
+- Estrategia 'optimizado': Catálogo hash O(1), min/max heaps O(n log k),
+  procesamiento paralelo con ProcessPoolExecutor, DP memoizada y Caching LRU inteligente con
+  invalidación reactiva.
 """
 
 from __future__ import annotations
@@ -11,8 +17,16 @@ from typing import Any, Sequence
 from src.modelos.producto import Producto
 from src.modelos.pedido import Pedido, ResumenProcesamiento
 from src.inventario.catalogo_lineal import CatalogoLineal
+from src.inventario.catalogo_hash import CatalogoHash
 from src.pedidos.procesador_secuencial import procesar_pedidos_secuencial
-from src.ranking.top_productos import calcular_top_solicitados_lineal
+from src.pedidos.procesador_concurrente import procesar_pedidos_concurrente
+from src.pedidos.agrupador import agrupar_pedidos_batch, LotePickingConsolidado
+from src.pedidos.combinaciones import BuscadorAlternativas, ResultadoAlternativas
+from src.ranking.top_productos import (
+    calcular_top_solicitados_heap,
+    calcular_top_solicitados_lineal,
+)
+from src.cache.cache_consultas import GestorCacheConsultas
 from src.datos.cargador import cargar_dataset_json
 
 
@@ -25,27 +39,31 @@ class MotorInventario:
         pedidos: Sequence[Pedido] | None = None,
         estrategia: str = "baseline",
     ) -> None:
-        """Inicializa el motor con una estrategia ('baseline' u 'optimizado').
-
-        En la Etapa 2, la estrategia disponible es 'baseline' (Catálogo Lineal O(n)).
-        En la Etapa 3 se integrará la estrategia 'optimizado' (Catálogo Hash O(1), Heaps, etc.).
-        """
+        """Inicializa el motor con una estrategia ('baseline' u 'optimizado')."""
         self._estrategia = estrategia.lower()
         self._pedidos: list[Pedido] = list(pedidos) if pedidos else []
+        self._cache = GestorCacheConsultas()
 
-        if self._estrategia == "baseline":
-            self._catalogo = CatalogoLineal(productos)
+        lista_inicial = list(productos) if productos else []
+        if self._estrategia == "optimizado":
+            self._catalogo = CatalogoHash(lista_inicial)
         else:
-            # Reservado para la Etapa 3
-            self._catalogo = CatalogoLineal(productos)
+            self._catalogo = CatalogoLineal(lista_inicial)
+
+        self._buscador_alternativas = BuscadorAlternativas(self._catalogo.obtener_todos())
 
     @property
     def estrategia(self) -> str:
-        """Estrategia algorítmica actualmente activa en el motor."""
+        """Estrategia algorítmica actualmente activa ('baseline' u 'optimizado')."""
         return self._estrategia
 
     @property
-    def catalogo(self) -> CatalogoLineal:
+    def es_optimizado(self) -> bool:
+        """Indica si la estrategia activa es la optimizada."""
+        return self._estrategia == "optimizado"
+
+    @property
+    def catalogo(self):
         """Acceso al catálogo de inventario activo."""
         return self._catalogo
 
@@ -54,83 +72,195 @@ class MotorInventario:
         """Lista de pedidos cargados en el motor."""
         return self._pedidos
 
+    @property
+    def cache(self) -> GestorCacheConsultas:
+        """Acceso al gestor de caché inteligente."""
+        return self._cache
+
+    def cambiar_estrategia(self, nueva_estrategia: str) -> None:
+        """Permite alternar entre 'baseline' y 'optimizado' conservando los datos cargados."""
+        estrategia_norm = nueva_estrategia.lower().strip()
+        if estrategia_norm not in ("baseline", "optimizado"):
+            raise ValueError(f"Estrategia inválida: '{nueva_estrategia}'. Debe ser 'baseline' u 'optimizado'.")
+
+        if self._estrategia == estrategia_norm:
+            return
+
+        self._estrategia = estrategia_norm
+        todos_prods = self._catalogo.obtener_todos()
+
+        if self._estrategia == "optimizado":
+            self._catalogo = CatalogoHash(todos_prods)
+        else:
+            self._catalogo = CatalogoLineal(todos_prods)
+
+        self._cache.invalidar_todo()
+        self._buscador_alternativas = BuscadorAlternativas(todos_prods)
+
     def cargar_dataset(self, ruta: str | Path) -> None:
-        """Carga un dataset JSON en el motor, reemplazando los productos y pedidos actuales."""
+        """Carga un dataset JSON en el motor reemplazando el estado actual."""
         productos, pedidos = cargar_dataset_json(ruta)
         self.cargar_desde_listas(productos, pedidos)
 
     def cargar_desde_listas(
         self, productos: Sequence[Producto], pedidos: Sequence[Pedido]
     ) -> None:
-        """Inicializa el motor directamente desde secuencias en memoria."""
+        """Carga datos directamente desde secuencias en memoria."""
         self._pedidos = list(pedidos)
-        if self._estrategia == "baseline":
-            self._catalogo = CatalogoLineal(productos)
+        lista_prods = list(productos)
+
+        if self._estrategia == "optimizado":
+            self._catalogo = CatalogoHash(lista_prods)
         else:
-            self._catalogo = CatalogoLineal(productos)
+            self._catalogo = CatalogoLineal(lista_prods)
+
+        self._cache.invalidar_todo()
+        self._buscador_alternativas = BuscadorAlternativas(lista_prods)
 
     def buscar_por_id(self, id_producto: int) -> Producto | None:
-        """Busca un producto por su identificador único."""
+        """Busca un producto por identificador (O(1) en optimizado, O(n) en baseline)."""
         return self._catalogo.buscar_por_id(id_producto)
 
-    def buscar_por_nombre(self, texto: str) -> list[Producto]:
-        """Busca productos por coincidencia parcial de texto en su denominación."""
-        return self._catalogo.buscar_por_nombre(texto)
+    def buscar_por_nombre(self, texto: str, usar_cache: bool = True) -> list[Producto]:
+        """Busca productos por denominación. Utiliza caché LRU si la estrategia es optimizada."""
+        if self.es_optimizado and usar_cache:
+            cacheado = self._cache.obtener_busqueda_nombre(texto)
+            if cacheado is not None:
+                return cacheado
 
-    def buscar_por_categoria(self, categoria: str) -> list[Producto]:
-        """Busca productos pertenecientes a una categoría."""
-        return self._catalogo.buscar_por_categoria(categoria)
+        resultados = self._catalogo.buscar_por_nombre(texto)
+
+        if self.es_optimizado and usar_cache:
+            self._cache.guardar_busqueda_nombre(texto, resultados)
+
+        return resultados
+
+    def buscar_por_categoria(self, categoria: str, usar_cache: bool = True) -> list[Producto]:
+        """Busca productos de una categoría (con o sin caché LRU)."""
+        if self.es_optimizado and usar_cache:
+            cacheado = self._cache.obtener_busqueda_categoria(categoria)
+            if cacheado is not None:
+                return cacheado
+
+        resultados = self._catalogo.buscar_por_categoria(categoria)
+
+        if self.es_optimizado and usar_cache:
+            self._cache.guardar_busqueda_categoria(categoria, resultados)
+
+        return resultados
 
     def procesar_pedidos(
         self,
         pedidos: Sequence[Pedido] | None = None,
+        concurrente: bool | None = None,
         descontar_stock: bool = False,
         politica_descuento: str = "solo_cubiertos",
     ) -> ResumenProcesamiento:
-        """Procesa un lote de pedidos frente al catálogo.
-
-        Argumentos:
-            pedidos: Lote de pedidos a preparar (si es None, usa los pedidos cargados en el motor).
-            descontar_stock: Si True, muta el inventario reduciendo las unidades asignadas.
-            politica_descuento: 'solo_cubiertos' (atómico) o 'todo_lo_posible'.
-        """
+        """Procesa un lote de pedidos según la estrategia configurada."""
         lote = pedidos if pedidos is not None else self._pedidos
-        # En la Etapa 2 ejecutamos el procesador secuencial baseline
-        return procesar_pedidos_secuencial(
-            catalogo=self._catalogo,
-            pedidos=lote,
-            descontar_stock=descontar_stock,
-            politica_descuento=politica_descuento,
-        )
+
+        # Decidir si procesar concurrente o secuencial
+        es_concurrente = concurrente if concurrente is not None else (self.es_optimizado and len(lote) >= 50)
+
+        if es_concurrente:
+            resumen = procesar_pedidos_concurrente(
+                catalogo=self._catalogo,
+                pedidos=lote,
+                descontar_stock=descontar_stock,
+                politica_descuento=politica_descuento,
+            )
+        else:
+            resumen = procesar_pedidos_secuencial(
+                catalogo=self._catalogo,
+                pedidos=lote,
+                descontar_stock=descontar_stock,
+                politica_descuento=politica_descuento,
+            )
+
+        # Si mutó stock, invalidamos reactivamente la caché de consultas y alternativas
+        if descontar_stock:
+            self._cache.invalidar_por_mutacion_stock()
+            self._cache.invalidar_por_nuevos_pedidos()
+            self._buscador_alternativas = BuscadorAlternativas(self._catalogo.obtener_todos())
+
+        return resumen
 
     def obtener_top_solicitados(
-        self, k: int = 10, pedidos: Sequence[Pedido] | None = None
+        self,
+        k: int = 10,
+        pedidos: Sequence[Pedido] | None = None,
+        usar_cache: bool = True,
     ) -> list[tuple[Producto, int]]:
-        """Determina los k productos con mayor demanda acumulada."""
+        """Determina los k productos más demandados.
+
+        Usa heapq.nlargest en 'optimizado' y sort completo en 'baseline'.
+        En 'optimizado' almacena y recupera de la caché LRU si usar_cache=True.
+        """
         lote = pedidos if pedidos is not None else self._pedidos
-        # En la Etapa 2 ejecutamos el algoritmo baseline (ordenamiento total)
-        return calcular_top_solicitados_lineal(
-            pedidos=lote, catalogo=self._catalogo, k=k
+
+        # Revisar caché si corresponde y el lote es el del motor
+        consulta_lote_motor = (pedidos is None) or (pedidos == self._pedidos)
+        if self.es_optimizado and usar_cache and consulta_lote_motor:
+            cacheado = self._cache.obtener_top_solicitados(k)
+            if cacheado is not None:
+                return cacheado
+
+        if self.es_optimizado:
+            resultados = calcular_top_solicitados_heap(lote, self._catalogo, k=k)
+        else:
+            resultados = calcular_top_solicitados_lineal(lote, self._catalogo, k=k)
+
+        if self.es_optimizado and usar_cache and consulta_lote_motor:
+            self._cache.guardar_top_solicitados(k, resultados)
+
+        return resultados
+
+    def agrupar_pedidos(
+        self, pedidos: Sequence[Pedido] | None = None
+    ) -> LotePickingConsolidado:
+        """Agrupa las líneas de los pedidos para Batch Picking consolidado."""
+        lote = pedidos if pedidos is not None else self._pedidos
+        return agrupar_pedidos_batch(lote, self._catalogo)
+
+    def buscar_alternativas(
+        self,
+        categoria: str,
+        presupuesto_maximo: float,
+        producto_original: Producto | None = None,
+        max_combinaciones: int = 15,
+        forzar_memoizacion: bool | None = None,
+    ) -> ResultadoAlternativas:
+        """Calcula alternativas y combinaciones para productos agotados o pedidos parciales."""
+        usar_memo = forzar_memoizacion if forzar_memoizacion is not None else self.es_optimizado
+        return self._buscador_alternativas.buscar_alternativas(
+            categoria=categoria,
+            presupuesto_maximo=presupuesto_maximo,
+            producto_original=producto_original,
+            max_combinaciones=max_combinaciones,
+            usar_memoizacion=usar_memo,
         )
 
     def obtener_estadisticas(self) -> dict[str, Any]:
-        """Calcula métricas globales descriptivas del estado actual del almacén."""
+        """Retorna estadísticas descriptivas del estado del sistema y de la caché."""
         prods = self._catalogo.obtener_todos()
         stock_total = sum(p.stock for p in prods)
         categorias = sorted({p.categoria for p in prods})
+        total_lineas = sum(len(p.lineas) for p in self._pedidos)
+        unidades_demandadas = sum(l.cantidad for p in self._pedidos for l in p.lineas)
 
-        total_lineas_pedidos = sum(len(p.lineas) for p in self._pedidos)
-        unidades_demandadas = sum(
-            linea.cantidad for p in self._pedidos for linea in p.lineas
-        )
-
-        return {
+        stats: dict[str, Any] = {
             "estrategia": self._estrategia,
+            "tipo_catalogo": type(self._catalogo).__name__,
             "total_productos": len(prods),
             "stock_total_unidades": stock_total,
             "total_categorias": len(categorias),
             "categorias": categorias,
             "total_pedidos": len(self._pedidos),
-            "total_lineas_pedidos": total_lineas_pedidos,
+            "total_lineas_pedidos": total_lineas,
             "unidades_demandadas": unidades_demandadas,
         }
+
+        if self.es_optimizado:
+            stats["metricas_cache"] = self._cache.obtener_estadisticas()
+
+        return stats

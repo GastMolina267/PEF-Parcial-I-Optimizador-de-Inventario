@@ -1,0 +1,181 @@
+"""Procesador concurrente de pedidos con multiprocessing (ProcessPoolExecutor).
+
+Justificación técnica académica:
+1. Qué tareas se ejecutan simultáneamente:
+   La evaluación de factibilidad y cálculo de disponibilidad de lotes de pedidos independientes.
+2. Por qué son independientes:
+   Cada pedido analiza su propia canasta de ítems frente a una instantánea del inventario.
+3. Qué mecanismo utiliza el lenguaje:
+   `concurrent.futures.ProcessPoolExecutor` (procesos separados). Dado que la validación
+   y cálculo de líneas es una tarea CPU-bound, los hilos de `threading` colisionarían con
+   el Global Interpreter Lock (GIL) de Python, impidiendo el paralelismo multinúcleo real.
+4. Riesgos y Trade-offs:
+   - Costo de IPC (Inter-Process Communication) y serialización (pickle) de datos entre procesos.
+   - Con lotes pequeños (p. ej. N < 50), el overhead de inicialización de los procesos hace que
+     la ejecución secuencial sea más rápida (el paralelismo no paga).
+   - Con lotes medianos/grandes, el paralelismo escala eficientemente aprovechando todos los núcleos.
+   - Para evitar condiciones de carrera sin bloqueos lentos, la evaluación de disponibilidad se
+     realiza en paralelo y la consolidación de descuento de stock se aplica de forma atómica
+     en el proceso principal.
+"""
+
+from __future__ import annotations
+import os
+import time
+from concurrent.futures import ProcessPoolExecutor
+from typing import Sequence
+from src.modelos.pedido import (
+    EstadoPedido,
+    Pedido,
+    ResultadoLinea,
+    ResultadoPedido,
+    ResumenProcesamiento,
+)
+
+
+def _evaluar_fragmento_pedidos(
+    fragmento: list[Pedido],
+    mapa_stock: dict[int, int],
+) -> list[ResultadoPedido]:
+    """Función de nivel de módulo para ser serializable (pickleable) por ProcessPoolExecutor en Windows.
+
+    Evalúa un subconjunto de pedidos contra un mapa estático de stock {id_producto: stock}.
+    """
+    resultados_fragmento: list[ResultadoPedido] = []
+
+    for pedido in fragmento:
+        lineas_cubiertas: list[ResultadoLinea] = []
+        lineas_faltantes: list[ResultadoLinea] = []
+        total_lineas = len(pedido.lineas)
+        lineas_satisfechas_count = 0
+        lineas_con_algo_asignado_count = 0
+
+        for linea in pedido.lineas:
+            stock_disp = mapa_stock.get(linea.id_producto, 0)
+
+            if stock_disp >= linea.cantidad:
+                asignada = linea.cantidad
+                faltante = 0
+                lineas_satisfechas_count += 1
+                lineas_con_algo_asignado_count += 1
+            elif stock_disp > 0:
+                asignada = stock_disp
+                faltante = linea.cantidad - stock_disp
+                lineas_con_algo_asignado_count += 1
+            else:
+                asignada = 0
+                faltante = linea.cantidad
+
+            res_linea = ResultadoLinea(
+                id_producto=linea.id_producto,
+                cantidad_solicitada=linea.cantidad,
+                cantidad_asignada=asignada,
+                faltante=faltante,
+            )
+
+            if res_linea.satisfecha_completamente:
+                lineas_cubiertas.append(res_linea)
+            else:
+                lineas_faltantes.append(res_linea)
+
+        if lineas_satisfechas_count == total_lineas:
+            estado = EstadoPedido.CUBIERTO
+        elif lineas_con_algo_asignado_count == 0:
+            estado = EstadoPedido.IMPOSIBLE
+        else:
+            estado = EstadoPedido.PARCIAL
+
+        resultados_fragmento.append(
+            ResultadoPedido(
+                id_pedido=pedido.id,
+                estado=estado,
+                lineas_cubiertas=lineas_cubiertas,
+                lineas_faltantes=lineas_faltantes,
+            )
+        )
+
+    return resultados_fragmento
+
+
+def procesar_pedidos_concurrente(
+    catalogo,
+    pedidos: Sequence[Pedido],
+    max_workers: int | None = None,
+    descontar_stock: bool = False,
+    politica_descuento: str = "solo_cubiertos",
+) -> ResumenProcesamiento:
+    """Procesa un lote de pedidos en paralelo utilizando un pool de procesos independientes.
+
+    Argumentos:
+        catalogo: Catálogo de productos (CatalogoHash o CatalogoLineal).
+        pedidos: Secuencia de pedidos a procesar.
+        max_workers: Cantidad de procesos trabajadores en paralelo (por defecto: CPU cores disponibles).
+        descontar_stock: Si True, muta el stock en el catálogo una vez finalizado el cálculo paralelo.
+        politica_descuento: 'solo_cubiertos' o 'todo_lo_posible'.
+    """
+    inicio = time.perf_counter()
+
+    if not pedidos:
+        return ResumenProcesamiento(
+            pedidos_procesados=0,
+            pedidos_cubiertos=0,
+            pedidos_parciales=0,
+            pedidos_imposibles=0,
+            tiempo_ejecucion_ms=0.0,
+            resultados=[],
+            estrategia="optimizado_concurrente",
+        )
+
+    # 1. Crear snapshot ligero de stock {id_producto: stock} para transmisión IPC eficiente
+    mapa_stock = {p.id: p.stock for p in catalogo.obtener_todos()}
+
+    # 2. Determinar cantidad de procesos y tamaño de fragmento (chunk size)
+    workers = max_workers or min(os.cpu_count() or 4, len(pedidos))
+    tamano_chunk = max(1, (len(pedidos) + workers - 1) // workers)
+    fragmentos = [
+        list(pedidos[i : i + tamano_chunk])
+        for i in range(0, len(pedidos), tamano_chunk)
+    ]
+
+    # 3. Despachar a los procesos de trabajo
+    todos_resultados: list[ResultadoPedido] = []
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futuros = [
+            executor.submit(_evaluar_fragmento_pedidos, frag, mapa_stock)
+            for frag in fragmentos
+        ]
+        for f in futuros:
+            todos_resultados.extend(f.result())
+
+    # Asegurar el orden original de los pedidos
+    mapa_posicion_original = {p.id: idx for idx, p in enumerate(pedidos)}
+    todos_resultados.sort(key=lambda r: mapa_posicion_original.get(r.id_pedido, 0))
+
+    # 4. Totalizar métricas de resolución
+    cubiertos = sum(1 for r in todos_resultados if r.estado == EstadoPedido.CUBIERTO)
+    parciales = sum(1 for r in todos_resultados if r.estado == EstadoPedido.PARCIAL)
+    imposibles = sum(1 for r in todos_resultados if r.estado == EstadoPedido.IMPOSIBLE)
+
+    # 5. Aplicar descuentos atómicos en el proceso principal si fue solicitado
+    if descontar_stock:
+        for res_pedido in todos_resultados:
+            debe_descontar = (
+                (politica_descuento == "solo_cubiertos" and res_pedido.estado == EstadoPedido.CUBIERTO)
+                or (politica_descuento == "todo_lo_posible" and res_pedido.estado in (EstadoPedido.CUBIERTO, EstadoPedido.PARCIAL))
+            )
+            if debe_descontar:
+                for rl in (res_pedido.lineas_cubiertas + res_pedido.lineas_faltantes):
+                    if rl.cantidad_asignada > 0:
+                        catalogo.descontar_stock(rl.id_producto, rl.cantidad_asignada)
+
+    tiempo_total_ms = (time.perf_counter() - inicio) * 1000.0
+
+    return ResumenProcesamiento(
+        pedidos_procesados=len(pedidos),
+        pedidos_cubiertos=cubiertos,
+        pedidos_parciales=parciales,
+        pedidos_imposibles=imposibles,
+        tiempo_ejecucion_ms=tiempo_total_ms,
+        resultados=todos_resultados,
+        estrategia="optimizado_concurrente",
+    )

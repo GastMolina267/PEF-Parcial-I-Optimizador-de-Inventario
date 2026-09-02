@@ -319,7 +319,7 @@ El repositorio incorpora dos automatizaciones mediante agentes en la nube (Curso
 El proyecto se construye de manera incremental y modular siguiendo las etapas estipuladas en [docs/project-planning.md](docs/project-planning.md):
 
 - [x] **Etapa 1 — Alcance y documentación:** Redefinición integral del contrato del proyecto y especificación técnica en `README.md`.
-- [ ] **Etapa 2 — Baseline y datos:** Modelos de dominio (`Producto`, `Pedido`), catálogo lineal ingenuo y datasets JSON versionados.
+- [x] **Etapa 2 — Baseline y datos:** Modelos de dominio (`Producto`, `Pedido`), catálogo lineal ingenuo y datasets JSON versionados.
 - [ ] **Etapa 3 — Motor optimizado:** Catálogo hash, `heapq` para top-N, programación dinámica con memoización, caché LRU reactiva y paralelismo con `ProcessPoolExecutor`.
 - [ ] **Etapa 4 — Interfaz gráfica Flet:** Aplicación de escritorio con arquitectura por componentes, métricas integradas y tema accesible.
 - [ ] **Etapa 5 — Medición, análisis y tests:** Suite de scripts de perfilado, generación de la tabla comparativa y pruebas automatizadas de equivalencia.

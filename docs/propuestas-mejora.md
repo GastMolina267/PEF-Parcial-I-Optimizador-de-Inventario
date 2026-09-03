@@ -3,7 +3,7 @@
 <!-- Bloque generado por la automatización de hotspots. -->
 <!-- No aplicar estos cambios de forma automática: el grupo decide y vuelve a medir. -->
 
-**Commit analizado:** `f794246` · **Generado:** 2026-09-03 00:07 UTC
+**Commit analizado:** `1727c19` · **Generado:** 2026-09-03 19:17 UTC
 
 ## Fuentes consultadas
 
@@ -25,28 +25,30 @@
 | cProfile | `{method 'dump' of '_pickle.Pickler' objects}` | tottime_s | 0.035 | cumtime=0.038s (runtime / IPC) |
 | cProfile | `C:/Users/edgar/OneDrive/Escritorio/UBP/PEF/Parcial I/src/modelos/producto.py:26(__post_init__)` | tottime_s | 0.028 | cumtime=0.042s |
 | cProfile | `C:/Users/edgar/OneDrive/Escritorio/UBP/PEF/Parcial I/src/pedidos/agrupador.py:70(agrupar_pedidos_batch)` | tottime_s | 0.02 | cumtime=0.030s |
-| cProfile | `C:/Users/edgar/OneDrive/Escritorio/UBP/PEF/Parcial I/src/modelos/producto.py:53(desde_diccionario)` | tottime_s | 0.019 | cumtime=0.064s |
-| cProfile | `C:/Users/edgar/OneDrive/Escritorio/UBP/PEF/Parcial I/src/inventario/catalogo_hash.py:48(agregar)` | tottime_s | 0.017 | cumtime=0.129s |
-| cProfile | `C:/Users/edgar/OneDrive/Escritorio/UBP/PEF/Parcial I/src/datos/cargador.py:11(validar_dataset)` | tottime_s | 0.015 | cumtime=0.106s |
-| cProfile | `{built-in method _pickle.loads}` | tottime_s | 0.012 | cumtime=0.012s (runtime / IPC) |
 | line_profiler | `CatalogoHash.buscar_por_id:74` | pct_tiempo | 100.0 | return self._productos_por_id.get(id_producto) |
 | line_profiler | `procesar_pedidos_secuencial:52` | pct_tiempo | 90.8 | producto = catalogo.buscar_por_id(linea.id_producto) |
 | line_profiler | `CatalogoLineal.buscar_por_nombre:57` | pct_tiempo | 62.6 | if texto_norm in producto.nombre.lower(): |
 | line_profiler | `CatalogoLineal.buscar_por_id:45` | pct_tiempo | 50.4 | if producto.id == id_producto: |
-| line_profiler | `CatalogoLineal.buscar_por_id:44` | pct_tiempo | 49.3 | for producto in self._productos: |
-| line_profiler | `calcular_top_solicitados_heap:87` | pct_tiempo | 43.1 | top_k_items = heapq.nlargest( |
-| line_profiler | `CatalogoLineal.buscar_por_nombre:56` | pct_tiempo | 36.5 | for producto in self._productos: |
-| line_profiler | `calcular_top_solicitados_lineal:51` | pct_tiempo | 31.8 | prod = catalogo.buscar_por_id(id_prod) |
+| tabla_comparativa | `demo_oral.json / **Ranking Top-N (k=5)**` | speedup | 0.67 | base=0.044 ms · opt=0.066 ms |
+| tabla_comparativa | `demo_oral.json / **Batch Picking Consolidado**` | speedup | 0.19 | base=0.029 ms · opt=0.151 ms |
+| tabla_comparativa | `demo_oral.json / **Combinaciones Sustitutas**` | speedup | 0.74 | base=0.291 ms · opt=0.393 ms |
+| tabla_comparativa | `demo_oral.json / **Preparación de Pedidos**` | speedup | 0.01 | base=0.093 ms · opt=7.608 ms |
+| tabla_comparativa | `pequeno.json / **Ranking Top-N (k=5)**` | speedup | 0.61 | base=0.104 ms · opt=0.171 ms |
+| tabla_comparativa | `pequeno.json / **Batch Picking Consolidado**` | speedup | 0.07 | base=0.081 ms · opt=1.081 ms |
+| tabla_comparativa | `pequeno.json / **Combinaciones Sustitutas**` | speedup | 0.68 | base=0.911 ms · opt=1.348 ms |
+| tabla_comparativa | `pequeno.json / **Preparación de Pedidos**` | speedup | 0.03 | base=0.220 ms · opt=6.592 ms |
+| memory_profiler | `demo_oral.json / - Catálogo Lineal (Lista): Actual = 0.77` | pico_kb | 0.77 | - Catálogo Lineal (Lista): Actual = 0.77 KB \| Pico = 0.77 KB |
+| memory_profiler | `demo_oral.json / - Catálogo Hash (Diccionarios + Índices)` | pico_kb | 33.03 | - Catálogo Hash (Diccionarios + Índices): Actual = 32.57 KB \| Pico = 33.03 KB |
 
 ## Propuestas (no aplicadas)
 
 ### 1. Reducir el overhead de IPC del pool de procesos
 
 - **Prioridad:** alta
-- **Hotspot:** `_winapi.CreateProcess` / `WaitForSingleObject` / `pickle.dumps` dominan tottime en cProfile (mediano y grande).
-- **Evidencia:** docs/mediciones/cprofile_resumen.txt — tottime de CreateProcess 0.364 s (mediano) y 0.167 s (grande); pickle.dumps aparece en el top.
-- **Alternativa:** 1) Umbral de break-even: si P < ~200 pedidos, forzar el procesador secuencial. 2) Reusar un pool persistente en vez de abrir/cerrar `ProcessPoolExecutor` por corrida. 3) Sustituir el pickle del snapshot por `multiprocessing.shared_memory` o un array de enteros (id → stock) para no serializar objetos `Pedido`.
-- **Trade-off (tiempo / memoria / claridad):** Menos latencia de arranque a costa de más complejidad y, en shared_memory, de perder la API de objetos. Medir de nuevo con py-spy sobre el pool.
+- **Hotspot:** `_winapi.CreateProcess` / `WaitForSingleObject` / `pickle.dumps` dominan tottime en cProfile; la tabla aislada muestra speedup < 1× incluso en `grande.json`.
+- **Evidencia:** docs/mediciones/cprofile_resumen.txt (CreateProcess 0.364 s / 0.167 s) y docs/mediciones/tabla_comparativa.md (fila Preparación, mismo CatalogoHash). Tras aislar CatalogoHash, `grande.json / **Preparación de Pedidos**` sigue en speedup 0.29× (base=21.275 ms · opt=73.583 ms). El 1.95× previo mezclaba búsqueda O(n) con el pool.
+- **Alternativa:** 1) Por defecto procesar en secuencial. 2) Activar ProcessPool solo si el trabajo por pedido es pesado (p. ej. DP de combinaciones) o P es claramente mayor a 2.000. El umbral «P < 200» queda corto: con catálogo O(1), 2.000 pedidos (~21 ms) no cubren el IPC. 3) Pool persistente o `shared_memory` si se insiste en paralelizar.
+- **Trade-off (tiempo / memoria / claridad):** Menos latencia de arranque a costa de más ramas de código. En la oral conviene mostrar este negativo: no toda concurrencia escala.
 - **¿Ya cubierta por el motor actual?** No — queda a decisión del grupo
 
 ### 2. No usar el catálogo lineal fuera del desafío experimental
@@ -61,9 +63,9 @@
 ### 3. No pagar concurrencia ni heap en escalas donde no ganan
 
 - **Prioridad:** alta
-- **Hotspot:** Speedup < 1× en: demo_oral.json / **Ranking Top-N (k=5)**, demo_oral.json / **Batch Picking Consolidado**, demo_oral.json / **Combinaciones Sustitutas**, demo_oral.json / **Preparación de Pedidos**
-- **Evidencia:** docs/mediciones/tabla_comparativa.md — demo_oral y pequeno muestran ProcessPool ~400 ms vs <1 ms secuencial; top-N heap a veces pierde por la constante de `heapq` cuando N es chico.
-- **Alternativa:** Selector automático de estrategia: heap solo si N > 50 o k/N < 0.1; pool de procesos solo si P · L supera un umbral medido. Documentar el umbral en la oral.
+- **Hotspot:** Speedup < 1× en: demo_oral.json / **Ranking Top-N (k=5)**, demo_oral.json / **Batch Picking Consolidado**, demo_oral.json / **Combinaciones Sustitutas**, demo_oral.json / **Preparación de Pedidos**, pequeno.json / **Ranking Top-N (k=5)**, pequeno.json / **Batch Picking Consolidado**
+- **Evidencia:** docs/mediciones/tabla_comparativa.md — demo_oral.json / **Ranking Top-N (k=5)** 0.67× (base=0.044 ms · opt=0.066 ms); demo_oral.json / **Batch Picking Consolidado** 0.19× (base=0.029 ms · opt=0.151 ms); demo_oral.json / **Combinaciones Sustitutas** 0.74× (base=0.291 ms · opt=0.393 ms); demo_oral.json / **Preparación de Pedidos** 0.01× (base=0.093 ms · opt=7.608 ms)
+- **Alternativa:** Selector automático: heap solo si N > 50 o k/N < 0.1; pool de procesos solo si el trabajo por pedido no es un lookup O(1). Documentar el umbral real (hoy el pool pierde hasta grande.json) en la oral.
 - **Trade-off (tiempo / memoria / claridad):** Más ramas de código frente a una regla simple (optimizado siempre). La claridad de la demo oral puede sufrir si el selector oculta el contraste.
 - **¿Ya cubierta por el motor actual?** No — queda a decisión del grupo
 

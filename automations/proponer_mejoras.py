@@ -233,6 +233,22 @@ def recoger_hotspots(raiz: Path) -> list[EntradaPerfil]:
     return _deduplicar(hotspots)
 
 
+def _hotspots_para_informe(hotspots: list[EntradaPerfil]) -> list[EntradaPerfil]:
+    """Mezcla profilers y tabla: si solo se listan los 20 tottime, se ocultan los speedup < 1×."""
+    por_origen: dict[str, list[EntradaPerfil]] = {}
+    for h in hotspots:
+        por_origen.setdefault(h.origen, []).append(h)
+    elegido: list[EntradaPerfil] = []
+    for origen, cupo in (
+        ("cProfile", 8),
+        ("line_profiler", 4),
+        ("tabla_comparativa", 8),
+        ("memory_profiler", 2),
+    ):
+        elegido.extend(por_origen.get(origen, [])[:cupo])
+    return elegido
+
+
 def analisis_estatico_si_faltan_informes(raiz: Path) -> list[str]:
     """Señala bucles anidados y búsquedas lineales cuando no hay profilers."""
     avisos: list[str] = []
@@ -261,22 +277,36 @@ def construir_propuestas(raiz: Path, hotspots: list[EntradaPerfil]) -> list[Prop
     propuestas: list[PropuestaMejora] = []
     textos = " ".join(f"{h.simbolo} {h.detalle}" for h in hotspots)
 
-    if "CreateProcess" in textos or "WaitForSingleObject" in textos or "pickle" in textos.lower():
+    speedups_bajos = [h for h in hotspots if h.origen == "tabla_comparativa" and h.valor < 1.0]
+    prep = [h for h in speedups_bajos if "Preparación" in h.simbolo]
+    prep_grande = next((h for h in prep if "grande.json" in h.simbolo), None)
+
+    if "CreateProcess" in textos or "WaitForSingleObject" in textos or "pickle" in textos.lower() or prep:
+        detalle_tabla = ""
+        if prep_grande:
+            detalle_tabla = (
+                f" Tras aislar CatalogoHash, `{prep_grande.simbolo}` sigue en "
+                f"speedup {prep_grande.valor:.2f}× ({prep_grande.detalle}). "
+                "El 1.95× previo mezclaba búsqueda O(n) con el pool."
+            )
+        elif prep:
+            detalle_tabla = " " + "; ".join(f"{h.simbolo} {h.valor:.2f}×" for h in prep[:4])
         propuestas.append(
             PropuestaMejora(
                 titulo="Reducir el overhead de IPC del pool de procesos",
                 hotspot="`_winapi.CreateProcess` / `WaitForSingleObject` / `pickle.dumps` "
-                "dominan tottime en cProfile (mediano y grande).",
-                evidencia="docs/mediciones/cprofile_resumen.txt — tottime de CreateProcess "
-                "0.364 s (mediano) y 0.167 s (grande); pickle.dumps aparece en el top.",
-                alternativa="1) Umbral de break-even: si P < ~200 pedidos, forzar el "
-                "procesador secuencial. 2) Reusar un pool persistente en vez de "
-                "abrir/cerrar `ProcessPoolExecutor` por corrida. 3) Sustituir el "
-                "pickle del snapshot por `multiprocessing.shared_memory` o un array "
-                "de enteros (id → stock) para no serializar objetos `Pedido`.",
-                trade_off="Menos latencia de arranque a costa de más complejidad y, "
-                "en shared_memory, de perder la API de objetos. Medir de nuevo con "
-                "py-spy sobre el pool.",
+                "dominan tottime en cProfile; la tabla aislada muestra speedup < 1× "
+                "incluso en `grande.json`.",
+                evidencia="docs/mediciones/cprofile_resumen.txt (CreateProcess 0.364 s / 0.167 s) "
+                "y docs/mediciones/tabla_comparativa.md (fila Preparación, mismo CatalogoHash)."
+                + detalle_tabla,
+                alternativa="1) Por defecto procesar en secuencial. 2) Activar ProcessPool "
+                "solo si el trabajo por pedido es pesado (p. ej. DP de combinaciones) o "
+                "P es claramente mayor a 2.000. El umbral «P < 200» queda corto: con "
+                "catálogo O(1), 2.000 pedidos (~21 ms) no cubren el IPC. 3) Pool "
+                "persistente o `shared_memory` si se insiste en paralelizar.",
+                trade_off="Menos latencia de arranque a costa de más ramas de código. "
+                "En la oral conviene mostrar este negativo: no toda concurrencia escala.",
                 ya_cubierta=False,
                 prioridad="alta",
             )
@@ -299,19 +329,19 @@ def construir_propuestas(raiz: Path, hotspots: list[EntradaPerfil]) -> list[Prop
             )
         )
 
-    speedups_bajos = [h for h in hotspots if h.origen == "tabla_comparativa" and h.valor < 1.0]
     if speedups_bajos:
-        ejemplos = ", ".join(h.simbolo for h in speedups_bajos[:4])
+        ejemplos = ", ".join(h.simbolo for h in speedups_bajos[:6])
+        muestras = "; ".join(
+            f"{h.simbolo} {h.valor:.2f}× ({h.detalle})" for h in speedups_bajos[:4]
+        )
         propuestas.append(
             PropuestaMejora(
                 titulo="No pagar concurrencia ni heap en escalas donde no ganan",
                 hotspot=f"Speedup < 1× en: {ejemplos}",
-                evidencia="docs/mediciones/tabla_comparativa.md — demo_oral y pequeno "
-                "muestran ProcessPool ~400 ms vs <1 ms secuencial; top-N heap a veces "
-                "pierde por la constante de `heapq` cuando N es chico.",
-                alternativa="Selector automático de estrategia: heap solo si N > 50 o "
-                "k/N < 0.1; pool de procesos solo si P · L supera un umbral medido. "
-                "Documentar el umbral en la oral.",
+                evidencia="docs/mediciones/tabla_comparativa.md — " + muestras,
+                alternativa="Selector automático: heap solo si N > 50 o k/N < 0.1; "
+                "pool de procesos solo si el trabajo por pedido no es un lookup O(1). "
+                "Documentar el umbral real (hoy el pool pierde hasta grande.json) en la oral.",
                 trade_off="Más ramas de código frente a una regla simple "
                 "(optimizado siempre). La claridad de la demo oral puede sufrir si "
                 "el selector oculta el contraste.",
@@ -404,7 +434,7 @@ def renderizar_markdown(
     if hotspots:
         lineas.append("| Origen | Símbolo | Métrica | Valor | Detalle |")
         lineas.append("|---|---|---|---:|---|")
-        for h in hotspots[:20]:
+        for h in _hotspots_para_informe(hotspots):
             detalle = h.detalle.replace("|", "\\|")[:140]
             lineas.append(
                 f"| {h.origen} | `{h.simbolo}` | {h.metrica} | {h.valor} | {detalle} |"

@@ -262,3 +262,161 @@ El informe en `docs/mediciones/memoria_resumen.txt` certifica los trade-offs esp
    Sí: la búsqueda hash permanece en $O(1)$, el batch picking en $O(L)$, y el Top-N en $O(N \log k)$. La única limitación es el consumo de memoria del índice invertido, que escalaría de 5 MB a ~50 MB, perfectamente manejable en RAM moderna.
 4. **¿Qué trade-offs se asumieron y qué se haría diferente?**  
    Se asumió un trade-off clásico de **tiempo por memoria**: se invirtieron ~5 MB adicionales en índices hash para eliminar los bucles $O(n)$. Para futuras iteraciones, en datasets masivos se reemplazaría la serialización de procesos de `ProcessPoolExecutor` por memoria compartida (`multiprocessing.shared_memory`) para erradicar el overhead de IPC.
+
+## 9. Refresco automático de complejidad (Origin)
+
+Esta sección la regenera la **Automatización 1** en cada push. El análisis formal del grupo está en las secciones 2 a 5; este bloque solo refleja el recorrido AST del commit actual.
+
+<!-- ORIGIN-AUTO-COMPLEJIDAD:INICIO -->
+
+<!-- Bloque generado por la automatización Origin 1 (análisis de complejidad). -->
+<!-- No editar a mano: se regenera con `python -m automations.ejecutar --complejidad`. -->
+<!-- El comentario del grupo (secciones 1-8) permanece intacto por encima de este bloque. -->
+
+**Commit analizado:** `f794246` · **Generado:** 2026-09-03 00:07 UTC
+
+Criterio: se recorrió el AST de cada función fundamental. Las cotas salen de
+bucles, accesos hash, recursión, `heapq`, memoización y `ProcessPoolExecutor`
+observados en el cuerpo. No se analizan UI Flet, tests ni wrappers.
+
+| Operación | Función | Mejor | Promedio | Peor | Espacio | Evidencia AST |
+|---|---|:---:|:---:|:---:|:---:|---|
+| Búsqueda por identificador (baseline) | `CatalogoLineal.buscar_por_id` (L39–47) | Ω(1) | Θ(n) | O(n) | O(1) aux. | bucles×1 |
+| Búsqueda por nombre (baseline) | `CatalogoLineal.buscar_por_nombre` (L49–59) | Ω(n · m) | Θ(n · m) | O(n · m) | O(k) aux. | bucles×1 |
+| Alta de producto (baseline) | `CatalogoLineal.agregar` (L27–37) | Ω(n) | Θ(n) | O(n) | O(1) aux. | bucles×1 |
+| Búsqueda por identificador (optimizado) | `CatalogoHash.buscar_por_id` (L69–74) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
+| Búsqueda por nombre (optimizado) | `CatalogoHash.buscar_por_nombre` (L76–114) | Ω(1) | Θ(k) | O(n) (fallback lineal) | O(k) aux. | bucles×1, hash |
+| Alta de producto (optimizado) | `CatalogoHash.agregar` (L48–67) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
+| Agrupación / batch picking | `agrupar_pedidos_batch` (L70–117) | Ω(L) | Θ(L + U) | O(L + U log U) | O(U) | bucles×2, hash, sorted, buscar_por_id |
+| Top-N más solicitados (baseline) | `calcular_top_solicitados_lineal` (L15–55) | Ω(L + N) | Θ(L + N log N) | O(L + N log N) | O(N) | bucles×2, hash, sorted, buscar_por_id |
+| Top-N más solicitados (optimizado) | `calcular_top_solicitados_heap` (L58–99) | Ω(L + N) | Θ(L + N log k) | O(L + N log k) | O(N + k) | bucles×2, hash, heapq, buscar_por_id |
+| Combinaciones sustitutas (baseline) | `BuscadorAlternativas._resolver_recursivo_puro` (L163–202) | Ω(N) | Θ(2^N) | O(2^N) | O(N) (pila de llamadas) | bucles×1, recursión |
+| Combinaciones sustitutas (optimizado) | `BuscadorAlternativas._resolver_dp_memo` (L204–249) | Ω(1) (hit de memo) | Θ(N · P) | O(N · P) | O(N · P) (tabla de estados) | bucles×1, hash, recursión, memo |
+| Preparación de pedidos (secuencial) | `procesar_pedidos_secuencial` (L19–121) | Ω(P · L) | Θ(P · L · T_búsqueda) | O(P · L · T_búsqueda) | O(P · L) | bucles×2, buscar_por_id |
+| Preparación de pedidos (concurrente) | `procesar_pedidos_concurrente` (L100–181) | O(P · L) | O((P · L)/C + C_IPC) | O(P · L + C_IPC) | O(P · L + C · chunk) | bucles×2, hash, sorted, ProcessPool |
+| Consulta de caché LRU | `CacheLRU.obtener` (L61–68) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
+| Escritura de caché LRU | `CacheLRU.guardar` (L70–78) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
+| Invalidación reactiva por stock | `GestorCacheConsultas.invalidar_por_mutacion_stock` (L131–137) | Ω(1) | Θ(1) | O(1) | O(1) | cuerpo trivial |
+
+### Derivación por función (automática)
+
+#### `CatalogoLineal.buscar_por_id`
+
+- **Archivo:** `src/inventario/catalogo_lineal.py` líneas 39–47
+- **Técnica:** Recorrido lineal sobre lista
+- **Cotas:** mejor Ω(1) · promedio Θ(n) · peor O(n)
+- **Justificación (del cuerpo, no inventada):** El AST muestra un `for` sobre `self._productos` (profundidad 1) y no hay tabla hash de ids. Cada consulta compara contra hasta n productos. Comentario del grupo (docstring): O(n) en el peor y caso promedio. O(1) si está al inicio.
+
+#### `CatalogoLineal.buscar_por_nombre`
+
+- **Archivo:** `src/inventario/catalogo_lineal.py` líneas 49–59
+- **Técnica:** Recorrido lineal + subcadena
+- **Cotas:** mejor Ω(n · m) · promedio Θ(n · m) · peor O(n · m)
+- **Justificación (del cuerpo, no inventada):** El AST muestra un `for` sobre `self._productos` (profundidad 1) y no hay tabla hash de ids. Cada consulta compara contra hasta n productos; la prueba de subcadena añade un factor m (longitud media del nombre). Comentario del grupo (docstring): O(n * L), donde n es la cantidad de productos y L la longitud media del texto.
+
+#### `CatalogoLineal.agregar`
+
+- **Archivo:** `src/inventario/catalogo_lineal.py` líneas 27–37
+- **Técnica:** Verificación de unicidad en lista
+- **Cotas:** mejor Ω(n) · promedio Θ(n) · peor O(n)
+- **Justificación (del cuerpo, no inventada):** El AST muestra un `for` sobre `self._productos` (profundidad 1) y no hay tabla hash de ids. Cada consulta compara contra hasta n productos. Comentario del grupo (docstring): O(n) debido a la verificación de unicidad en la lista.
+
+#### `CatalogoHash.buscar_por_id`
+
+- **Archivo:** `src/inventario/catalogo_hash.py` líneas 69–74
+- **Técnica:** Tabla hash por id
+- **Cotas:** mejor Ω(1) · promedio Θ(1) · peor O(n) (colisión patológica)
+- **Justificación (del cuerpo, no inventada):** No hay bucles sobre el catálogo. El cuerpo resuelve la consulta con acceso hash (self._productos_por_id.get). Con factor de carga acotado el costo esperado es constante; el peor caso teórico de una tabla hash degenerada es O(n). Comentario del grupo (docstring): O(1) promedio y en el mejor caso.
+
+#### `CatalogoHash.buscar_por_nombre`
+
+- **Archivo:** `src/inventario/catalogo_hash.py` líneas 76–114
+- **Técnica:** Índice invertido + verificación de subcadena
+- **Cotas:** mejor Ω(1) · promedio Θ(k) · peor O(n) (fallback lineal)
+- **Justificación (del cuerpo, no inventada):** Hay accesos a índices hash y un bucle acotado (palabras de la consulta o verificación de k candidatos; profundidad 1). El caso típico es O(k) con k ≪ n; si el índice no filtra, el fallback recorre el universo y vuelve a O(n).
+
+#### `CatalogoHash.agregar`
+
+- **Archivo:** `src/inventario/catalogo_hash.py` líneas 48–67
+- **Técnica:** Inserción hash + índices secundarios
+- **Cotas:** mejor Ω(1) · promedio Θ(1) · peor O(n) (colisión patológica)
+- **Justificación (del cuerpo, no inventada):** No hay bucles sobre el catálogo. El cuerpo resuelve la consulta con acceso hash (in self._productos_por_id, self._productos_por_id, self._indice_categoria). Con factor de carga acotado el costo esperado es constante; el peor caso teórico de una tabla hash degenerada es O(n). Comentario del grupo (docstring): O(1) promedio para inserción en hash tables.
+
+#### `agrupar_pedidos_batch`
+
+- **Archivo:** `src/pedidos/agrupador.py` líneas 70–117
+- **Técnica:** Acumulador hash en una pasada
+- **Cotas:** mejor Ω(L) · promedio Θ(L + U) · peor O(L + U log U)
+- **Justificación (del cuerpo, no inventada):** Doble bucle sobre pedidos y líneas con acumulación en un diccionario hash (inserción/actualización O(1) promedio por línea). La cota se desacopla del tamaño del catálogo n. Tras la pasada se ordenan los U productos únicos (O(U log U)). Comentario del grupo (docstring): O(L + P_dist), donde L es la sumatoria de todas las líneas
+
+#### `calcular_top_solicitados_lineal`
+
+- **Archivo:** `src/ranking/top_productos.py` líneas 15–55
+- **Técnica:** Ordenamiento total de frecuencias
+- **Cotas:** mejor Ω(L + N) · promedio Θ(L + N log N) · peor O(L + N log N)
+- **Justificación (del cuerpo, no inventada):** Tras acumular frecuencias en un diccionario (O(L)), el cuerpo llama a `sorted` sobre las N claves. Timsort impone Θ(N log N) comparaciones; después se recortan los primeros k elementos. Comentario del grupo (docstring): O(L + N log N + k * T_busqueda).
+
+#### `calcular_top_solicitados_heap`
+
+- **Archivo:** `src/ranking/top_productos.py` líneas 58–99
+- **Técnica:** Montículo acotado heapq.nlargest
+- **Cotas:** mejor Ω(L + N) · promedio Θ(L + N log k) · peor O(L + N log k)
+- **Justificación (del cuerpo, no inventada):** Se recorren las líneas de pedidos para armar un mapa de frecuencias (una pasada O(L)) y luego se invoca `heapq.nlargest`. Un min-heap de tamaño `k` hace un sift-down O(log k) por cada una de las N claves, de modo que la selección es O(N log k) y no O(N log N). Comentario del grupo (docstring): O(L + N log k + k * T_busqueda).
+
+#### `BuscadorAlternativas._resolver_recursivo_puro`
+
+- **Archivo:** `src/pedidos/combinaciones.py` líneas 163–202
+- **Técnica:** Árbol recursivo exhaustivo
+- **Cotas:** mejor Ω(N) · promedio Θ(2^N) · peor O(2^N)
+- **Justificación (del cuerpo, no inventada):** Hay recursión sobre el índice del candidato y no se observa tabla de memoización. Cada elemento admite incluirlo o excluirlo, lo que genera un árbol de decisión de hasta 2^N hojas. El docstring del grupo coincide con esta derivación.
+
+#### `BuscadorAlternativas._resolver_dp_memo`
+
+- **Archivo:** `src/pedidos/combinaciones.py` líneas 204–249
+- **Técnica:** Programación dinámica con memoización
+- **Cotas:** mejor Ω(1) (hit de memo) · promedio Θ(N · P) · peor O(N · P)
+- **Justificación (del cuerpo, no inventada):** La función se llama a sí misma y consulta `_memo_cache` indexado por `(indice, presupuesto_restante)`. Cada estado se resuelve a lo sumo una vez; el espacio de estados es el producto de candidatos `N` por el presupuesto discretizado `P`, de ahí la cota pseudo-polinomial O(N · P).
+
+#### `procesar_pedidos_secuencial`
+
+- **Archivo:** `src/pedidos/procesador_secuencial.py` líneas 19–121
+- **Técnica:** Mono-hilo, una búsqueda por línea
+- **Cotas:** mejor Ω(P · L) · promedio Θ(P · L · T_búsqueda) · peor O(P · L · T_búsqueda)
+- **Justificación (del cuerpo, no inventada):** Hay un `for` sobre pedidos y otro anidado sobre líneas, y cada línea invoca `buscar_por_id`. La cota se descompone: T_búsqueda = O(n) si el catálogo es lineal y O(1) promedio si es hash. Por eso el baseline escala a O(P · L · n) y el optimizado a O(P · L). Comentario del grupo (docstring): O(P * M * N), donde P es la cantidad de pedidos, M la cantidad promedio de líneas
+
+#### `procesar_pedidos_concurrente`
+
+- **Archivo:** `src/pedidos/procesador_concurrente.py` líneas 100–181
+- **Técnica:** ProcessPoolExecutor + snapshot de stock
+- **Cotas:** mejor O(P · L) · promedio O((P · L)/C + C_IPC) · peor O(P · L + C_IPC)
+- **Justificación (del cuerpo, no inventada):** El cuerpo instancia `ProcessPoolExecutor` y parte el lote en fragmentos. El trabajo útil por pedido es lineal en sus líneas; el término `C_IPC` aparece porque cada worker recibe un snapshot serializado del stock. Con pocos pedidos el overhead de creación de procesos domina; con muchos el costo se reparte entre `C` núcleos.
+
+#### `CacheLRU.obtener`
+
+- **Archivo:** `src/cache/cache_consultas.py` líneas 61–68
+- **Técnica:** Acceso hash + política LRU
+- **Cotas:** mejor Ω(1) · promedio Θ(1) · peor O(n) (colisión patológica)
+- **Justificación (del cuerpo, no inventada):** No hay bucles sobre el catálogo. El cuerpo resuelve la consulta con acceso hash (in self._almacen, self._almacen). Con factor de carga acotado el costo esperado es constante; el peor caso teórico de una tabla hash degenerada es O(n).
+
+#### `CacheLRU.guardar`
+
+- **Archivo:** `src/cache/cache_consultas.py` líneas 70–78
+- **Técnica:** Inserción hash + desalojo del menos reciente
+- **Cotas:** mejor Ω(1) · promedio Θ(1) · peor O(n) (colisión patológica)
+- **Justificación (del cuerpo, no inventada):** No hay bucles sobre el catálogo. El cuerpo resuelve la consulta con acceso hash (in self._almacen, self._almacen). Con factor de carga acotado el costo esperado es constante; el peor caso teórico de una tabla hash degenerada es O(n).
+
+#### `GestorCacheConsultas.invalidar_por_mutacion_stock`
+
+- **Archivo:** `src/cache/cache_consultas.py` líneas 131–137
+- **Técnica:** Purga de búsquedas y categorías
+- **Cotas:** mejor Ω(1) · promedio Θ(1) · peor O(1)
+- **Justificación (del cuerpo, no inventada):** El cuerpo no recorre colecciones del dominio ni dispara recursión: son asignaciones, purgas de caché o accesos puntuales.
+
+### Qué no hace esta automatización
+
+- No reescribe el motor ni aplica optimizaciones.
+- No sustituye la derivación formal del grupo (secciones 2–5): la complementa.
+- Si una función nueva del motor no aparece, hay que agregarla a
+  `automations/inventario_funciones.py`.
+
+<!-- ORIGIN-AUTO-COMPLEJIDAD:FIN -->

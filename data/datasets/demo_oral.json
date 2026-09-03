@@ -1,0 +1,351 @@
+{
+  "metadatos": {
+    "nombre": "Demo Oral",
+    "descripcion": "Dataset curado para la exposición oral en vivo de 10-15 minutos.",
+    "total_productos": 30,
+    "total_pedidos": 8,
+    "semilla": "curado_manual"
+  },
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Taladro Percutor 750W",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 15,
+      "precio": 45000.0
+    },
+    {
+      "id": 2,
+      "nombre": "Amoladora Angular 115mm",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 10,
+      "precio": 38000.0
+    },
+    {
+      "id": 3,
+      "nombre": "Juego de Destornilladores x6",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 25,
+      "precio": 12000.0
+    },
+    {
+      "id": 4,
+      "nombre": "Martillo Galponero 500g",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 30,
+      "precio": 9500.0
+    },
+    {
+      "id": 5,
+      "nombre": "Sierra Caladora 600W",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 0,
+      "precio": 32000.0
+    },
+    {
+      "id": 6,
+      "nombre": "Cable Unipolar 2.5mm 100m",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 40,
+      "precio": 28000.0
+    },
+    {
+      "id": 7,
+      "nombre": "Foco LED 12W Luz Fría",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 120,
+      "precio": 1800.0
+    },
+    {
+      "id": 8,
+      "nombre": "Foco LED 9W Luz Cálida",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 80,
+      "precio": 1500.0
+    },
+    {
+      "id": 9,
+      "nombre": "Disyuntor Diferencial 25A",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 20,
+      "precio": 31000.0
+    },
+    {
+      "id": 10,
+      "nombre": "Llave Térmica Bipolar 16A",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 0,
+      "precio": 8500.0
+    },
+    {
+      "id": 11,
+      "nombre": "Pintura Látex Interior 20L",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 18,
+      "precio": 52000.0
+    },
+    {
+      "id": 12,
+      "nombre": "Pintura Látex Interior 10L",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 22,
+      "precio": 29000.0
+    },
+    {
+      "id": 13,
+      "nombre": "Pintura Látex Interior 4L",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 35,
+      "precio": 14000.0
+    },
+    {
+      "id": 14,
+      "nombre": "Esmalte Sintético Brillante 1L",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 25,
+      "precio": 8900.0
+    },
+    {
+      "id": 15,
+      "nombre": "Rodillo Antigoteo 22cm",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 50,
+      "precio": 4500.0
+    },
+    {
+      "id": 16,
+      "nombre": "Pincel N°20 Cerda Blanca",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 60,
+      "precio": 2200.0
+    },
+    {
+      "id": 17,
+      "nombre": "Caño PVC 110mm x 4m",
+      "categoria": "Plomería y Grifería",
+      "stock": 15,
+      "precio": 16500.0
+    },
+    {
+      "id": 18,
+      "nombre": "Codo PVC 110mm a 90°",
+      "categoria": "Plomería y Grifería",
+      "stock": 45,
+      "precio": 2800.0
+    },
+    {
+      "id": 19,
+      "nombre": "Adhesivo para PVC 250cc",
+      "categoria": "Plomería y Grifería",
+      "stock": 30,
+      "precio": 5100.0
+    },
+    {
+      "id": 20,
+      "nombre": "Canilla Monocomando Cocina",
+      "categoria": "Plomería y Grifería",
+      "stock": 12,
+      "precio": 42000.0
+    },
+    {
+      "id": 21,
+      "nombre": "Flexible Mallado 1/2 x 40cm",
+      "categoria": "Plomería y Grifería",
+      "stock": 2,
+      "precio": 3400.0
+    },
+    {
+      "id": 22,
+      "nombre": "Tornillo Autoperforante 10x1 (x100)",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 100,
+      "precio": 3200.0
+    },
+    {
+      "id": 23,
+      "nombre": "Tornillo Autoperforante 10x2 (x100)",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 90,
+      "precio": 4100.0
+    },
+    {
+      "id": 24,
+      "nombre": "Tarugo con Tope N°8 (x100)",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 150,
+      "precio": 2100.0
+    },
+    {
+      "id": 25,
+      "nombre": "Tuerca Hexagonal 1/4 (x100)",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 80,
+      "precio": 1900.0
+    },
+    {
+      "id": 26,
+      "nombre": "Arandela Grower 1/4 (x100)",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 85,
+      "precio": 1400.0
+    },
+    {
+      "id": 27,
+      "nombre": "Guantes de Nitrilo Talle L",
+      "categoria": "Seguridad Industrial",
+      "stock": 75,
+      "precio": 3100.0
+    },
+    {
+      "id": 28,
+      "nombre": "Casco de Seguridad Amarillo",
+      "categoria": "Seguridad Industrial",
+      "stock": 15,
+      "precio": 9800.0
+    },
+    {
+      "id": 29,
+      "nombre": "Cinta Métrica 5m Antichoque",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 40,
+      "precio": 4900.0
+    },
+    {
+      "id": 30,
+      "nombre": "Sellador de Silicona Neutra 280ml",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 0,
+      "precio": 6200.0
+    }
+  ],
+  "pedidos": [
+    {
+      "id": 1,
+      "lineas": [
+        {
+          "id_producto": 7,
+          "cantidad": 10
+        },
+        {
+          "id_producto": 8,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 6,
+          "cantidad": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "lineas": [
+        {
+          "id_producto": 22,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 24,
+          "cantidad": 4
+        },
+        {
+          "id_producto": 4,
+          "cantidad": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "lineas": [
+        {
+          "id_producto": 1,
+          "cantidad": 1
+        },
+        {
+          "id_producto": 5,
+          "cantidad": 1
+        },
+        {
+          "id_producto": 29,
+          "cantidad": 1
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "lineas": [
+        {
+          "id_producto": 22,
+          "cantidad": 10
+        },
+        {
+          "id_producto": 23,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 25,
+          "cantidad": 4
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "lineas": [
+        {
+          "id_producto": 10,
+          "cantidad": 2
+        },
+        {
+          "id_producto": 30,
+          "cantidad": 2
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "lineas": [
+        {
+          "id_producto": 21,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 18,
+          "cantidad": 4
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "lineas": [
+        {
+          "id_producto": 11,
+          "cantidad": 2
+        },
+        {
+          "id_producto": 15,
+          "cantidad": 3
+        },
+        {
+          "id_producto": 16,
+          "cantidad": 2
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "lineas": [
+        {
+          "id_producto": 7,
+          "cantidad": 20
+        },
+        {
+          "id_producto": 27,
+          "cantidad": 4
+        },
+        {
+          "id_producto": 29,
+          "cantidad": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+================================================================================
+ INFORME DE PERFILADO DE MEMORIA Y HUELLA ESPACIAL
+================================================================================
+
+Herramientas empleadas: tracemalloc (estándar de asignación en heap CPython)
+                        memory_profiler (monitoreo de RSS del proceso)
+
+--------------------------------------------------------------------------------
+ DATASET: demo_oral.json (30 productos, 8 pedidos)
+--------------------------------------------------------------------------------
+ 1. Estructura de Catálogo:
+    - Catálogo Lineal (Lista): Actual = 0.77 KB | Pico = 0.77 KB
+    - Catálogo Hash (Diccionarios + Índices): Actual = 32.57 KB | Pico = 33.03 KB
+    * Trade-off: El catálogo hash invierte ~31.8 KB adicionales para brindar búsquedas O(1).
+
+ 2. Ranking Top-N (k=5):
+    - Ordenamiento Total (sorted): Pico = 3.68 KB
+    - Min-Heap Acotado (heapq.nlargest): Pico = 2.67 KB
+    * Ahorro de memoria con Min-Heap: 1.01 KB (mantiene solo k elementos en memoria).
+
+ 3. Alternativas Sustitutas (DP Memoización vs. Recursión Pura):
+    - Árbol Recursivo Puro: Pico = 3.66 KB
+    - DP Memoizada: Pico = 6.13 KB (Entradas memo creadas: 7, Hits: 0)
+
+--------------------------------------------------------------------------------
+ DATASET: pequeno.json (100 productos, 20 pedidos)
+--------------------------------------------------------------------------------
+ 1. Estructura de Catálogo:
+    - Catálogo Lineal (Lista): Actual = 1.35 KB | Pico = 1.35 KB
+    - Catálogo Hash (Diccionarios + Índices): Actual = 76.19 KB | Pico = 77.46 KB
+    * Trade-off: El catálogo hash invierte ~74.8 KB adicionales para brindar búsquedas O(1).
+
+ 2. Ranking Top-N (k=5):
+    - Ordenamiento Total (sorted): Pico = 5.75 KB
+    - Min-Heap Acotado (heapq.nlargest): Pico = 3.27 KB
+    * Ahorro de memoria con Min-Heap: 2.48 KB (mantiene solo k elementos en memoria).
+
+ 3. Alternativas Sustitutas (DP Memoización vs. Recursión Pura):
+    - Árbol Recursivo Puro: Pico = 7.79 KB
+    - DP Memoizada: Pico = 43.38 KB (Entradas memo creadas: 166, Hits: 0)
+
+--------------------------------------------------------------------------------
+ DATASET: mediano.json (1000 productos, 200 pedidos)
+--------------------------------------------------------------------------------
+ 1. Estructura de Catálogo:
+    - Catálogo Lineal (Lista): Actual = 9.09 KB | Pico = 9.09 KB
+    - Catálogo Hash (Diccionarios + Índices): Actual = 606.51 KB | Pico = 607.78 KB
+    * Trade-off: El catálogo hash invierte ~597.4 KB adicionales para brindar búsquedas O(1).
+
+ 2. Ranking Top-N (k=5):
+    - Ordenamiento Total (sorted): Pico = 57.34 KB
+    - Min-Heap Acotado (heapq.nlargest): Pico = 13.70 KB
+    * Ahorro de memoria con Min-Heap: 43.65 KB (mantiene solo k elementos en memoria).
+
+ 3. Alternativas Sustitutas (DP Memoización vs. Recursión Pura):
+    - Árbol Recursivo Puro: Pico = 10.24 KB
+    - DP Memoizada: Pico = 48.94 KB (Entradas memo creadas: 98, Hits: 0)
+
+--------------------------------------------------------------------------------
+ DATASET: grande.json (10000 productos, 2000 pedidos)
+--------------------------------------------------------------------------------
+ 1. Estructura de Catálogo:
+    - Catálogo Lineal (Lista): Actual = 83.59 KB | Pico = 83.59 KB
+    - Catálogo Hash (Diccionarios + Índices): Actual = 5339.00 KB | Pico = 5340.27 KB
+    * Trade-off: El catálogo hash invierte ~5255.4 KB adicionales para brindar búsquedas O(1).
+
+ 2. Ranking Top-N (k=5):
+    - Ordenamiento Total (sorted): Pico = 603.25 KB
+    - Min-Heap Acotado (heapq.nlargest): Pico = 216.20 KB
+    * Ahorro de memoria con Min-Heap: 387.05 KB (mantiene solo k elementos en memoria).
+
+ 3. Alternativas Sustitutas (DP Memoización vs. Recursión Pura):
+    - Árbol Recursivo Puro: Pico = 20.16 KB
+    - DP Memoizada: Pico = 33.59 KB (Entradas memo creadas: 25, Hits: 0)
+
+--------------------------------------------------------------------------------
+ COMPORTAMIENTO DE LA CACHÉ LRU (GESTIÓN REACTIVA DE MEMORIA)
+--------------------------------------------------------------------------------
+ - Capacidad máxima acotada: 50 búsquedas, 20 top-N, 20 alternativas
+ - Huella de memoria llena: 10.27 KB (Pico: 11.29 KB)
+ - Huella tras invalidación reactiva por mutación de stock: 1.13 KB
+ * Conclusión: La política de desalojo LRU previene fugas de memoria (memory leaks),
+   garantizando un límite superior estricto de memoria O(C) independiente del volumen de consultas.

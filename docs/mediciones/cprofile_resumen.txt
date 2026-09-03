@@ -1,0 +1,173 @@
+===============================================================================
+ PERFILADO CPROFILE: MEDIANO.JSON (Estrategia Optimizada)
+===============================================================================
+
+--- TOP 30 FUNCIONES POR TIEMPO ACUMULADO (CUMULATIVE TIME) ---
+         58964 function calls (58459 primitive calls) in 0.874 seconds
+
+   Ordered by: cumulative time
+   List reduced from 606 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.875    0.875 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\benchmarks\perfilar_cprofile.py:25(ejecutar_flujo_completo)
+        1    0.000    0.000    0.839    0.839 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\motor\motor_inventario.py:152(procesar_pedidos)
+        1    0.000    0.000    0.839    0.839 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\procesador_concurrente.py:100(procesar_pedidos_concurrente)
+        1    0.000    0.000    0.804    0.804 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:672(__exit__)
+        1    0.000    0.000    0.783    0.783 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:859(shutdown)
+      2/1    0.000    0.000    0.781    0.781 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1097(join)
+      2/1    0.000    0.000    0.781    0.781 {method 'join' of '_thread._ThreadHandle' objects}
+      2/1    0.000    0.000    0.781    0.781 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1030(_bootstrap)
+      2/1    0.003    0.002    0.781    0.781 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1065(_bootstrap_inner)
+      2/1    0.000    0.000    0.777    0.777 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.777    0.777 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:330(run)
+        1    0.000    0.000    0.777    0.777 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:549(join_executor_internals)
+        1    0.000    0.000    0.777    0.777 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:553(_join_executor_internals)
+       32    0.001    0.000    0.697    0.022 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:405(wait_result_broken_or_wakeup)
+       18    0.000    0.000    0.426    0.024 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\util.py:276(__call__)
+        1    0.000    0.000    0.425    0.425 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\queues.py:145(join_thread)
+        1    0.000    0.000    0.424    0.424 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\queues.py:212(_finalize_join)
+       16    0.000    0.000    0.399    0.025 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:759(_adjust_process_count)
+       16    0.000    0.000    0.398    0.025 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:787(_spawn_process)
+       16    0.000    0.000    0.390    0.024 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py:110(start)
+       16    0.001    0.000    0.386    0.024 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\context.py:340(_Popen)
+       16    0.000    0.000    0.380    0.024 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:798(submit)
+       16    0.001    0.000    0.374    0.023 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\popen_spawn_win32.py:46(__init__)
+       16    0.364    0.023    0.364    0.023 {built-in method _winapi.CreateProcess}
+      168    0.001    0.000    0.355    0.002 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\popen_spawn_win32.py:105(wait)
+      168    0.354    0.002    0.354    0.002 {built-in method _winapi.WaitForSingleObject}
+       16    0.000    0.000    0.352    0.022 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py:149(join)
+     21/2    0.000    0.000    0.035    0.018 <frozen importlib._bootstrap>:1360(_find_and_load)
+    49/44    0.000    0.000    0.035    0.001 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\connection.py:192(send_bytes)
+     21/2    0.000    0.000    0.035    0.018 <frozen importlib._bootstrap>:1308(_find_and_load_unlocked)
+
+
+
+
+--- TOP 30 FUNCIONES POR TIEMPO PROPIO (SELF / TOTTIME) ---
+         58964 function calls (58459 primitive calls) in 0.874 seconds
+
+   Ordered by: internal time
+   List reduced from 606 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       16    0.364    0.023    0.364    0.023 {built-in method _winapi.CreateProcess}
+      168    0.354    0.002    0.354    0.002 {built-in method _winapi.WaitForSingleObject}
+    85/62    0.033    0.000    0.000    0.000 {built-in method _winapi.WaitForMultipleObjects}
+       64    0.011    0.000    0.014    0.000 {method 'dump' of '_pickle.Pickler' objects}
+        3    0.010    0.003    0.010    0.003 {built-in method _imp.create_dynamic}
+       14    0.005    0.000    0.005    0.000 {built-in method _io.open_code}
+     1000    0.004    0.000    0.005    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\producto.py:26(__post_init__)
+     1000    0.003    0.000    0.009    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py:31(_indexar_nombre)
+      2/1    0.003    0.002    0.781    0.781 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1065(_bootstrap_inner)
+        1    0.003    0.003    0.003    0.003 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\json\decoder.py:351(raw_decode)
+     1030    0.002    0.000    0.002    0.000 {method 'findall' of 're.Pattern' objects}
+       14    0.002    0.000    0.002    0.000 {built-in method marshal.loads}
+       77    0.002    0.000    0.002    0.000 {built-in method nt.stat}
+     1000    0.002    0.000    0.008    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\producto.py:53(desde_diccionario)
+        1    0.002    0.002    0.013    0.013 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\datos\cargador.py:11(validar_dataset)
+      118    0.002    0.000    0.002    0.000 {built-in method _winapi.CloseHandle}
+     6263    0.002    0.000    0.002    0.000 {method 'add' of 'set' objects}
+        1    0.002    0.002    0.002    0.002 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\agrupador.py:70(agrupar_pedidos_batch)
+       16    0.002    0.000    0.002    0.000 {built-in method _pickle.loads}
+       31    0.002    0.000    0.002    0.000 {method '__exit__' of '_io._IOBase' objects}
+     9167    0.002    0.000    0.002    0.000 {built-in method builtins.isinstance}
+     1000    0.002    0.000    0.011    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py:48(agregar)
+       65    0.002    0.000    0.005    0.000 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\connection.py:1086(wait)
+     4034    0.001    0.000    0.001    0.000 {method 'lower' of 'str' objects}
+      164    0.001    0.000    0.002    0.000 <frozen importlib._bootstrap_external>:101(_path_join)
+      129    0.001    0.000    0.001    0.000 {built-in method _winapi.ReadFile}
+       16    0.001    0.000    0.001    0.000 {built-in method _winapi.CreatePipe}
+       49    0.001    0.000    0.001    0.000 {built-in method _winapi.WriteFile}
+        3    0.001    0.000    0.001    0.000 {built-in method nt.listdir}
+   174/71    0.001    0.000    0.001    0.000 {method 'acquire' of '_thread.lock' objects}
+
+
+
+
+
+===============================================================================
+ PERFILADO CPROFILE: GRANDE.JSON (Estrategia Optimizada)
+===============================================================================
+
+--- TOP 30 FUNCIONES POR TIEMPO ACUMULADO (CUMULATIVE TIME) ---
+         394100 function calls (393890 primitive calls) in 0.968 seconds
+
+   Ordered by: cumulative time
+   List reduced from 365 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.002    0.002    0.976    0.976 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\benchmarks\perfilar_cprofile.py:25(ejecutar_flujo_completo)
+       32    0.001    0.000    0.865    0.027 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:405(wait_result_broken_or_wakeup)
+        1    0.000    0.000    0.634    0.634 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\motor\motor_inventario.py:152(procesar_pedidos)
+        1    0.001    0.001    0.634    0.634 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\procesador_concurrente.py:100(procesar_pedidos_concurrente)
+        1    0.000    0.000    0.628    0.628 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\_base.py:672(__exit__)
+        1    0.000    0.000    0.616    0.616 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:859(shutdown)
+      2/1    0.000    0.000    0.614    0.614 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1097(join)
+      2/1    0.000    0.000    0.614    0.614 {method 'join' of '_thread._ThreadHandle' objects}
+      2/1    0.000    0.000    0.613    0.613 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1030(_bootstrap)
+      2/1    0.000    0.000    0.613    0.613 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\threading.py:1065(_bootstrap_inner)
+      2/1    0.000    0.000    0.613    0.613 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.613    0.613 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:330(run)
+        1    0.000    0.000    0.613    0.613 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:549(join_executor_internals)
+        1    0.000    0.000    0.613    0.613 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:553(_join_executor_internals)
+       18    0.000    0.000    0.454    0.025 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\util.py:276(__call__)
+        1    0.000    0.000    0.454    0.454 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\queues.py:145(join_thread)
+        1    0.000    0.000    0.453    0.453 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\queues.py:212(_finalize_join)
+        1    0.001    0.001    0.270    0.270 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\motor\motor_inventario.py:100(cargar_dataset)
+    49/35    0.001    0.000    0.228    0.007 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\connection.py:192(send_bytes)
+    49/35    0.001    0.000    0.207    0.006 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\connection.py:294(_send_bytes)
+       16    0.000    0.000    0.194    0.012 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:759(_adjust_process_count)
+       16    0.000    0.000    0.194    0.012 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:787(_spawn_process)
+       16    0.000    0.000    0.185    0.012 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\concurrent\futures\process.py:798(submit)
+       16    0.000    0.000    0.179    0.011 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py:110(start)
+       16    0.001    0.000    0.176    0.011 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\context.py:340(_Popen)
+       16    0.001    0.000    0.175    0.011 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\popen_spawn_win32.py:46(__init__)
+       16    0.167    0.010    0.167    0.010 {built-in method _winapi.CreateProcess}
+      168    0.001    0.000    0.162    0.001 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\popen_spawn_win32.py:105(wait)
+      168    0.161    0.001    0.161    0.001 {built-in method _winapi.WaitForSingleObject}
+       16    0.000    0.000    0.159    0.010 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\process.py:149(join)
+
+
+
+
+--- TOP 30 FUNCIONES POR TIEMPO PROPIO (SELF / TOTTIME) ---
+         394100 function calls (393890 primitive calls) in 0.968 seconds
+
+   Ordered by: internal time
+   List reduced from 365 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    93/34    0.209    0.002    0.001    0.000 {built-in method _winapi.WaitForMultipleObjects}
+       16    0.167    0.010    0.167    0.010 {built-in method _winapi.CreateProcess}
+      168    0.161    0.001    0.161    0.001 {built-in method _winapi.WaitForSingleObject}
+    10000    0.041    0.000    0.105    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py:31(_indexar_nombre)
+       64    0.035    0.001    0.038    0.001 {method 'dump' of '_pickle.Pickler' objects}
+    10000    0.028    0.000    0.042    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\producto.py:26(__post_init__)
+    10030    0.025    0.000    0.025    0.000 {method 'findall' of 're.Pattern' objects}
+    38995    0.020    0.000    0.020    0.000 {method 'lower' of 'str' objects}
+        1    0.020    0.020    0.030    0.030 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\agrupador.py:70(agrupar_pedidos_batch)
+    61749    0.019    0.000    0.019    0.000 {method 'add' of 'set' objects}
+        1    0.019    0.019    0.019    0.019 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\json\decoder.py:351(raw_decode)
+    10000    0.019    0.000    0.064    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\producto.py:53(desde_diccionario)
+    10000    0.017    0.000    0.129    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py:48(agregar)
+        1    0.015    0.015    0.106    0.106 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\datos\cargador.py:11(validar_dataset)
+    87902    0.013    0.000    0.013    0.000 {built-in method builtins.isinstance}
+       16    0.012    0.001    0.012    0.001 {built-in method _pickle.loads}
+    49598    0.010    0.000    0.010    0.000 {method 'strip' of 'str' objects}
+        1    0.009    0.009    0.018    0.018 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\pedidos\combinaciones.py:71(buscar_alternativas)
+    10030    0.008    0.000    0.042    0.000 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\re\__init__.py:270(findall)
+       30    0.008    0.000    0.013    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py:76(buscar_por_nombre)
+    10030    0.007    0.000    0.010    0.000 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\re\__init__.py:330(_compile)
+        1    0.006    0.006    0.009    0.009 {method 'read' of '_io.TextIOWrapper' objects}
+    25113    0.006    0.000    0.006    0.000 {method 'append' of 'list' objects}
+     5932    0.006    0.000    0.012    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\pedido.py:47(desde_diccionario)
+       16    0.004    0.000    0.023    0.001 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\connection.py:256(recv)
+     2000    0.004    0.000    0.020    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\pedido.py:82(desde_diccionario)
+        2    0.004    0.002    0.133    0.066 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\inventario\catalogo_hash.py:18(__init__)
+    11131    0.004    0.000    0.004    0.000 {method 'get' of 'dict' objects}
+     5932    0.003    0.000    0.004    0.000 C:\Users\edgar\OneDrive\Escritorio\UBP\PEF\Parcial I\src\modelos\pedido.py:29(__post_init__)
+       32    0.003    0.000    0.037    0.001 C:\Users\edgar\AppData\Local\Python\pythoncore-3.14-64\Lib\multiprocessing\reduction.py:48(dumps)
+
+
+
+

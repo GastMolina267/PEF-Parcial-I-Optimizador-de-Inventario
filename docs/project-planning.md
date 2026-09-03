@@ -108,6 +108,8 @@ Regla: código, comentarios y textos en **español**. Los profilers no se lanzan
 
 **Cierre:** un push de prueba deja el análisis/propuestas actualizados (o comentario en PR).
 
+**Implementado (Etapa 6):** núcleo en `automations/` (`python -m automations.ejecutar`), bloque marcado en `docs/analisis.md`, informe `docs/propuestas-mejora.md`, skills en `.cursor/skills/` y prompts en `docs/prompts-origin/`. Activación del trigger en el dashboard: [automatizaciones-origin.md](automatizaciones-origin.md).
+
 ---
 
 ## Contexto de la materia

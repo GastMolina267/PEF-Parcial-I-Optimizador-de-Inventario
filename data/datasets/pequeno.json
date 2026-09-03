@@ -1,0 +1,1021 @@
+{
+  "metadatos": {
+    "nombre": "Pequeno",
+    "descripcion": "Dataset sintético determinista (100 productos, 20 pedidos).",
+    "total_productos": 100,
+    "total_pedidos": 20,
+    "semilla": 42
+  },
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Taladro percutor Premium #1",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 11,
+      "precio": 48330.01
+    },
+    {
+      "id": 2,
+      "nombre": "Cable unipolar 4mm Premium #2",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 40,
+      "precio": 48002.39
+    },
+    {
+      "id": 3,
+      "nombre": "Esmalte sintético brillante Premium #3",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 233,
+      "precio": 35676.14
+    },
+    {
+      "id": 4,
+      "nombre": "Lentes de seguridad Premium #4",
+      "categoria": "Seguridad Industrial",
+      "stock": 13,
+      "precio": 2421.92
+    },
+    {
+      "id": 5,
+      "nombre": "Canilla monocomando Premium #5",
+      "categoria": "Plomería y Grifería",
+      "stock": 134,
+      "precio": 39330.21
+    },
+    {
+      "id": 6,
+      "nombre": "Arandela plana 1/4 Premium #6",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 188,
+      "precio": 42417.55
+    },
+    {
+      "id": 7,
+      "nombre": "Pinza universal Premium #7",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 61,
+      "precio": 29473.98
+    },
+    {
+      "id": 8,
+      "nombre": "Toma corriente Premium #8",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 227,
+      "precio": 919.17
+    },
+    {
+      "id": 9,
+      "nombre": "Lija al agua grano 180 Premium #9",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 183,
+      "precio": 27758.63
+    },
+    {
+      "id": 10,
+      "nombre": "Cono de señalización Industrial #10",
+      "categoria": "Seguridad Industrial",
+      "stock": 60,
+      "precio": 62240.24
+    },
+    {
+      "id": 11,
+      "nombre": "Rejilla de piso Industrial #11",
+      "categoria": "Plomería y Grifería",
+      "stock": 28,
+      "precio": 25005.31
+    },
+    {
+      "id": 12,
+      "nombre": "Tornillo autoperforante 10x2 Industrial #12",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 93,
+      "precio": 39440.33
+    },
+    {
+      "id": 13,
+      "nombre": "Taladro percutor Industrial #13",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 191,
+      "precio": 30132.9
+    },
+    {
+      "id": 14,
+      "nombre": "Cable unipolar 4mm Industrial #14",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 241,
+      "precio": 24915.47
+    },
+    {
+      "id": 15,
+      "nombre": "Sellador de silicona Industrial #15",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 217,
+      "precio": 41047.27
+    },
+    {
+      "id": 16,
+      "nombre": "Máscara antipolvo Industrial #16",
+      "categoria": "Seguridad Industrial",
+      "stock": 97,
+      "precio": 37739.21
+    },
+    {
+      "id": 17,
+      "nombre": "Flexible mallado 1/2 Industrial #17",
+      "categoria": "Plomería y Grifería",
+      "stock": 16,
+      "precio": 43151.48
+    },
+    {
+      "id": 18,
+      "nombre": "Varilla roscada 3/8 Industrial #18",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 25,
+      "precio": 55667.99
+    },
+    {
+      "id": 19,
+      "nombre": "Pinza universal Industrial #19",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 102,
+      "precio": 18429.3
+    },
+    {
+      "id": 20,
+      "nombre": "Toma corriente Industrial #20",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 98,
+      "precio": 10991.19
+    },
+    {
+      "id": 21,
+      "nombre": "Aguarrás mineral Industrial #21",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 176,
+      "precio": 17720.07
+    },
+    {
+      "id": 22,
+      "nombre": "Guantes de vaqueta Económico #22",
+      "categoria": "Seguridad Industrial",
+      "stock": 170,
+      "precio": 5105.46
+    },
+    {
+      "id": 23,
+      "nombre": "Caño PVC 110mm Económico #23",
+      "categoria": "Plomería y Grifería",
+      "stock": 141,
+      "precio": 47528.68
+    },
+    {
+      "id": 24,
+      "nombre": "Tarugo sin tope N°6 Económico #24",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 102,
+      "precio": 17911.63
+    },
+    {
+      "id": 25,
+      "nombre": "Taladro percutor Económico #25",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 181,
+      "precio": 36423.26
+    },
+    {
+      "id": 26,
+      "nombre": "Cable unipolar 4mm Económico #26",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 220,
+      "precio": 50056.23
+    },
+    {
+      "id": 27,
+      "nombre": "Adhesivo de montaje Económico #27",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 215,
+      "precio": 2570.47
+    },
+    {
+      "id": 28,
+      "nombre": "Arnés de sujeción Económico #28",
+      "categoria": "Seguridad Industrial",
+      "stock": 73,
+      "precio": 4769.17
+    },
+    {
+      "id": 29,
+      "nombre": "Cinta teflón 3/4 Económico #29",
+      "categoria": "Plomería y Grifería",
+      "stock": 150,
+      "precio": 57025.71
+    },
+    {
+      "id": 30,
+      "nombre": "Pitón cerrado cincado Reforzado #30",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 172,
+      "precio": 32700.42
+    },
+    {
+      "id": 31,
+      "nombre": "Pinza universal Económico #31",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 169,
+      "precio": 30095.94
+    },
+    {
+      "id": 32,
+      "nombre": "Toma corriente Económico #32",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 68,
+      "precio": 48551.79
+    },
+    {
+      "id": 33,
+      "nombre": "Masilla para yeso Reforzado #33",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 196,
+      "precio": 38205.8
+    },
+    {
+      "id": 34,
+      "nombre": "Lentes de seguridad Reforzado #34",
+      "categoria": "Seguridad Industrial",
+      "stock": 107,
+      "precio": 23848.77
+    },
+    {
+      "id": 35,
+      "nombre": "Codo PVC 110mm Reforzado #35",
+      "categoria": "Plomería y Grifería",
+      "stock": 40,
+      "precio": 33364.45
+    },
+    {
+      "id": 36,
+      "nombre": "Arandela plana 1/4 Reforzado #36",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 17,
+      "precio": 56041.14
+    },
+    {
+      "id": 37,
+      "nombre": "Taladro percutor Reforzado #37",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 45,
+      "precio": 51589.12
+    },
+    {
+      "id": 38,
+      "nombre": "Cable unipolar 4mm Reforzado #38",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 21,
+      "precio": 25317.49
+    },
+    {
+      "id": 39,
+      "nombre": "Rodillo antigoteo Reforzado #39",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 124,
+      "precio": 34627.88
+    },
+    {
+      "id": 40,
+      "nombre": "Cono de señalización Estándar #40",
+      "categoria": "Seguridad Industrial",
+      "stock": 225,
+      "precio": 61286.79
+    },
+    {
+      "id": 41,
+      "nombre": "Sifón extensible Reforzado #41",
+      "categoria": "Plomería y Grifería",
+      "stock": 34,
+      "precio": 44470.32
+    },
+    {
+      "id": 42,
+      "nombre": "Tornillo autoperforante 10x2 Estándar #42",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 73,
+      "precio": 50074.62
+    },
+    {
+      "id": 43,
+      "nombre": "Pinza universal Reforzado #43",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 80,
+      "precio": 28542.36
+    },
+    {
+      "id": 44,
+      "nombre": "Toma corriente Reforzado #44",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 249,
+      "precio": 47074.94
+    },
+    {
+      "id": 45,
+      "nombre": "Pintura látex interior Estándar #45",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 133,
+      "precio": 49646.56
+    },
+    {
+      "id": 46,
+      "nombre": "Máscara antipolvo Estándar #46",
+      "categoria": "Seguridad Industrial",
+      "stock": 32,
+      "precio": 56648.45
+    },
+    {
+      "id": 47,
+      "nombre": "Curva PVC 90° Estándar #47",
+      "categoria": "Plomería y Grifería",
+      "stock": 168,
+      "precio": 33244.26
+    },
+    {
+      "id": 48,
+      "nombre": "Varilla roscada 3/8 Estándar #48",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 100,
+      "precio": 49681.95
+    },
+    {
+      "id": 49,
+      "nombre": "Taladro percutor Estándar #49",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 204,
+      "precio": 59997.0
+    },
+    {
+      "id": 50,
+      "nombre": "Cable unipolar 4mm Estándar #50",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 158,
+      "precio": 21408.07
+    },
+    {
+      "id": 51,
+      "nombre": "Pincel de cerda Estándar #51",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 0,
+      "precio": 60426.86
+    },
+    {
+      "id": 52,
+      "nombre": "Guantes de vaqueta Alta Resistencia #52",
+      "categoria": "Seguridad Industrial",
+      "stock": 217,
+      "precio": 52536.97
+    },
+    {
+      "id": 53,
+      "nombre": "Válvula esférica 1/2 Estándar #53",
+      "categoria": "Plomería y Grifería",
+      "stock": 66,
+      "precio": 57131.62
+    },
+    {
+      "id": 54,
+      "nombre": "Tarugo sin tope N°6 Alta Resistencia #54",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 26,
+      "precio": 47708.04
+    },
+    {
+      "id": 55,
+      "nombre": "Pinza universal Estándar #55",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 199,
+      "precio": 34859.55
+    },
+    {
+      "id": 56,
+      "nombre": "Toma corriente Estándar #56",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 173,
+      "precio": 31155.71
+    },
+    {
+      "id": 57,
+      "nombre": "Pintura látex exterior Alta Resistencia #57",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 72,
+      "precio": 34534.96
+    },
+    {
+      "id": 58,
+      "nombre": "Arnés de sujeción Alta Resistencia #58",
+      "categoria": "Seguridad Industrial",
+      "stock": 59,
+      "precio": 60414.92
+    },
+    {
+      "id": 59,
+      "nombre": "Adhesivo para PVC Alta Resistencia #59",
+      "categoria": "Plomería y Grifería",
+      "stock": 181,
+      "precio": 13474.24
+    },
+    {
+      "id": 60,
+      "nombre": "Pitón cerrado cincado Profesional #60",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 176,
+      "precio": 42417.13
+    },
+    {
+      "id": 61,
+      "nombre": "Taladro percutor Alta Resistencia #61",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 137,
+      "precio": 29620.86
+    },
+    {
+      "id": 62,
+      "nombre": "Cable unipolar 4mm Alta Resistencia #62",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 21,
+      "precio": 22306.52
+    },
+    {
+      "id": 63,
+      "nombre": "Bandeja para pintar Alta Resistencia #63",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 63,
+      "precio": 38454.39
+    },
+    {
+      "id": 64,
+      "nombre": "Lentes de seguridad Profesional #64",
+      "categoria": "Seguridad Industrial",
+      "stock": 0,
+      "precio": 46155.74
+    },
+    {
+      "id": 65,
+      "nombre": "Flotante para tanque Alta Resistencia #65",
+      "categoria": "Plomería y Grifería",
+      "stock": 22,
+      "precio": 58899.59
+    },
+    {
+      "id": 66,
+      "nombre": "Arandela plana 1/4 Profesional #66",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 23,
+      "precio": 33663.07
+    },
+    {
+      "id": 67,
+      "nombre": "Pinza universal Alta Resistencia #67",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 129,
+      "precio": 14318.27
+    },
+    {
+      "id": 68,
+      "nombre": "Toma corriente Alta Resistencia #68",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 244,
+      "precio": 57413.71
+    },
+    {
+      "id": 69,
+      "nombre": "Esmalte sintético brillante Profesional #69",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 67,
+      "precio": 51107.95
+    },
+    {
+      "id": 70,
+      "nombre": "Cono de señalización Inoxidable #70",
+      "categoria": "Seguridad Industrial",
+      "stock": 53,
+      "precio": 6584.01
+    },
+    {
+      "id": 71,
+      "nombre": "Canilla monocomando Profesional #71",
+      "categoria": "Plomería y Grifería",
+      "stock": 95,
+      "precio": 27820.82
+    },
+    {
+      "id": 72,
+      "nombre": "Tornillo autoperforante 10x2 Inoxidable #72",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 191,
+      "precio": 3994.04
+    },
+    {
+      "id": 73,
+      "nombre": "Taladro percutor Profesional #73",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 170,
+      "precio": 6847.95
+    },
+    {
+      "id": 74,
+      "nombre": "Cable unipolar 4mm Profesional #74",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 91,
+      "precio": 52138.22
+    },
+    {
+      "id": 75,
+      "nombre": "Lija al agua grano 180 Profesional #75",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 54,
+      "precio": 12768.47
+    },
+    {
+      "id": 76,
+      "nombre": "Máscara antipolvo Inoxidable #76",
+      "categoria": "Seguridad Industrial",
+      "stock": 113,
+      "precio": 12334.98
+    },
+    {
+      "id": 77,
+      "nombre": "Rejilla de piso Inoxidable #77",
+      "categoria": "Plomería y Grifería",
+      "stock": 228,
+      "precio": 60050.63
+    },
+    {
+      "id": 78,
+      "nombre": "Varilla roscada 3/8 Inoxidable #78",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 225,
+      "precio": 55709.86
+    },
+    {
+      "id": 79,
+      "nombre": "Pinza universal Profesional #79",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 171,
+      "precio": 64953.72
+    },
+    {
+      "id": 80,
+      "nombre": "Toma corriente Profesional #80",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 28,
+      "precio": 60250.67
+    },
+    {
+      "id": 81,
+      "nombre": "Sellador de silicona Inoxidable #81",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 47,
+      "precio": 26713.71
+    },
+    {
+      "id": 82,
+      "nombre": "Guantes de vaqueta Cincado #82",
+      "categoria": "Seguridad Industrial",
+      "stock": 226,
+      "precio": 26367.1
+    },
+    {
+      "id": 83,
+      "nombre": "Flexible mallado 1/2 Inoxidable #83",
+      "categoria": "Plomería y Grifería",
+      "stock": 102,
+      "precio": 639.02
+    },
+    {
+      "id": 84,
+      "nombre": "Tarugo sin tope N°6 Cincado #84",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 242,
+      "precio": 51072.55
+    },
+    {
+      "id": 85,
+      "nombre": "Taladro percutor Inoxidable #85",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 113,
+      "precio": 45430.15
+    },
+    {
+      "id": 86,
+      "nombre": "Cable unipolar 4mm Inoxidable #86",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 205,
+      "precio": 36347.06
+    },
+    {
+      "id": 87,
+      "nombre": "Aguarrás mineral Inoxidable #87",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 44,
+      "precio": 12748.41
+    },
+    {
+      "id": 88,
+      "nombre": "Arnés de sujeción Cincado #88",
+      "categoria": "Seguridad Industrial",
+      "stock": 19,
+      "precio": 37857.13
+    },
+    {
+      "id": 89,
+      "nombre": "Caño PVC 110mm Cincado #89",
+      "categoria": "Plomería y Grifería",
+      "stock": 196,
+      "precio": 20727.51
+    },
+    {
+      "id": 90,
+      "nombre": "Pitón cerrado cincado Especial #90",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 127,
+      "precio": 32933.85
+    },
+    {
+      "id": 91,
+      "nombre": "Pinza universal Inoxidable #91",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 45,
+      "precio": 4168.73
+    },
+    {
+      "id": 92,
+      "nombre": "Toma corriente Inoxidable #92",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 222,
+      "precio": 12485.71
+    },
+    {
+      "id": 93,
+      "nombre": "Adhesivo de montaje Cincado #93",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 177,
+      "precio": 56087.34
+    },
+    {
+      "id": 94,
+      "nombre": "Lentes de seguridad Especial #94",
+      "categoria": "Seguridad Industrial",
+      "stock": 246,
+      "precio": 57923.53
+    },
+    {
+      "id": 95,
+      "nombre": "Cinta teflón 3/4 Cincado #95",
+      "categoria": "Plomería y Grifería",
+      "stock": 157,
+      "precio": 3063.34
+    },
+    {
+      "id": 96,
+      "nombre": "Arandela plana 1/4 Especial #96",
+      "categoria": "Bulonería y Tornillería",
+      "stock": 173,
+      "precio": 38146.86
+    },
+    {
+      "id": 97,
+      "nombre": "Taladro percutor Cincado #97",
+      "categoria": "Ferretería y Herramientas",
+      "stock": 244,
+      "precio": 17319.39
+    },
+    {
+      "id": 98,
+      "nombre": "Cable unipolar 4mm Cincado #98",
+      "categoria": "Electricidad e Iluminación",
+      "stock": 85,
+      "precio": 15895.24
+    },
+    {
+      "id": 99,
+      "nombre": "Masilla para yeso Especial #99",
+      "categoria": "Pinturas y Adhesivos",
+      "stock": 176,
+      "precio": 42134.8
+    },
+    {
+      "id": 100,
+      "nombre": "Cono de señalización Premium #100",
+      "categoria": "Seguridad Industrial",
+      "stock": 242,
+      "precio": 48995.26
+    }
+  ],
+  "pedidos": [
+    {
+      "id": 1,
+      "lineas": [
+        {
+          "id_producto": 20,
+          "cantidad": 10
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "lineas": [
+        {
+          "id_producto": 7,
+          "cantidad": 9
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "lineas": [
+        {
+          "id_producto": 12,
+          "cantidad": 15
+        },
+        {
+          "id_producto": 8,
+          "cantidad": 6
+        },
+        {
+          "id_producto": 15,
+          "cantidad": 14
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "lineas": [
+        {
+          "id_producto": 79,
+          "cantidad": 13
+        },
+        {
+          "id_producto": 1,
+          "cantidad": 11
+        },
+        {
+          "id_producto": 39,
+          "cantidad": 15
+        },
+        {
+          "id_producto": 5,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 4,
+          "cantidad": 12
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "lineas": [
+        {
+          "id_producto": 10,
+          "cantidad": 10
+        },
+        {
+          "id_producto": 11,
+          "cantidad": 4
+        },
+        {
+          "id_producto": 9,
+          "cantidad": 9
+        },
+        {
+          "id_producto": 2,
+          "cantidad": 2
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "lineas": [
+        {
+          "id_producto": 5,
+          "cantidad": 11
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "lineas": [
+        {
+          "id_producto": 15,
+          "cantidad": 9
+        },
+        {
+          "id_producto": 72,
+          "cantidad": 1
+        },
+        {
+          "id_producto": 5,
+          "cantidad": 9
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "lineas": [
+        {
+          "id_producto": 75,
+          "cantidad": 9
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "lineas": [
+        {
+          "id_producto": 2,
+          "cantidad": 5
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "lineas": [
+        {
+          "id_producto": 8,
+          "cantidad": 11
+        },
+        {
+          "id_producto": 18,
+          "cantidad": 15
+        },
+        {
+          "id_producto": 80,
+          "cantidad": 12
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "lineas": [
+        {
+          "id_producto": 31,
+          "cantidad": 14
+        },
+        {
+          "id_producto": 6,
+          "cantidad": 15
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "lineas": [
+        {
+          "id_producto": 11,
+          "cantidad": 13
+        },
+        {
+          "id_producto": 86,
+          "cantidad": 14
+        },
+        {
+          "id_producto": 32,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 4,
+          "cantidad": 7
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "lineas": [
+        {
+          "id_producto": 29,
+          "cantidad": 4
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "lineas": [
+        {
+          "id_producto": 8,
+          "cantidad": 4
+        },
+        {
+          "id_producto": 7,
+          "cantidad": 7
+        },
+        {
+          "id_producto": 3,
+          "cantidad": 13
+        },
+        {
+          "id_producto": 17,
+          "cantidad": 7
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "lineas": [
+        {
+          "id_producto": 1,
+          "cantidad": 2
+        },
+        {
+          "id_producto": 34,
+          "cantidad": 3
+        },
+        {
+          "id_producto": 9,
+          "cantidad": 1
+        },
+        {
+          "id_producto": 14,
+          "cantidad": 6
+        },
+        {
+          "id_producto": 41,
+          "cantidad": 7
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "lineas": [
+        {
+          "id_producto": 15,
+          "cantidad": 7
+        },
+        {
+          "id_producto": 25,
+          "cantidad": 5
+        },
+        {
+          "id_producto": 14,
+          "cantidad": 1
+        },
+        {
+          "id_producto": 18,
+          "cantidad": 11
+        },
+        {
+          "id_producto": 95,
+          "cantidad": 12
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "lineas": [
+        {
+          "id_producto": 3,
+          "cantidad": 11
+        },
+        {
+          "id_producto": 80,
+          "cantidad": 6
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "lineas": [
+        {
+          "id_producto": 39,
+          "cantidad": 9
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "lineas": [
+        {
+          "id_producto": 11,
+          "cantidad": 7
+        },
+        {
+          "id_producto": 18,
+          "cantidad": 3
+        },
+        {
+          "id_producto": 13,
+          "cantidad": 11
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "lineas": [
+        {
+          "id_producto": 10,
+          "cantidad": 7
+        },
+        {
+          "id_producto": 1,
+          "cantidad": 5
+        }
+      ]
+    }
+  ]
+}

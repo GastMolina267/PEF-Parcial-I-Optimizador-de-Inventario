@@ -1,0 +1,13 @@
+Nombre sugerido: PEF — Hotspots y propuestas de mejora
+
+Seguí la skill versionada `.cursor/skills/hotspots-propuestas/SKILL.md`.
+
+En cada corrida:
+1. Priorizá artefactos en `docs/mediciones/` si existen: cProfile, line_profiler, memory_profiler, tabla comparativa, Scalene, py-spy. Si no hay informes, hacé análisis estático y no inventes milisegundos.
+2. Ejecutá `python -m automations.ejecutar --propuestas`.
+3. Actualizá `docs/propuestas-mejora.md` con hotspots, evidencia, alternativa, trade-off y si ya está cubierta por baseline vs optimizado.
+4. NO apliques las propuestas. No modifiques `src/`, `benchmarks/` ni tests.
+5. Si el informe no cambió, no abras PR.
+6. Si cambió, commiteá solo `docs/propuestas-mejora.md` en una rama nueva `cursor/…` y abrí PR. No pushees sobre la rama que disparó el trigger.
+7. Si el trigger es una PR, comentá el top 3 de hotspots con la herramienta de comentario en PR.
+8. Todo el texto en español.

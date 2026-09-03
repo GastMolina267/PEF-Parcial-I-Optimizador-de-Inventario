@@ -202,9 +202,11 @@ def ejecutar_benchmarks_dataset(nombre_archivo: str) -> list[dict[str, Any]]:
         "detalle": f"Memo DP reutilizó {r_opt.hits_memo} llamadas; poda en árbol",
     })
 
-    # 6. Preparación de Pedidos (Secuencial vs Concurrente)
+    # 6. Preparación de Pedidos: aísla concurrencia (mismo CatalogoHash en ambos lados).
+    # No mezclar catálogo lineal O(n) con el pool: eso atribuye al IPC un speedup que
+    # en realidad viene de la búsqueda hash. El contraste lista vs hash ya está en las filas 1-2.
     t_base, m_base, _ = medir_tiempo_y_memoria(
-        procesar_pedidos_secuencial, cat_lineal, pedidos, descontar_stock=False, iteraciones=2
+        procesar_pedidos_secuencial, cat_hash, pedidos, descontar_stock=False, iteraciones=2
     )
     t_opt, m_opt, _ = medir_tiempo_y_memoria(
         procesar_pedidos_concurrente, cat_hash, pedidos, descontar_stock=False, iteraciones=2
@@ -213,14 +215,14 @@ def ejecutar_benchmarks_dataset(nombre_archivo: str) -> list[dict[str, Any]]:
     filas_resultados.append({
         "dataset": nombre_archivo,
         "operacion": "Preparación de Pedidos",
-        "complejidad_base": "O(P·L·n)",
-        "complejidad_opt": "O(P·L/cores)",
+        "complejidad_base": "O(P·L)",
+        "complejidad_opt": "O((P·L)/C + IPC)",
         "t_base_ms": t_base,
         "t_opt_ms": t_opt,
         "mem_base_kb": m_base,
         "mem_opt_kb": m_opt,
         "speedup": sp,
-        "detalle": "ProcessPoolExecutor multi-core vs. mono-hilo",
+        "detalle": "Mismo CatalogoHash: ProcessPoolExecutor vs. secuencial (aísla IPC)",
     })
 
     return filas_resultados
@@ -253,7 +255,7 @@ def formatear_tabla_markdown(resultados: list[dict[str, Any]]) -> str:
     lineas.append("2. **Batch Picking:** Evitar el producto cartesiano de búsquedas repetidas $O(P \\cdot L \\cdot n)$ mediante consolidación en una sola pasada con hash map $O(L)$ elimina por completo el cuello de botella crítico en almacén.")
     lineas.append("3. **Top-N:** `heapq.nlargest` $O(N \\log k)$ mantiene memoria acotada a $k$ elementos frente a la lista completa de ordenamiento $O(N \\log N)$.")
     lineas.append("4. **Sustitutos:** La memoización de estados DP convierte un árbol exponencial $O(2^N)$ en tiempo pseudo-polinomial $O(N \\cdot P)$, permitiendo explorar cientos de combinaciones en milisegundos.")
-    lineas.append("5. **Concurrencia:** En datasets pequeños, el overhead de serialización IPC domina; en `mediano.json` y `grande.json`, el paralelismo multi-núcleo con `ProcessPoolExecutor` amortiza el costo de creación de procesos y supera ampliamente al GIL.")
+    lineas.append("5. **Concurrencia:** La fila de preparación usa el **mismo** `CatalogoHash` a ambos lados para no confundir IPC con la ganancia O(n)→O(1). En lotes chicos el overhead de procesos/pickle domina; el pool solo paga cuando P·L cubre ese costo fijo.")
     lineas.append("")
 
     return "\n".join(lineas)

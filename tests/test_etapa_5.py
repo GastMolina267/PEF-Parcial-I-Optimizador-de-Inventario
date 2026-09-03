@@ -138,6 +138,15 @@ class TestArtefactosMedicionesGenerados:
         assert "Speedup" in contenido
         assert "grande.json" in contenido
 
+    def test_preparacion_pedidos_aisla_concurrencia(self):
+        """La fila de preparación no debe mezclar catálogo lineal con el pool de procesos."""
+        fuente = (BASE_DIR / "benchmarks" / "comparar.py").read_text(encoding="utf-8")
+        bloque = fuente.split("# 6. Preparación", 1)[1].split("return filas_resultados", 1)[0]
+        assert "procesar_pedidos_secuencial, cat_hash" in bloque
+        assert "procesar_pedidos_concurrente, cat_hash" in bloque
+        assert "cat_lineal" not in bloque
+        assert "aísla" in bloque.lower() or "aisla" in bloque.lower()
+
     def test_informe_cprofile_existe(self):
         ruta_cprofile = MEDICIONES_DIR / "cprofile_resumen.txt"
         assert ruta_cprofile.is_file()

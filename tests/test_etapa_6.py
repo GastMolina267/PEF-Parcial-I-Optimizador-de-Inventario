@@ -65,9 +65,13 @@ class TestDerivacionAST:
     def test_busqueda_lineal_es_o_n(self):
         inf = _informe_por_nombre("CatalogoLineal.buscar_por_id")
         assert inf.evidencia.recorre_lista_productos
-        assert inf.evidencia.profundidad_bucles >= 1
-        assert "n" in inf.peor.lower()
-        assert "1)" not in inf.promedio.replace(" ", "") or "n" in inf.promedio
+        assert inf.evidencia.profundidad_bucles == 1
+        promedio = inf.promedio.replace(" ", "").lower()
+        peor = inf.peor.replace(" ", "").lower()
+        assert "θ(n)" in promedio or "theta(n)" in promedio
+        assert "o(n)" in peor
+        assert "θ(1)" not in promedio
+        assert "o(1)" not in promedio
 
     def test_busqueda_hash_es_o_1(self):
         inf = _informe_por_nombre("CatalogoHash.buscar_por_id")

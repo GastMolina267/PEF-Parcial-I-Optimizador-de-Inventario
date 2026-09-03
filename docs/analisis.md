@@ -182,14 +182,16 @@ El multi-procesamiento introduce un costo fijo no despreciable:
 3. **Sincronización:** `_winapi.WaitForSingleObject`.
 
 #### Evidencia empírica obtenida en benchmarking:
+La corrida original contrastaba `CatalogoLineal` secuencial contra `CatalogoHash` + `ProcessPoolExecutor`, de modo que el speedup de `grande.json` (**1.95x**) mezclaba búsqueda $O(n)$ con paralelismo. Re-medición con el **mismo** `CatalogoHash` en ambos lados (aísla IPC):
+
 - **`demo_oral.json` (8 pedidos):**  
-  - Mono-hilo: **0.17 ms**
-  - Concurrente: **396.76 ms** (Speedup **0.00x**)
-  - *Diagnóstico:* El costo de instanciar procesos en Windows y serializar los datos supera ampliamente el tiempo de cómputo de 8 pedidos.
+  - Secuencial (hash): **0.093 ms**
+  - Concurrente: **7.608 ms** (Speedup **0.01x**)
+  - *Diagnóstico:* El costo de crear procesos y serializar el snapshot supera el cómputo de 8 pedidos.
 - **`grande.json` (2.000 pedidos, 10.000 productos):**  
-  - Mono-hilo: **1.417,17 ms**
-  - Concurrente: **727,48 ms** (Speedup **1.95x**)
-  - *Diagnóstico:* Con 2.000 pedidos, la carga computacional supera con creces el costo fijo de IPC, logrando una aceleración real de casi **2x** en una máquina multi-núcleo.
+  - Secuencial (hash): **21.275 ms**
+  - Concurrente: **73.583 ms** (Speedup **0.29x**)
+  - *Diagnóstico:* Con catálogo $O(1)$, preparar 2.000 pedidos es tan barato (~21 ms) que el pool **no paga**. El 1.95x previo se debía sobre todo a dejar de recorrer la lista, no a los núcleos extra. El pool solo se justifica con más trabajo por pedido (p. ej. combinaciones DP) o lotes claramente mayores.
 
 ---
 
@@ -204,25 +206,25 @@ Las siguientes mediciones fueron registradas automáticamente mediante `time.per
 | `demo_oral.json` | **Ranking Top-N (k=5)** | `O(N log N)` | `O(N log k)` | 0.044 | 0.066 | **0.67x** | 4.7 | 3.6 | heapq.nlargest acotado en k=5 sobre 8 pedidos |
 | `demo_oral.json` | **Batch Picking Consolidado** | `O(P·L·n)` | `O(L)` | 0.029 | 0.151 | **0.19x** | 1.9 | 8.2 | Acumulación en 1 pasada hash vs. búsquedas anidadas |
 | `demo_oral.json` | **Combinaciones Sustitutas** | `O(2^N)` | `O(N·P)` | 0.291 | 0.393 | **0.74x** | 5.9 | 9.4 | Poda en árbol combinatorio |
-| `demo_oral.json` | **Preparación de Pedidos** | `O(P·L·n)` | `O(P·L/cores)` | 0.169 | 396.764 | **0.00x** | 6.8 | 213.3 | Dominancia de IPC en volumen pequeño |
+| `demo_oral.json` | **Preparación de Pedidos** | `O(P·L)` | `O((P·L)/C + IPC)` | 0.093 | 7.608 | **0.01x** | 6.6 | 61.4 | Mismo CatalogoHash: aísla IPC |
 | `pequeno.json` | **Búsqueda por ID** | `O(n)` | `O(1)` | 0.004 | 0.002 | **2.27x** | 0.6 | 0.6 | ID 51 en catálogo de 100 productos |
 | `pequeno.json` | **Búsqueda por Nombre** | `O(n)` | `O(1) amort.` | 0.261 | 0.009 | **29.16x** | 1.4 | 0.6 | Índice invertido + LRU |
 | `pequeno.json` | **Ranking Top-N (k=5)** | `O(N log N)` | `O(N log k)` | 0.104 | 0.171 | **0.61x** | 7.0 | 4.4 | 20 pedidos |
 | `pequeno.json` | **Batch Picking Consolidado** | `O(P·L·n)` | `O(L)` | 0.081 | 1.081 | **0.07x** | 3.2 | 15.4 | Hash map consolidado |
 | `pequeno.json` | **Combinaciones Sustitutas** | `O(2^N)` | `O(N·P)` | 0.911 | 1.348 | **0.68x** | 6.8 | 13.4 | DP memoizada |
-| `pequeno.json` | **Preparación de Pedidos** | `O(P·L·n)` | `O(P·L/cores)` | 0.911 | 367.719 | **0.00x** | 14.4 | 226.8 | IPC overhead |
+| `pequeno.json` | **Preparación de Pedidos** | `O(P·L)` | `O((P·L)/C + IPC)` | 0.220 | 6.592 | **0.03x** | 14.2 | 72.0 | Mismo CatalogoHash: aísla IPC |
 | `mediano.json` | **Búsqueda por ID** | `O(n)` | `O(1)` | 0.016 | 0.001 | **12.28x** | 0.6 | 0.6 | ID 501 en catálogo de 1000 productos |
 | `mediano.json` | **Búsqueda por Nombre** | `O(n)` | `O(1) amort.` | 0.857 | 0.003 | **261.97x** | 1.6 | 0.6 | 261x más rápido con caché |
 | `mediano.json` | **Ranking Top-N (k=5)** | `O(N log N)` | `O(N log k)` | 0.421 | 0.364 | **1.16x** | 58.5 | 16.4 | Ahorro sustancial de memoria |
 | `mediano.json` | **Batch Picking Consolidado** | `O(P·L·n)` | `O(L)` | 4.201 | 3.227 | **1.30x** | 23.0 | 167.6 | Inicio de ventaja de consolidación |
 | `mediano.json` | **Combinaciones Sustitutas** | `O(2^N)` | `O(N·P)` | 1.603 | 2.516 | **0.64x** | 9.5 | 25.2 | Poda en árbol combinatorio |
-| `mediano.json` | **Preparación de Pedidos** | `O(P·L·n)` | `O(P·L/cores)` | 7.625 | 641.920 | **0.01x** | 159.2 | 380.1 | Break-even aún no alcanzado |
+| `mediano.json` | **Preparación de Pedidos** | `O(P·L)` | `O((P·L)/C + IPC)` | 2.011 | 12.349 | **0.16x** | 159.0 | 324.7 | Mismo CatalogoHash: aísla IPC |
 | `grande.json` | **Búsqueda por ID** | `O(n)` | `O(1)` | 0.383 | 0.005 | **75.26x** | 0.6 | 0.6 | ID 5001 en 10.000 productos |
 | `grande.json` | **Búsqueda por Nombre** | `O(n)` | `O(1) amort.` | 26.430 | 0.010 | **2627.23x** | 4.0 | 0.6 | **2627x de aceleración** con hash invertido |
 | `grande.json` | **Ranking Top-N (k=5)** | `O(N log N)` | `O(N log k)` | 19.003 | 10.821 | **1.76x** | 604.7 | 218.9 | **63% de ahorro de memoria** en heap |
 | `grande.json` | **Batch Picking Consolidado** | `O(P·L·n)` | `O(L)` | 1241.727 | 117.607 | **10.56x** | 360.5 | 1722.0 | **10.5x más rápido** evitando recorridos |
 | `grande.json` | **Combinaciones Sustitutas** | `O(2^N)` | `O(N·P)` | 36.246 | 35.551 | **1.02x** | 31.7 | 44.2 | Evita explosión combinatorial |
-| `grande.json` | **Preparación de Pedidos** | `O(P·L·n)` | `O(P·L/cores)` | 1417.171 | 727.486 | **1.95x** | 1617.1 | 2764.9 | **Punto de corte alcanzado: ~2x más rápido** |
+| `grande.json` | **Preparación de Pedidos** | `O(P·L)` | `O((P·L)/C + IPC)` | 21.275 | 73.583 | **0.29x** | 1617.0 | 3181.7 | Mismo CatalogoHash: el pool no paga a esta escala |
 
 ---
 
@@ -273,7 +275,7 @@ Esta sección la regenera la **Automatización 1** en cada push. El análisis fo
 <!-- No editar a mano: se regenera con `python -m automations.ejecutar --complejidad`. -->
 <!-- El comentario del grupo (secciones 1-8) permanece intacto por encima de este bloque. -->
 
-**Commit analizado:** `f794246` · **Generado:** 2026-09-03 00:07 UTC
+**Commit analizado:** `88e35b2` · **Generado:** 2026-09-03 19:13 UTC
 
 Criterio: se recorrió el AST de cada función fundamental. Las cotas salen de
 bucles, accesos hash, recursión, `heapq`, memoización y `ProcessPoolExecutor`

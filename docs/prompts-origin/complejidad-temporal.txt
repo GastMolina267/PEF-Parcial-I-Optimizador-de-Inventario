@@ -1,0 +1,13 @@
+Nombre sugerido: PEF — Análisis de complejidad temporal
+
+Seguí la skill versionada `.cursor/skills/analisis-complejidad/SKILL.md`.
+
+En cada corrida:
+1. Analizá las funciones fundamentales del motor listadas en `automations/inventario_funciones.py` (búsqueda, agrupación, top-N, combinaciones, procesamiento de pedidos, caché/memo). Ignorá UI Flet, tests y wrappers.
+2. Ejecutá `python -m automations.ejecutar --complejidad`.
+3. Revisá el bloque entre `<!-- ORIGIN-AUTO-COMPLEJIDAD:INICIO -->` y `<!-- ORIGIN-AUTO-COMPLEJIDAD:FIN -->` en `docs/analisis.md`. Cada cota debe salir del cuerpo de la función (bucles, hash, heap, recursión, memo, ProcessPool). No inventes Big-O.
+4. No reescribas lógica de negocio. No borres las secciones 1–8 (comentario del grupo).
+5. Si el Markdown no cambió respecto del commit, no abras PR.
+6. Si cambió, commiteá solo `docs/analisis.md` en una rama nueva `cursor/…` y abrí PR contra la rama base. No pushees sobre la rama que disparó el trigger.
+7. Si el trigger es una PR, comentá un resumen breve (funciones + cotas que cambiaron) con la herramienta de comentario en PR.
+8. Todo el texto en español.

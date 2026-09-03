@@ -203,9 +203,15 @@ PEF-Parcial-I-Optimizador-de-Inventario/
 ├── docs/
 │   ├── project-planning.md             # Plan canónico de desarrollo por etapas
 │   ├── option-six-to-be-implemented.txt # Enunciado y rúbrica oficial de la cátedra
-│   ├── analisis.md                     # Derivación de complejidad y análisis de mediciones
-│   ├── propuestas-mejora.md            # Registro de hotspots y propuestas de optimización
+│   ├── analisis.md                     # Derivación de complejidad (grupo + bloque Origin)
+│   ├── propuestas-mejora.md            # Informe de hotspots (Automatización 2)
+│   ├── automatizaciones-origin.md      # Cómo activar los triggers en Cursor
+│   ├── prompts-origin/                 # Prompts listos para el dashboard
 │   └── mediciones/                     # Salidas crudas y perfiles (.prof, .txt, capturas)
+├── automations/                        # Núcleo reproducible de las automations Origin
+│   ├── ejecutar.py                     # CLI: python -m automations.ejecutar
+│   ├── analizar_complejidad.py         # AST → bloque marcado en analisis.md
+│   └── proponer_mejoras.py             # mediciones/ → propuestas-mejora.md
 ├── src/
 │   ├── __init__.py
 │   ├── modelos/                        # Modelos de dominio (Producto, LineaPedido, Pedido)
@@ -277,6 +283,9 @@ python -m benchmarks.perfilar_lineas
 
 # Perfilado de consumo de memoria
 python -m benchmarks.perfilar_memoria
+
+# Automatizaciones Origin (complejidad + propuestas, sin tocar el motor)
+python -m automations.ejecutar
 ```
 
 ### 5. Ejecutar pruebas automatizadas
@@ -305,12 +314,19 @@ La aplicación y su documentación están especialmente diseñadas para articula
 
 ## 12. Automatizaciones Origin (En cada push)
 
-El repositorio incorpora dos automatizaciones mediante agentes en la nube (Cursor Origin) configuradas para ejecutarse de forma reactiva ante cada `push`:
+Dos agentes en la nube de **Cursor Origin** (no GitHub Actions) se disparan ante un `push` o una PR. El núcleo es reproducible en local; el dashboard solo programa el trigger. Guía de activación: [docs/automatizaciones-origin.md](docs/automatizaciones-origin.md).
 
 1. **Automatización de Complejidad Temporal:**  
-   Analiza estáticamente las funciones fundamentales implementadas en el motor (`catalogo_hash`, `catalogo_lineal`, `agrupador`, `top_productos`, `combinaciones`, etc.), deduce su cota asintótica formal y actualiza la sección correspondiente de [docs/analisis.md](docs/analisis.md).
+   Recorre el AST de las funciones fundamentales del motor (`catalogo_hash`, `catalogo_lineal`, `agrupador`, `top_productos`, `combinaciones`, procesadores, caché), deriva mejor/promedio/peor con evidencia del cuerpo y regenera el bloque marcado en [docs/analisis.md](docs/analisis.md). No reescribe lógica de negocio.
 2. **Automatización de Hotspots y Propuestas de Mejora:**  
-   Examina los informes generados en `docs/mediciones/` y el código fuente para detectar operaciones con potencial de cuello de botella, proponiendo optimizaciones alternativas documentadas en [docs/propuestas-mejora.md](docs/propuestas-mejora.md).
+   Prioriza artefactos en `docs/mediciones/` (cProfile, line_profiler, memoria, tabla comparativa). Escribe [docs/propuestas-mejora.md](docs/propuestas-mejora.md) con alternativa y trade-off. **No aplica** cambios en `src/`.
+
+```bash
+# Regenerar ambos informes (lo que invocan los agentes Origin)
+python -m automations.ejecutar
+```
+
+Prompts listos para pegar en [cursor.com/automations/new](https://cursor.com/automations/new): [docs/prompts-origin/](docs/prompts-origin/). Skills versionadas: `.cursor/skills/analisis-complejidad/` y `.cursor/skills/hotspots-propuestas/`.
 
 ---
 
@@ -323,4 +339,4 @@ El proyecto se construye de manera incremental y modular siguiendo las etapas es
 - [x] **Etapa 3 — Motor optimizado:** Catálogo hash, `heapq` para top-N, programación dinámica con memoización, caché LRU reactiva y paralelismo con `ProcessPoolExecutor`.
 - [x] **Etapa 4 — Interfaz gráfica Flet:** Aplicación de escritorio con arquitectura por componentes, métricas integradas y tema accesible.
 - [x] **Etapa 5 — Medición, análisis y tests:** Suite de scripts de perfilado, generación de la tabla comparativa y pruebas automatizadas de equivalencia.
-- [ ] **Etapa 6 — Automatizaciones Origin:** Configuración de triggers y agentes continuos de análisis asintótico y detección de hotspots.
+- [x] **Etapa 6 — Automatizaciones Origin:** Núcleo AST + lecturas de `docs/mediciones/`, skills/prompts Origin y refresco de complejidad / propuestas en cada push.

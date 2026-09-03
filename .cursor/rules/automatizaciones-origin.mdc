@@ -1,0 +1,11 @@
+---
+description: Reglas de las automatizaciones Origin (Etapa 6) para agentes en la nube.
+globs: docs/analisis.md,docs/propuestas-mejora.md,automations/**
+---
+
+Las automatizaciones Origin de este repo **solo escriben documentación**:
+
+1. Complejidad: seguir `.cursor/skills/analisis-complejidad/SKILL.md` y ejecutar `python -m automations.ejecutar --complejidad`.
+2. Hotspots: seguir `.cursor/skills/hotspots-propuestas/SKILL.md` y ejecutar `python -m automations.ejecutar --propuestas`.
+
+Prohibido alterar `src/`, aplicar propuestas o commitear sobre la rama que disparó el push. Textos en español. El bloque entre `ORIGIN-AUTO-COMPLEJIDAD` es generado; las secciones 1–8 de `docs/analisis.md` son del grupo.

@@ -12,8 +12,10 @@ from __future__ import annotations
 import flet as ft
 from src.ui.tema import (
     COLOR_BORDE,
+    COLOR_BORDE_ENFOQUE,
     COLOR_EXITO,
     COLOR_PRIMARIO,
+
     COLOR_SECUNDARIO,
     COLOR_SUPERFICIE,
     COLOR_TARJETA,
@@ -30,9 +32,11 @@ from src.ui.tema import (
 class PanelEstado(ft.Container):
     """Barra superior persistente de métricas y control de estrategia."""
 
-    def __init__(self, on_cambiar_estrategia) -> None:
+    def __init__(self, on_cambiar_estrategia, on_mostrar_ayuda_modos=None) -> None:
         super().__init__()
         self.on_cambiar_estrategia = on_cambiar_estrategia
+        self.on_mostrar_ayuda_modos = on_mostrar_ayuda_modos
+        self.dataset_nombre = "demo_oral.json"
 
         self.txt_dataset = ft.Text(
             value="demo_oral.json",
@@ -58,11 +62,20 @@ class PanelEstado(ft.Container):
         )
 
         self.switch_estrategia = ft.Switch(
-            label="Modo Optimizado",
+            label="Modo Baseline (O(n))",
             value=False,
-            active_color=COLOR_PRIMARIO,
+            active_color=COLOR_EXITO,
             on_change=self._al_cambiar_switch,
         )
+
+        self.btn_info_modos = ft.IconButton(
+            icon=ft.Icons.HELP_OUTLINE_ROUNDED,
+            icon_color=COLOR_BORDE_ENFOQUE,
+            icon_size=21,
+            tooltip="¿Qué cambia entre Modo Optimizado O(1) y Modo Baseline? Clic para ver comparativa",
+            on_click=lambda _: self._abrir_ayuda_modos(),
+        )
+
 
         self.padding = padding_symmetric(horizontal=16, vertical=10)
         self.bgcolor = COLOR_SUPERFICIE
@@ -97,11 +110,18 @@ class PanelEstado(ft.Container):
                 ),
                 # Espaciador central
                 ft.Container(expand=True),
-                # Columna 3: Control de estrategia
+                # Columna 3: Control de estrategia con botón explicativo
                 ft.Container(
-                    content=self.switch_estrategia,
+                    content=ft.Row(
+                        controls=[
+                            self.switch_estrategia,
+                            self.btn_info_modos,
+                        ],
+                        spacing=4,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
                     bgcolor=COLOR_TARJETA,
-                    padding=padding_symmetric(horizontal=12, vertical=4),
+                    padding=padding_symmetric(horizontal=10, vertical=3),
                     border_radius=8,
                     border=borde_all(1, COLOR_BORDE),
                 ),
@@ -110,8 +130,16 @@ class PanelEstado(ft.Container):
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
+    def _abrir_ayuda_modos(self):
+        if self.on_mostrar_ayuda_modos:
+            self.on_mostrar_ayuda_modos()
+
     def _al_cambiar_switch(self, e):
         nueva = "optimizado" if self.switch_estrategia.value else "baseline"
+        self.switch_estrategia.label = (
+            "Modo Optimizado (O(1))" if self.switch_estrategia.value else "Modo Baseline (O(n))"
+        )
+        actualizar_control(self.switch_estrategia)
         self.on_cambiar_estrategia(nueva)
 
     def actualizar_estado(
@@ -125,6 +153,7 @@ class PanelEstado(ft.Container):
         resultado_negocio: str | None = None,
     ) -> None:
         """Actualiza la información visible en el panel."""
+        self.dataset_nombre = dataset
         self.txt_dataset.value = dataset
         self.txt_volumen.value = f"{n_productos:,} prods | {n_pedidos:,} pedidos"
         self.switch_estrategia.value = (estrategia == "optimizado")
@@ -134,7 +163,11 @@ class PanelEstado(ft.Container):
 
         if tiempo_ms is not None:
             mem_str = f"{memoria_mb:.2f} MB" if memoria_mb is not None else "-- MB"
-            self.txt_ultima_corrida.value = f"Última corrida: {tiempo_ms:.2f} ms | {mem_str}"
+            if tiempo_ms < 0.1:
+                t_fmt = f"{tiempo_ms * 1000.0:.1f} µs"
+            else:
+                t_fmt = f"{tiempo_ms:.2f} ms"
+            self.txt_ultima_corrida.value = f"Última corrida: {t_fmt} | {mem_str}"
 
         if resultado_negocio is not None:
             self.txt_resultado_negocio.value = resultado_negocio

@@ -18,6 +18,9 @@ from src.ui.tema import (
     borde_all,
     padding_symmetric,
     crear_tarjeta_kpi,
+    crear_banner_explicativo,
+    crear_badge_tiempo,
+    crear_dropdown,
 )
 
 
@@ -30,17 +33,41 @@ class PantallaAgrupacion(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = 24
+        self.padding = padding_symmetric(horizontal=16, vertical=10)
+
+        self.items_consolidados_actuales = []
+        self.orden_ascendente = False
 
         self.btn_agrupar = ft.FilledButton(
-            "Generar Picking Consolidado",
+            "Consolidar",
             icon=ft.Icons.ALL_INBOX_ROUNDED,
             style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
             on_click=lambda _: self._ejecutar_agrupacion(),
         )
 
-        self.fila_kpis = ft.Row(spacing=12)
-        self.col_items_picking = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
+        # Controles de ordenamiento
+        self.dropdown_orden = crear_dropdown(
+            label="Ordenar por",
+            options=[
+                ft.dropdown.Option("cantidad", "Cantidad Total Demandada"),
+                ft.dropdown.Option("nombre", "Nombre del Producto"),
+                ft.dropdown.Option("stock", "Unidades en Stock"),
+                ft.dropdown.Option("estado", "Suficiencia de Stock"),
+                ft.dropdown.Option("id", "ID de Producto"),
+            ],
+            value="cantidad",
+            width=200,
+            on_change_callback=lambda _: self._aplicar_ordenamiento(),
+        )
+
+        self.btn_sentido_orden = ft.IconButton(
+            icon=ft.Icons.ARROW_DOWNWARD_ROUNDED,
+            tooltip="Orden Descendente (Clic para alternar)",
+            on_click=lambda _: self._alternar_sentido_orden(),
+        )
+
+        self.fila_kpis = ft.Row(spacing=8)
+        self.col_items_picking = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
 
         self._construir_interfaz()
         self._ejecutar_agrupacion()
@@ -52,25 +79,83 @@ class PantallaAgrupacion(ft.Container):
                     controls=[
                         ft.Column(
                             controls=[
-                                ft.Text("Batch Picking Consolidado", size=24, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Fusión de demandas en una sola pasada O(L) mediante acumulación en tablas Hash", size=13, color=COLOR_TEXTO_SECUNDARIO),
+                                ft.Text("Batch Picking Consolidado", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                                ft.Text("Fusión de demandas en una sola pasada O(L) mediante acumulación en tablas Hash", size=12, color=COLOR_TEXTO_SECUNDARIO),
                             ],
-                            spacing=2,
+                            spacing=1,
                         ),
                         ft.Container(expand=True),
                         self.btn_agrupar,
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
-                ft.Divider(height=16, color=COLOR_BORDE),
+                ft.Divider(height=6, color=COLOR_BORDE),
+                # Banner explicativo didáctico
+                crear_banner_explicativo(
+                    titulo="Batch Picking Consolidado en Almacén",
+                    descripcion="Consolida las demandas de todos los pedidos en una única lista de recolección para que el operario visite cada posición una sola vez.",
+                    complejidad_base="Agrupación Anidada O(P·L·n)",
+                    complejidad_opt="Agrupación Hash O(L)",
+                    por_que_importa="En depósitos con miles de pedidos, elimina búsquedas cuadráticas repetidas y reduce la distancia física recorrida en almacén.",
+                ),
+                # Barra de herramientas de ordenamiento compacta
+                ft.Container(
+                    content=ft.Row(
+                        controls=[
+                            ft.Icon(ft.Icons.SORT_ROUNDED, size=18, color=COLOR_PRIMARIO),
+                            self.dropdown_orden,
+                            self.btn_sentido_orden,
+                        ],
+                        spacing=8,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    padding=padding_symmetric(horizontal=10, vertical=5),
+                    bgcolor=COLOR_TARJETA,
+                    border_radius=8,
+                    border=borde_all(1, COLOR_BORDE),
+                ),
                 self.fila_kpis,
-                ft.Container(height=4),
-                ft.Text("Lista Consolidada de Artículos a Recolectar en Almacén", size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                ft.Text("Lista Consolidada de Artículos a Recolectar en Almacén", size=13, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
                 self.col_items_picking,
             ],
-            spacing=12,
+            spacing=6,
             expand=True,
         )
+
+    def al_recargar_dataset(self) -> None:
+        """Callback al recargar dataset."""
+        self._ejecutar_agrupacion()
+
+    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
+        """Sincroniza cuando cambia la estrategia."""
+        self._ejecutar_agrupacion()
+
+    def _alternar_sentido_orden(self):
+        self.orden_ascendente = not self.orden_ascendente
+        self.btn_sentido_orden.icon = ft.Icons.ARROW_UPWARD_ROUNDED if self.orden_ascendente else ft.Icons.ARROW_DOWNWARD_ROUNDED
+        self.btn_sentido_orden.tooltip = "Orden Ascendente" if self.orden_ascendente else "Orden Descendente"
+        actualizar_control(self.btn_sentido_orden)
+        self._aplicar_ordenamiento()
+
+    def _aplicar_ordenamiento(self):
+        criterio = self.dropdown_orden.value or "cantidad"
+
+        def clave(item):
+            prod = item.producto
+            if criterio == "cantidad":
+                return item.cantidad_total
+            elif criterio == "nombre":
+                return prod.nombre.lower() if prod else ""
+            elif criterio == "stock":
+                return prod.stock if prod else 0
+            elif criterio == "estado":
+                # Faltantes primero o cubiertos primero
+                stock_disp = prod.stock if prod else 0
+                return 1 if stock_disp >= item.cantidad_total else 0
+            return item.id_producto
+
+        self.items_consolidados_actuales.sort(key=clave, reverse=not self.orden_ascendente)
+        self._renderizar_items()
 
     def _ejecutar_agrupacion(self):
         inicio = time.perf_counter()
@@ -85,10 +170,23 @@ class PantallaAgrupacion(ft.Container):
             crear_tarjeta_kpi("Tiempo de Consolidación", f"{duracion_ms:.2f} ms", "Cómputo en una pasada O(L)", ft.Icons.SPEED, COLOR_PRIMARIO),
         ]
 
-        # Renderizar ítems consolidados
+        self.items_consolidados_actuales = list(lote.items)
+        self._aplicar_ordenamiento()
+
+        self.on_actualizar_panel(
+            dataset="activo",
+            n_productos=len(self.motor.catalogo),
+            n_pedidos=len(self.motor.pedidos),
+            estrategia=self.motor.estrategia,
+            tiempo_ms=duracion_ms,
+            resultado_negocio=f"Batch Picking: {lote.total_unidades} Unidades en {lote.total_productos_distintos} productos",
+        )
+        actualizar_control(self)
+
+    def _renderizar_items(self):
         items_visuales = []
         max_mostrar = 100
-        for item in lote.items[:max_mostrar]:
+        for item in self.items_consolidados_actuales[:max_mostrar]:
             prod = item.producto
             stock_disp = prod.stock if prod else 0
             nombre = prod.nombre if prod else f"Producto #{item.id_producto}"
@@ -97,57 +195,51 @@ class PantallaAgrupacion(ft.Container):
             # Badge de cobertura frente a la demanda total
             alcanza = stock_disp >= item.cantidad_total
             color_alcanza = COLOR_EXITO if alcanza else COLOR_PELIGRO
-            texto_alcanza = f"Stock: {stock_disp} (Suficiente)" if alcanza else f"Stock: {stock_disp} (Faltante)"
-
-            pedidos_str = ", ".join(f"#{d.id_pedido} ({d.cantidad}u)" for d in item.demandas_por_pedido)
+            texto_alcanza = f"Stock en Almacén: {stock_disp} Unidades (Suficiente)" if alcanza else f"Stock en Almacén: {stock_disp} Unidades (Faltante)"
 
             items_visuales.append(
                 ft.Container(
-                    content=ft.Column(
+                    content=ft.Row(
                         controls=[
-                            ft.Row(
-                                controls=[
-                                    ft.Text(f"#{item.id_producto}", size=13, weight=ft.FontWeight.BOLD, color=COLOR_PRIMARIO),
-                                    ft.Text(nombre, size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXTO_PRIMARIO),
-                                    ft.Container(expand=True),
-                                    ft.Text(f"Total a recolectar: {item.cantidad_total} uds", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                    ft.Container(
-                                        content=ft.Text(texto_alcanza, size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                                        bgcolor=color_alcanza,
-                                        padding=padding_symmetric(horizontal=8, vertical=3),
-                                        border_radius=6,
-                                    ),
-                                ],
+                            ft.Container(
+                                content=ft.Text(f"#{item.id_producto}", size=12, weight=ft.FontWeight.BOLD, color=COLOR_PRIMARIO),
+                                width=50,
                             ),
-                            ft.Row(
+                            ft.Column(
                                 controls=[
-                                    ft.Text(f"Categoría: {categoria}", size=12, color=COLOR_TEXTO_MUTED),
-                                    ft.Text(" • ", size=12, color=COLOR_TEXTO_MUTED),
-                                    ft.Text(f"Requerido en {item.total_pedidos_solicitantes} pedidos: {pedidos_str}", size=12, color=COLOR_TEXTO_SECUNDARIO),
+                                    ft.Text(nombre, size=13, weight=ft.FontWeight.W_600, color=COLOR_TEXTO_PRIMARIO),
+                                    ft.Text(f"{categoria} | {item.total_pedidos_solicitantes} pedidos solicitantes", size=11, color=COLOR_TEXTO_MUTED),
                                 ],
+                                expand=True,
+                                spacing=1,
+                            ),
+                            ft.Column(
+                                controls=[
+                                    ft.Text(f"Demanda Total: {item.cantidad_total} Unidades", size=12, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                                    ft.Text(texto_alcanza, size=10.5, color=color_alcanza, weight=ft.FontWeight.W_600),
+                                ],
+                                horizontal_alignment=ft.CrossAxisAlignment.END,
+                                spacing=1,
                             ),
                         ],
-                        spacing=4,
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
-                    padding=padding_symmetric(horizontal=14, vertical=10),
+                    padding=padding_symmetric(horizontal=12, vertical=6),
                     bgcolor=COLOR_TARJETA,
-                    border_radius=8,
+                    border_radius=6,
                     border=borde_all(1, COLOR_BORDE),
                 )
             )
 
-        if len(lote.items) > max_mostrar:
+        if len(self.items_consolidados_actuales) > max_mostrar:
             items_visuales.append(
-                ft.Text(f"Mostrando los primeros {max_mostrar} de {len(lote.items)} productos únicos...", size=12, color=COLOR_TEXTO_MUTED)
+                ft.Text(
+                    f"Mostrando los primeros {max_mostrar} de {len(self.items_consolidados_actuales)} productos consolidados...",
+                    size=12,
+                    color=COLOR_TEXTO_MUTED,
+                    text_align=ft.TextAlign.CENTER,
+                )
             )
 
         self.col_items_picking.controls = items_visuales
-        self.on_actualizar_panel(
-            dataset="activo",
-            n_productos=len(self.motor.catalogo),
-            n_pedidos=len(self.motor.pedidos),
-            estrategia=self.motor.estrategia,
-            tiempo_ms=duracion_ms,
-            resultado_negocio=f"Picking: {lote.total_productos_distintos} prods únicos, {lote.total_unidades} uds totales",
-        )
         actualizar_control(self)

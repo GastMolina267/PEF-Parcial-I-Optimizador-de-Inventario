@@ -44,13 +44,19 @@ def construir_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     args = construir_parser().parse_args(argv)
     raiz = resolver_raiz(args.raiz)
     correr_todo = not args.complejidad and not args.propuestas
 
     if args.complejidad or correr_todo:
         informes = ejecutar_complejidad(raiz)
-        print(f"[complejidad] {len(informes)} funciones fundamentales → docs/analisis.md")
+        print(f"[complejidad] {len(informes)} funciones fundamentales -> docs/analisis.md")
         for inf in informes:
             print(
                 f"  - {inf.funcion.nombre_calificado}: "

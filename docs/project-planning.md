@@ -378,3 +378,32 @@ Al ejecutar este bloque del plan se usará el flujo de creación de automations 
 - Cubrir **todas** las funcionalidades “posibles” del enunciado porque cada una engancha un requisito de la rúbrica.
 - Dos automatizaciones Origin en cada push: complejidad temporal de funciones fundamentales, y propuestas sobre las más costosas. No aplican cambios de código solas.
 - Medición con varias herramientas del enunciado: `cProfile`, line_profiler, `memory_profiler`/`tracemalloc`, Scalene y py-spy, más `timeit`/`perf_counter` para la tabla.
+
+---
+
+## Desarrollo Post-Etapas (Mejoras de UI, UX, Persistencia y Didáctica)
+
+Tras la finalización y aprobación de las Etapas 1 a 6, se incorporan mejoras evolutivas orientadas a la excelencia visual, usabilidad en la defensa oral, persistencia de estado y rigor didáctico:
+
+1. **Modernización Estética y Tipográfica (Obsidian Slate & Electric Sky):**
+   - Paleta de alto contraste SaaS con fondos obsidian `#090D16`, superficies sapphire `#111A2E`, bordes nítidos `#2D3A58`, tipografía blanca `#FFFFFF` y plata brillante `#E2E8F0`.
+   - Tipografía limpia con `Segoe UI` y estilos de texto reforzados en navegación y métricas.
+   - Formateo de alto impacto para tiempos de ejecución ($\mu\text{s}$, ms y badges visuales de *speedup*).
+2. **Clarificación Conceptual Interactiva y Diálogo Modal:**
+   - Botón interactivo de ayuda `?` en la barra superior conectado con la API de diálogo de Flet (`show_dialog` / `pop_dialog`) para consultar la comparativa teórica y práctica en cualquier momento.
+   - Banners didácticos por sección con auto-envoltura (`wrap=True`) y expansión textual que eliminan cualquier recorte horizontal.
+3. **Persistencia de Estado en Navegación:**
+   - Almacenamiento en memoria de las vistas y resultados generados para evitar la pérdida de datos o necesidad de recargar datasets al alternar entre secciones.
+4. **Despliegue y Auditoría Interactiva de Pedidos:**
+   - Visualización expandible por pedido que detalla la cobertura línea por línea (stock disponible en almacén vs. cantidad requerida, subtotales e indicadores de estado).
+5. **Normalización Terminológica y Desduplicación en Catálogo:**
+   - Reemplazo de abreviaturas informales ("uds") por etiquetas formales ("Unidades en Stock").
+   - Eliminación del switch redundante en Catálogo, sustituido por un badge informativo dinámico sincronizado con el modo global.
+6. **Ordenamiento Multidimensional en Todas las Secciones:**
+   - Filtros de ordenación interactivos (por precio, nombre, stock, demanda, estado de cobertura, aceleración y costo) en Catálogo, Pedidos, Agrupación, Top-N, Alternativas y Comparativa.
+7. **Robustez y Seguridad Recursiva en Datasets Masivos:**
+   - Acotación controlada de candidatos en el explorador DP/memoizado de combinaciones sustitutas, evitando `RecursionError` ante datasets de 10.000 artículos y garantizando tiempos de respuesta sub-2ms.
+8. **Compactación y Densidad Vertical de la Interfaz:**
+   - Reducción simétrica de espaciados, paddings y alturas en banners explicativos, tarjetas KPI, barras de herramientas y divisores en todas las pantallas.
+   - Preservación íntegra de todas las explicaciones teóricas, cotas Big-O y notas de relevancia para la defensa oral, liberando entre 150px y 200px de espacio vertical neto para que las tablas, listados y auditorías se aprecien de manera prominente sin requerir scroll excesivo.
+

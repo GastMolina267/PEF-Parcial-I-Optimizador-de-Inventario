@@ -5,18 +5,25 @@ import time
 import flet as ft
 from src.motor.motor_inventario import MotorInventario
 from src.ui.tema import (
+    COLOR_ADVERTENCIA,
     COLOR_BORDE,
     COLOR_EXITO,
+
     COLOR_PELIGRO,
     COLOR_PRIMARIO,
     COLOR_SECUNDARIO,
+    COLOR_SUPERFICIE,
     COLOR_TARJETA,
+
     COLOR_TEXTO_MUTED,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     actualizar_control,
     borde_all,
     padding_symmetric,
+    crear_banner_explicativo,
+    crear_badge_tiempo,
+    crear_dropdown,
 )
 
 
@@ -29,7 +36,10 @@ class PantallaCatalogo(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = 24
+        self.padding = padding_symmetric(horizontal=16, vertical=10)
+        self.productos_actuales = []
+        self.orden_ascendente = True
+
 
         # Campo de búsqueda por texto o ID
         self.input_busqueda = ft.TextField(
@@ -54,12 +64,30 @@ class PantallaCatalogo(ft.Container):
             on_submit=lambda _: self._ejecutar_busqueda_id(),
         )
 
-        self.switch_estrategia_local = ft.Switch(
-            label="Modo Optimizado (Hash O(1))",
-            value=self.motor.es_optimizado,
-            active_color=COLOR_PRIMARIO,
-            on_change=self._al_cambiar_switch,
+        self.badge_estrategia = ft.Container(
+            content=ft.Row(
+                controls=[
+                    ft.Icon(
+                        ft.Icons.BOLT_ROUNDED if self.motor.es_optimizado else ft.Icons.LIST_ALT_ROUNDED,
+                        size=15,
+                        color=COLOR_EXITO if self.motor.es_optimizado else COLOR_ADVERTENCIA,
+                    ),
+                    ft.Text(
+                        "Búsqueda Hash O(1) con LRU" if self.motor.es_optimizado else "Búsqueda Lineal O(n)",
+                        size=12,
+                        weight=ft.FontWeight.BOLD,
+                        color=COLOR_EXITO if self.motor.es_optimizado else COLOR_ADVERTENCIA,
+                    ),
+                ],
+                spacing=5,
+                tight=True,
+            ),
+            padding=padding_symmetric(horizontal=12, vertical=6),
+            bgcolor=COLOR_SUPERFICIE,
+            border_radius=8,
+            border=borde_all(1, COLOR_EXITO if self.motor.es_optimizado else COLOR_ADVERTENCIA),
         )
+
 
         self.btn_buscar = ft.FilledButton(
             "Buscar",
@@ -74,8 +102,29 @@ class PantallaCatalogo(ft.Container):
             on_click=lambda _: self._mostrar_todos(),
         )
 
+        # Controles de ordenamiento
+        self.dropdown_orden = crear_dropdown(
+            label="Ordenar por",
+            options=[
+                ft.dropdown.Option("id", "ID del Producto"),
+                ft.dropdown.Option("nombre", "Nombre (Alfabético)"),
+                ft.dropdown.Option("precio", "Precio"),
+                ft.dropdown.Option("stock", "Unidades en Stock"),
+            ],
+            value="id",
+            width=200,
+            on_change_callback=lambda _: self._aplicar_ordenamiento(),
+        )
+
+        self.btn_sentido_orden = ft.IconButton(
+            icon=ft.Icons.ARROW_UPWARD_ROUNDED,
+            tooltip="Orden Ascendente (Clic para alternar a Descendente)",
+            on_click=lambda _: self._alternar_sentido_orden(),
+        )
+
         # Diagnóstico de la consulta
-        self.txt_tiempo_busqueda = ft.Text("Tiempo: -- ms", size=13, color=COLOR_PRIMARIO, weight=ft.FontWeight.BOLD)
+        self.txt_tiempo_busqueda = ft.Text("Tiempo: 0.00 ms", size=13, color=COLOR_PRIMARIO, weight=ft.FontWeight.BOLD)
+        self.contenedor_badge_tiempo = ft.Row(spacing=6)
         self.txt_estado_cache = ft.Text("Caché: --", size=13, color=COLOR_TEXTO_MUTED)
         self.txt_resultados_count = ft.Text("Total: -- productos", size=13, color=COLOR_TEXTO_SECUNDARIO)
 
@@ -92,18 +141,26 @@ class PantallaCatalogo(ft.Container):
                     controls=[
                         ft.Column(
                             controls=[
-                                ft.Text("Catálogo de Productos", size=24, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Comparación en tiempo real: Búsqueda Lineal O(n) vs. Búsqueda Hash O(1) con LRU", size=13, color=COLOR_TEXTO_SECUNDARIO),
+                                ft.Text("Catálogo de Productos", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                                ft.Text("Comparación en tiempo real: Búsqueda Lineal O(n) vs. Búsqueda Hash O(1) con LRU", size=12, color=COLOR_TEXTO_SECUNDARIO),
                             ],
-                            spacing=2,
+                            spacing=1,
                         ),
                         ft.Container(expand=True),
-                        self.switch_estrategia_local,
+                        self.badge_estrategia,
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
-                ft.Divider(height=16, color=COLOR_BORDE),
-                # Barra de herramientas de búsqueda
+                ft.Divider(height=6, color=COLOR_BORDE),
+                # Banner explicativo didáctico
+                crear_banner_explicativo(
+                    titulo="Acceso a Catálogo e Índices de Búsqueda",
+                    descripcion="Demostración del desafío experimental: recorrido secuencial de lista frente a tabla Hash con índice invertido tokenizado y caché LRU.",
+                    complejidad_base="Búsqueda Lineal O(n)",
+                    complejidad_opt="Búsqueda Hash O(1) amortizado",
+                    por_que_importa="En catálogos de 10.000+ artículos, la búsqueda O(1) reduce el tiempo de milisegundos a microsegundos (speedup > 2000x).",
+                ),
+                # Barra de herramientas de búsqueda y ordenamiento
                 ft.Container(
                     content=ft.Row(
                         controls=[
@@ -111,10 +168,14 @@ class PantallaCatalogo(ft.Container):
                             self.input_id,
                             self.btn_buscar,
                             self.btn_limpiar,
+                            ft.VerticalDivider(width=1, color=COLOR_BORDE),
+                            self.dropdown_orden,
+                            self.btn_sentido_orden,
                         ],
-                        spacing=10,
+                        spacing=8,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    padding=12,
+                    padding=padding_symmetric(horizontal=10, vertical=5),
                     bgcolor=COLOR_TARJETA,
                     border_radius=8,
                     border=borde_all(1, COLOR_BORDE),
@@ -125,27 +186,35 @@ class PantallaCatalogo(ft.Container):
                         controls=[
                             self.txt_resultados_count,
                             ft.VerticalDivider(width=1, color=COLOR_BORDE),
-                            self.txt_tiempo_busqueda,
+                            self.contenedor_badge_tiempo,
                             ft.VerticalDivider(width=1, color=COLOR_BORDE),
                             self.txt_estado_cache,
                         ],
-                        spacing=12,
+                        spacing=10,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
-                    padding=padding_symmetric(horizontal=12, vertical=6),
+                    padding=padding_symmetric(horizontal=10, vertical=2),
                 ),
                 # Listado de productos
                 self.col_productos,
             ],
-            spacing=12,
+            spacing=6,
             expand=True,
         )
+
+
+    def al_recargar_dataset(self) -> None:
+        """Callback al cargar un nuevo dataset desde la pantalla Inicio."""
+        self._mostrar_todos()
+
+    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
+        """Sincroniza el switch local cuando cambia la estrategia global."""
+        self.switch_estrategia_local.value = (nueva_estrategia == "optimizado")
+        actualizar_control(self.switch_estrategia_local)
 
     def _al_cambiar_switch(self, e):
         nueva = "optimizado" if self.switch_estrategia_local.value else "baseline"
         self.motor.cambiar_estrategia(nueva)
-        self.switch_estrategia_local.label = (
-            "Modo Optimizado (Hash O(1))" if self.switch_estrategia_local.value else "Modo Baseline (Lineal O(n))"
-        )
         self.on_actualizar_panel(
             dataset=self.motor.obtener_estadisticas()["categorias"][0] if self.motor.catalogo else "dataset",
             n_productos=len(self.motor.catalogo),
@@ -154,6 +223,26 @@ class PantallaCatalogo(ft.Container):
             resultado_negocio=f"Estrategia conmutada a {nueva.upper()}",
         )
         self._ejecutar_busqueda()
+
+    def _alternar_sentido_orden(self):
+        self.orden_ascendente = not self.orden_ascendente
+        self.btn_sentido_orden.icon = ft.Icons.ARROW_UPWARD_ROUNDED if self.orden_ascendente else ft.Icons.ARROW_DOWNWARD_ROUNDED
+        self.btn_sentido_orden.tooltip = "Orden Ascendente" if self.orden_ascendente else "Orden Descendente"
+        actualizar_control(self.btn_sentido_orden)
+        self._aplicar_ordenamiento()
+
+    def _aplicar_ordenamiento(self):
+        criterio = self.dropdown_orden.value or "id"
+        if criterio == "nombre":
+            self.productos_actuales.sort(key=lambda p: p.nombre.lower(), reverse=not self.orden_ascendente)
+        elif criterio == "precio":
+            self.productos_actuales.sort(key=lambda p: p.precio, reverse=not self.orden_ascendente)
+        elif criterio == "stock":
+            self.productos_actuales.sort(key=lambda p: p.stock, reverse=not self.orden_ascendente)
+        else:
+            self.productos_actuales.sort(key=lambda p: p.id, reverse=not self.orden_ascendente)
+
+        self._renderizar_lista(self.productos_actuales)
 
     def _ejecutar_busqueda(self):
         texto = self.input_busqueda.value or ""
@@ -171,6 +260,7 @@ class PantallaCatalogo(ft.Container):
         fue_hit = (hits_despues > hits_antes)
 
         self.txt_tiempo_busqueda.value = f"Tiempo: {duracion_ms:.3f} ms"
+        self.contenedor_badge_tiempo.controls = [crear_badge_tiempo(duracion_ms)]
         if self.motor.es_optimizado:
             self.txt_estado_cache.value = "Caché: HIT" if fue_hit else "Caché: MISS (Guardado)"
             self.txt_estado_cache.color = COLOR_EXITO if fue_hit else COLOR_SECUNDARIO
@@ -179,7 +269,8 @@ class PantallaCatalogo(ft.Container):
             self.txt_estado_cache.color = COLOR_TEXTO_MUTED
 
         self.txt_resultados_count.value = f"Total: {len(prods)} productos encontrados"
-        self._renderizar_lista(prods)
+        self.productos_actuales = list(prods)
+        self._aplicar_ordenamiento()
 
     def _ejecutar_busqueda_id(self):
         txt_id = self.input_id.value or ""
@@ -193,12 +284,14 @@ class PantallaCatalogo(ft.Container):
         duracion_ms = (time.perf_counter() - inicio) * 1000.0
 
         self.txt_tiempo_busqueda.value = f"Tiempo: {duracion_ms:.3f} ms"
+        self.contenedor_badge_tiempo.controls = [crear_badge_tiempo(duracion_ms)]
         self.txt_estado_cache.value = "Búsqueda directa por ID"
         self.txt_estado_cache.color = COLOR_PRIMARIO
 
         prods = [prod] if prod else []
         self.txt_resultados_count.value = f"Total: {len(prods)} producto encontrado"
-        self._renderizar_lista(prods)
+        self.productos_actuales = list(prods)
+        self._aplicar_ordenamiento()
 
     def _mostrar_todos(self):
         self.input_busqueda.value = ""
@@ -206,17 +299,18 @@ class PantallaCatalogo(ft.Container):
         prods = self.motor.catalogo.obtener_todos()
         self.txt_resultados_count.value = f"Total: {len(prods)} productos en catálogo"
         self.txt_tiempo_busqueda.value = "Tiempo: 0.00 ms"
+        self.contenedor_badge_tiempo.controls = [crear_badge_tiempo(0.0)]
         self.txt_estado_cache.value = "Vista completa"
         self.txt_estado_cache.color = COLOR_TEXTO_MUTED
-        self._renderizar_lista(prods)
+        self.productos_actuales = list(prods)
+        self._aplicar_ordenamiento()
 
     def _renderizar_lista(self, productos):
         items = []
-        # Limitar vista a 150 elementos para rendimiento visual fluido
         max_mostrar = 150
         for p in productos[:max_mostrar]:
             stock_color = COLOR_EXITO if p.stock > 10 else ("#F59E0B" if p.stock > 0 else COLOR_PELIGRO)
-            stock_texto = f"{p.stock} uds" if p.stock > 0 else "SIN STOCK"
+            stock_texto = f"{p.stock} Unidades en Stock" if p.stock > 0 else "SIN STOCK"
 
             items.append(
                 ft.Container(
@@ -224,7 +318,7 @@ class PantallaCatalogo(ft.Container):
                         controls=[
                             ft.Container(
                                 content=ft.Text(f"#{p.id}", size=12, weight=ft.FontWeight.BOLD, color=COLOR_PRIMARIO),
-                                width=50,
+                                width=55,
                             ),
                             ft.Column(
                                 controls=[
@@ -236,9 +330,16 @@ class PantallaCatalogo(ft.Container):
                             ),
                             ft.Text(f"${p.precio:,.2f}", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
                             ft.Container(
-                                content=ft.Text(stock_texto, size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
+                                content=ft.Row(
+                                    controls=[
+                                        ft.Icon(ft.Icons.INVENTORY_2_OUTLINED, size=14, color="#FFFFFF"),
+                                        ft.Text(stock_texto, size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
+                                    ],
+                                    spacing=4,
+                                    tight=True,
+                                ),
                                 bgcolor=stock_color,
-                                padding=padding_symmetric(horizontal=8, vertical=3),
+                                padding=padding_symmetric(horizontal=8, vertical=4),
                                 border_radius=6,
                             ),
                         ],
@@ -263,3 +364,28 @@ class PantallaCatalogo(ft.Container):
 
         self.col_productos.controls = items
         actualizar_control(self)
+
+    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
+        """Sincroniza el badge de estrategia cuando el switch superior conmuta."""
+        es_opt = (nueva_estrategia == "optimizado")
+        color_badge = COLOR_EXITO if es_opt else COLOR_ADVERTENCIA
+        self.badge_estrategia.content = ft.Row(
+            controls=[
+                ft.Icon(
+                    ft.Icons.BOLT_ROUNDED if es_opt else ft.Icons.LIST_ALT_ROUNDED,
+                    size=15,
+                    color=color_badge,
+                ),
+                ft.Text(
+                    "Búsqueda Hash O(1) con LRU" if es_opt else "Búsqueda Lineal O(n)",
+                    size=12,
+                    weight=ft.FontWeight.BOLD,
+                    color=color_badge,
+                ),
+            ],
+            spacing=5,
+            tight=True,
+        )
+        self.badge_estrategia.border = borde_all(1, color_badge)
+        actualizar_control(self.badge_estrategia)
+

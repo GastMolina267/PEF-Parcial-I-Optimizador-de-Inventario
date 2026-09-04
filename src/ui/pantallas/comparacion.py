@@ -14,6 +14,7 @@ from src.ui.tema import (
     COLOR_PELIGRO,
     COLOR_PRIMARIO,
     COLOR_SECUNDARIO,
+    COLOR_SUPERFICIE,
     COLOR_TARJETA,
     COLOR_TEXTO_MUTED,
     COLOR_TEXTO_PRIMARIO,
@@ -22,6 +23,9 @@ from src.ui.tema import (
     borde_all,
     padding_symmetric,
     crear_tarjeta_kpi,
+    crear_banner_explicativo,
+    crear_badge_tiempo,
+    crear_dropdown,
 )
 
 
@@ -34,17 +38,39 @@ class PantallaComparacion(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = 24
+        self.padding = padding_symmetric(horizontal=16, vertical=10)
+
+        self.filas_medidas = []
+        self.orden_ascendente = False
 
         self.btn_comparar = ft.FilledButton(
-            "Ejecutar Comparativa Experimental",
+            "Ejecutar Comparativa",
             icon=ft.Icons.COMPARE_ARROWS_ROUNDED,
             style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
             on_click=lambda _: self._ejecutar_comparativa(),
         )
 
-        self.fila_kpis = ft.Row(spacing=12)
-        self.col_tabla_comparativa = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
+        # Controles de ordenamiento
+        self.dropdown_orden = crear_dropdown(
+            label="Ordenar por",
+            options=[
+                ft.dropdown.Option("speedup", "Mayor Aceleración (Speedup)"),
+                ft.dropdown.Option("tiempo_opt", "Tiempo Optimizado"),
+                ft.dropdown.Option("nombre", "Nombre de Operación"),
+            ],
+            value="speedup",
+            width=200,
+            on_change_callback=lambda _: self._aplicar_ordenamiento(),
+        )
+
+        self.btn_sentido_orden = ft.IconButton(
+            icon=ft.Icons.ARROW_DOWNWARD_ROUNDED,
+            tooltip="Orden Descendente (Clic para alternar)",
+            on_click=lambda _: self._alternar_sentido_orden(),
+        )
+
+        self.fila_kpis = ft.Row(spacing=8)
+        self.col_tabla_comparativa = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
 
         self._construir_interfaz()
 
@@ -55,25 +81,85 @@ class PantallaComparacion(ft.Container):
                     controls=[
                         ft.Column(
                             controls=[
-                                ft.Text("Desafío Experimental: Baseline vs. Optimizado", size=24, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Medición empírica rigurosa de tiempo, memoria y aceleración (Speedup) sobre el mismo dataset", size=13, color=COLOR_TEXTO_SECUNDARIO),
+                                ft.Text("Desafío Experimental: Baseline vs. Optimizado", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                                ft.Text("Medición empírica rigurosa de tiempo, memoria y aceleración (Speedup) sobre el mismo dataset", size=12, color=COLOR_TEXTO_SECUNDARIO),
                             ],
-                            spacing=2,
+                            spacing=1,
                         ),
                         ft.Container(expand=True),
                         self.btn_comparar,
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
-                ft.Divider(height=16, color=COLOR_BORDE),
+                ft.Divider(height=6, color=COLOR_BORDE),
+                # Banner explicativo didáctico
+                crear_banner_explicativo(
+                    titulo="Desafío Experimental y Comparación Obligatoria",
+                    descripcion="Medición empírica rigurosa de las 4 operaciones fundamentales sobre el mismo dataset para evaluar la aceleración real (Speedup = Tiempo_base / Tiempo_opt).",
+                    complejidad_base="O(n), O(N log N), O(P·L), O(2^N)",
+                    complejidad_opt="O(1), O(N log k), Multi-Proceso, O(N·P)",
+                    por_que_importa="Satisface el requisito central de la rúbrica del parcial y suministra la evidencia empírica directa para la exposición oral.",
+                ),
+
+                # Barra de herramientas de ordenamiento compacta
+                ft.Container(
+                    content=ft.Row(
+                        controls=[
+                            ft.Icon(ft.Icons.SORT_ROUNDED, size=18, color=COLOR_PRIMARIO),
+                            self.dropdown_orden,
+                            self.btn_sentido_orden,
+                        ],
+                        spacing=8,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    padding=padding_symmetric(horizontal=10, vertical=5),
+                    bgcolor=COLOR_TARJETA,
+                    border_radius=8,
+                    border=borde_all(1, COLOR_BORDE),
+                ),
                 self.fila_kpis,
-                ft.Container(height=4),
-                ft.Text("Tabla de Comparación Experimental Obligatoria (Rúbrica)", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                ft.Text("Tabla de Comparación Experimental Obligatoria (Rúbrica)", size=13, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
                 self.col_tabla_comparativa,
             ],
-            spacing=12,
+            spacing=6,
             expand=True,
         )
+
+    def al_recargar_dataset(self) -> None:
+        """Callback al recargar dataset."""
+        self.filas_medidas = []
+        self.col_tabla_comparativa.controls = []
+        actualizar_control(self)
+
+    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
+        pass
+
+    def _alternar_sentido_orden(self):
+        self.orden_ascendente = not self.orden_ascendente
+        self.btn_sentido_orden.icon = ft.Icons.ARROW_UPWARD_ROUNDED if self.orden_ascendente else ft.Icons.ARROW_DOWNWARD_ROUNDED
+        self.btn_sentido_orden.tooltip = "Orden Ascendente" if self.orden_ascendente else "Orden Descendente"
+        actualizar_control(self.btn_sentido_orden)
+        self._aplicar_ordenamiento()
+
+    def _aplicar_ordenamiento(self):
+        if not self.filas_medidas:
+            return
+
+        criterio = self.dropdown_orden.value or "speedup"
+
+        def clave(item):
+            # item: (operacion, t_base, t_opt, speedup, obs)
+            operacion, t_base, t_opt, speedup, obs = item
+            if criterio == "speedup":
+                return speedup
+            elif criterio == "tiempo_opt":
+                return t_opt
+            elif criterio == "nombre":
+                return operacion.lower()
+            return speedup
+
+        self.filas_medidas.sort(key=clave, reverse=not self.orden_ascendente)
+        self._renderizar_tabla()
 
     def _ejecutar_comparativa(self):
         prods = self.motor.catalogo.obtener_todos()
@@ -86,7 +172,6 @@ class PantallaComparacion(ft.Container):
         self.notificar("Ejecutando suite experimental comparativa...", icono=ft.Icons.HOURGLASS_EMPTY)
 
         # 1. Búsquedas de catálogo (Lineal vs Hash)
-        # Búsqueda por nombre de muestra
         palabra_muestra = "a"
         t0 = time.perf_counter()
         for _ in range(5):
@@ -137,6 +222,7 @@ class PantallaComparacion(ft.Container):
         # Ratios de aceleración (Speedup = Base / Opt)
         sp_busq = (t_busq_base / t_busq_opt) if t_busq_opt > 0 else 1.0
         sp_top = (t_top_base / t_top_opt) if t_top_opt > 0 else 1.0
+        sp_ped = (t_ped_base / t_ped_opt) if t_ped_opt > 0 else 1.0
         sp_alt = (t_alt_base / t_alt_opt) if t_alt_opt > 0 else 1.0
 
         # Actualizar KPIs
@@ -147,51 +233,15 @@ class PantallaComparacion(ft.Container):
             crear_tarjeta_kpi("Memoria Heap Activa", f"{mem_mb:.2f} MB", "Estructuras en memoria", ft.Icons.MEMORY, COLOR_PRIMARIO),
         ]
 
-        filas_tabla = [
-            ("1. Catálogo (Búsqueda)", f"{t_busq_base:.3f} ms", f"{t_busq_opt:.3f} ms", f"{sp_busq:.1f}x", "Acceso hash directo y caché de consultas frecuentes."),
-            ("2. Top-N Productos", f"{t_top_base:.3f} ms", f"{t_top_opt:.3f} ms", f"{sp_top:.1f}x", "heapq.nlargest acotado en k frente a ordenamiento total O(n log n)."),
-            ("3. Preparación de Pedidos", f"{t_ped_base:.3f} ms", f"{t_ped_opt:.3f} ms", f"{t_ped_base/t_ped_opt:.1f}x" if t_ped_opt > 0 else "1.0x", "Mono-hilo frente a ProcessPoolExecutor con overhead IPC analizado."),
-            ("4. Combinaciones Sustitutas", f"{t_alt_base:.3f} ms", f"{t_alt_opt:.3f} ms", f"{sp_alt:.1f}x", f"Poda DP: {res_alt_memo.hits_memo} subproblemas reutilizados."),
+        self.filas_medidas = [
+            ("1. Catálogo (Búsqueda)", t_busq_base, t_busq_opt, sp_busq, "Acceso hash directo O(1) e índice invertido con caché LRU."),
+            ("2. Top-N Productos", t_top_base, t_top_opt, sp_top, "heapq.nlargest O(N log k) acotado en k frente a ordenamiento total O(N log N)."),
+            ("3. Preparación de Pedidos", t_ped_base, t_ped_opt, sp_ped, "Mono-hilo frente a ProcessPoolExecutor con overhead IPC analizado."),
+            ("4. Combinaciones Sustitutas", t_alt_base, t_alt_opt, sp_alt, f"Poda DP: {res_alt_memo.hits_memo} subproblemas reutilizados en O(N·P)."),
         ]
 
-        filas_widgets = []
-        for operacion, base_str, opt_str, speedup_str, observacion in filas_tabla:
-            filas_widgets.append(
-                ft.Container(
-                    content=ft.Column(
-                        controls=[
-                            ft.Row(
-                                controls=[
-                                    ft.Text(operacion, size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                    ft.Container(expand=True),
-                                    ft.Container(
-                                        content=ft.Text(f"Speedup: {speedup_str}", size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                                        bgcolor=COLOR_EXITO,
-                                        padding=padding_symmetric(horizontal=8, vertical=3),
-                                        border_radius=6,
-                                    ),
-                                ],
-                            ),
-                            ft.Row(
-                                controls=[
-                                    ft.Text(f"Baseline: {base_str}", size=13, color=COLOR_PELIGRO, weight=ft.FontWeight.W_500),
-                                    ft.Text(" → ", size=13, color=COLOR_TEXTO_MUTED),
-                                    ft.Text(f"Optimizado: {opt_str}", size=13, color=COLOR_EXITO, weight=ft.FontWeight.BOLD),
-                                    ft.Container(expand=True),
-                                    ft.Text(observacion, size=12, color=COLOR_TEXTO_MUTED),
-                                ],
-                            ),
-                        ],
-                        spacing=4,
-                    ),
-                    padding=14,
-                    bgcolor=COLOR_TARJETA,
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
-                )
-            )
+        self._aplicar_ordenamiento()
 
-        self.col_tabla_comparativa.controls = filas_widgets
         self.on_actualizar_panel(
             dataset="activo",
             n_productos=len(prods),
@@ -203,3 +253,58 @@ class PantallaComparacion(ft.Container):
         )
         actualizar_control(self)
         self.notificar("Comparativa experimental finalizada exitosamente.", icono=ft.Icons.CHECK_CIRCLE)
+
+    def _renderizar_tabla(self):
+        filas_widgets = []
+        for operacion, t_base, t_opt, speedup, observacion in self.filas_medidas:
+            color_speedup = COLOR_EXITO if speedup >= 1.0 else COLOR_PELIGRO
+            texto_speedup = f"🚀 {speedup:.1f}x" if speedup >= 1.0 else f"🐢 {speedup:.2f}x"
+
+            filas_widgets.append(
+                ft.Container(
+                    content=ft.Column(
+                        controls=[
+                            ft.Row(
+                                controls=[
+                                    ft.Text(operacion, size=13.5, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
+                                    ft.Container(expand=True),
+                                    ft.Container(
+                                        content=ft.Row(
+                                            controls=[
+                                                ft.Icon(ft.Icons.BOLT_ROUNDED if speedup >= 1.0 else ft.Icons.INFO_OUTLINE, size=13, color="#FFFFFF"),
+                                                ft.Text(f"Speedup: {texto_speedup}", size=11, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
+                                            ],
+                                            spacing=3,
+                                            tight=True,
+                                        ),
+                                        bgcolor=color_speedup,
+                                        padding=padding_symmetric(horizontal=8, vertical=2),
+                                        border_radius=5,
+                                    ),
+                                ],
+                            ),
+                            ft.Row(
+                                controls=[
+                                    ft.Text("Baseline:", size=11, color=COLOR_TEXTO_MUTED),
+                                    crear_badge_tiempo(t_base),
+                                    ft.Text("→", size=11, color=COLOR_TEXTO_MUTED),
+                                    ft.Text("Optimizado:", size=11, color=COLOR_TEXTO_MUTED),
+                                    crear_badge_tiempo(t_opt, speedup=speedup),
+                                    ft.Container(expand=True),
+                                    ft.Text(observacion, size=11, color=COLOR_TEXTO_SECUNDARIO),
+                                ],
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                spacing=5,
+                            ),
+                        ],
+                        spacing=3,
+                    ),
+                    padding=padding_symmetric(horizontal=12, vertical=6),
+                    bgcolor=COLOR_TARJETA,
+                    border_radius=6,
+                    border=borde_all(1, COLOR_BORDE),
+                )
+            )
+
+        self.col_tabla_comparativa.controls = filas_widgets
+        actualizar_control(self)

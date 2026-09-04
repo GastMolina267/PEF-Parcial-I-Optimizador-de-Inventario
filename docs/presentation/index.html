@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optimizador de Inventario y Pedidos — Presentación Oral (Opción 6)</title>
+  <meta name="description" content="Presentación interactiva de Programación Eficiente (Primer Parcial - Opción 6) en la Universidad Blas Pascal.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Barra Superior de Navegación y Estado -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="logo-badge">PEF 2026</div>
+      <div class="brand-text">
+        <h1>Optimizador de Inventario y Pedidos</h1>
+        <span>Universidad Blas Pascal — Programación Eficiente (Opción 6)</span>
+      </div>
+    </div>
+
+    <div class="presentation-meta">
+      <div class="timer-box" id="btn-timer" title="Clic para iniciar/pausar cronómetro (Atajo: T)">
+        <span class="timer-icon">⏱️</span>
+        <span id="timer-display">15:00</span>
+      </div>
+      <div class="slide-counter" id="slide-counter">1 / 11</div>
+    </div>
+  </header>
+
+  <!-- Barra de Progreso Superior -->
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progress-bar"></div>
+  </div>
+
+  <!-- Escenario de la Diapositiva -->
+  <main class="slide-stage" id="slide-container" role="region" aria-label="Contenido de la diapositiva">
+    <!-- Renderizado dinámico desde app.js -->
+  </main>
+
+  <!-- Modal Flotante de Notas para el Orador (Tecla N) -->
+  <aside class="speaker-notes-modal" id="speaker-modal" aria-hidden="true">
+    <div class="speaker-header">
+      <h4><span>🎙️</span> Guía para el Orador (Defensa Oral)</h4>
+      <button class="btn btn-icon" id="btn-close-notes" title="Cerrar notas">✕</button>
+    </div>
+    <div class="speaker-content" id="speaker-text">
+      Cargando notas de la diapositiva...
+    </div>
+  </aside>
+
+  <!-- Barra Inferior de Controles -->
+  <footer class="bottom-controls">
+    <div class="control-btn-group">
+      <button class="btn" id="btn-prev" title="Diapositiva Anterior (Atajo: Flecha Izquierda / RePág)">
+        <span>←</span> Anterior
+      </button>
+      <button class="btn primary" id="btn-next" title="Siguiente Diapositiva (Atajo: Flecha Derecha / Espacio / AvPág)">
+        Siguiente <span>→</span>
+      </button>
+    </div>
+
+    <div class="control-btn-group">
+      <label for="select-slide" class="sr-only" style="display:none;">Saltar a diapositiva</label>
+      <select class="select-slide" id="select-slide" title="Seleccionar diapositiva">
+        <!-- Opciones generadas dinámicamente -->
+      </select>
+    </div>
+
+    <div class="control-btn-group">
+      <button class="btn" id="btn-notes" title="Mostrar/Ocultar notas para la defensa oral (Atajo: N)">
+        <span>📝</span> Notas
+      </button>
+      <button class="btn btn-icon" id="btn-fullscreen" title="Pantalla Completa (Atajo: F)">
+        <span>⛶</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Script de la Presentación -->
+  <script src="app.js"></script>
+</body>
+</html>

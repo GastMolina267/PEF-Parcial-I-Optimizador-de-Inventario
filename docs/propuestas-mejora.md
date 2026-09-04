@@ -3,7 +3,7 @@
 <!-- Bloque generado por la automatización de hotspots. -->
 <!-- No aplicar estos cambios de forma automática: el grupo decide y vuelve a medir. -->
 
-**Commit analizado:** `c5ba862` · **Generado:** 2026-09-04 03:46 UTC
+**Commit analizado:** `f0c9e57` · **Generado:** 2026-09-04 04:12 UTC
 
 ## Fuentes consultadas
 

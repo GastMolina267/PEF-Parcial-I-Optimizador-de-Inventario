@@ -406,4 +406,7 @@ Tras la finalización y aprobación de las Etapas 1 a 6, se incorporan mejoras e
 8. **Compactación y Densidad Vertical de la Interfaz:**
    - Reducción simétrica de espaciados, paddings y alturas en banners explicativos, tarjetas KPI, barras de herramientas y divisores en todas las pantallas.
    - Preservación íntegra de todas las explicaciones teóricas, cotas Big-O y notas de relevancia para la defensa oral, liberando entre 150px y 200px de espacio vertical neto para que las tablas, listados y auditorías se aprecien de manera prominente sin requerir scroll excesivo.
+9. **Guía Canónica de Flujo de la Aplicación (`docs/app-flow-explanation.md`):**
+   - Documento exhaustivo que desglosa el ciclo de vida de la aplicación desde la ingesta de datos hasta el despacho y optimización combinatoria.
+   - Detalla cada funcionalidad de negocio, la dualidad Baseline vs. Optimizado, el análisis formal de complejidad temporal y espacial (Big-O), y el rol de cada módulo y función del backend como soporte para la defensa oral.
 

@@ -1,0 +1,687 @@
+/* ==========================================================================
+   PRESENTACIÓN INTERACTIVA: PROGRAMACIÓN EFICIENTE - PARCIAL I (OPCIÓN 6)
+   Estilo Visual: Obsidian Slate & Electric Sky (SaaS High-Contrast)
+   ========================================================================== */
+
+:root {
+  --bg-app: #090D16;
+  --bg-surface: #111A2E;
+  --bg-card: #182238;
+  --bg-card-highlight: #1D2A45;
+  --border-color: #2D3A58;
+  --border-glow: #38BDF8;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #E2E8F0;
+  --text-muted: #94A3B8;
+  
+  --accent-cyan: #38BDF8;
+  --accent-emerald: #34D399;
+  --accent-amber: #F59E0B;
+  --accent-rose: #F43F5E;
+  --accent-indigo: #818CF8;
+  --accent-purple: #A78BFA;
+  
+  --font-main: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', Consolas, Monaco, monospace;
+  
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.25);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ==========================================================================
+   BARRA SUPERIOR DE ESTADO Y PROGRESO
+   ========================================================================== */
+.top-nav {
+  height: 56px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 100;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-badge {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+  color: #000;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.5px;
+}
+
+.brand-text h1 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.brand-text span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.presentation-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.timer-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.slide-counter {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.progress-bar-container {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: rgba(45, 58, 88, 0.4);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* ==========================================================================
+   CONTENEDOR DEL ESCENARIO DE DIAPOSITIVA (SLIDE STAGE)
+   ========================================================================== */
+.slide-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 40px;
+  position: relative;
+  overflow-y: auto;
+}
+
+.slide-card {
+  width: 100%;
+  max-width: 1280px;
+  min-height: 540px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 36px 44px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  animation: slideFadeIn 0.35s ease-out;
+  position: relative;
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.slide-header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  position: relative;
+}
+
+.slide-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+
+.slide-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.slide-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.slide-body {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   ESTRUCTURAS DE CONTENIDO ESPECÍFICAS
+   ========================================================================== */
+
+/* 2 Columnas */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+
+.panel.highlight {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: linear-gradient(180deg, rgba(29, 42, 69, 0.6) 0%, var(--bg-card) 100%);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.08);
+}
+
+.panel h3 {
+  font-size: 17px;
+  color: var(--accent-cyan);
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.panel p {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.subtitle-panel {
+  font-size: 12px;
+  color: var(--accent-purple);
+  margin-top: -6px;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+}
+
+.bullet-list {
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.bullet-list li {
+  margin-bottom: 8px;
+}
+
+.bullet-list strong {
+  color: var(--text-primary);
+}
+
+/* Portada */
+.cover-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.cover-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 30px;
+}
+
+.cover-card.highlight {
+  background: linear-gradient(135deg, rgba(29, 42, 69, 0.9) 0%, var(--bg-surface) 100%);
+  border-color: var(--accent-cyan);
+}
+
+.lead {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 16px 0;
+}
+
+.badge-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.badge.primary { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.badge.success { background: rgba(52, 211, 153, 0.15); color: var(--accent-emerald); border-color: var(--accent-emerald); }
+.badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border-color: var(--accent-amber); }
+
+.checklist {
+  list-style: none;
+  font-size: 13.5px;
+  line-height: 1.8;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 6px;
+}
+
+.checklist li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent-emerald);
+  font-weight: bold;
+}
+
+/* 4 Estructuras de Datos */
+.four-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.struct-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.struct-card.highlight {
+  border-color: var(--accent-cyan);
+  background: linear-gradient(180deg, rgba(29, 42, 69, 0.7) 0%, var(--bg-card) 100%);
+}
+
+.struct-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.struct-header .icon {
+  font-size: 20px;
+}
+
+.struct-header h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.struct-card p {
+  font-size: 12.5px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.tag-line {
+  margin-top: auto;
+  font-size: 11px !important;
+  color: var(--accent-amber) !important;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 8px;
+}
+
+/* Tablas */
+.table-container {
+  overflow-x: auto;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.comparison-table, .benchmark-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+}
+
+.comparison-table th, .benchmark-table th {
+  background: rgba(17, 26, 46, 0.95);
+  padding: 12px 16px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.comparison-table td, .benchmark-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.benchmark-table .row-base {
+  background: rgba(244, 63, 94, 0.05);
+}
+
+.benchmark-table .row-opt {
+  background: rgba(52, 211, 153, 0.05);
+}
+
+.benchmark-table .row-warn {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.benchmark-table .row-final {
+  background: rgba(56, 189, 248, 0.1);
+  font-weight: 600;
+}
+
+.highlight-green {
+  color: var(--accent-emerald);
+}
+
+.highlight-orange {
+  color: var(--accent-amber);
+}
+
+/* Herramientas de Perfilado */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.tool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.tool-card h4 {
+  color: var(--accent-cyan);
+  font-size: 15px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+}
+
+.tool-card p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Features Carousel */
+.features-carousel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.feature-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.feature-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-cyan);
+}
+
+.badge-feat {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.feature-item h4 {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.feature-item p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Bloques de Código */
+.code-block {
+  font-family: var(--font-mono);
+  background: #060910;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--accent-emerald);
+  white-space: pre;
+  margin: 12px 0;
+}
+
+.alert-box {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 10px 0;
+}
+
+.alert-box.info {
+  background: rgba(56, 189, 248, 0.1);
+  border-left: 4px solid var(--accent-cyan);
+  color: var(--text-secondary);
+}
+
+.kpi-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.kpi-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+}
+
+.kpi-box .num {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent-emerald);
+  font-family: var(--font-mono);
+}
+
+.kpi-box .lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   BARRA DE CONTROL INFERIOR
+   ========================================================================== */
+.bottom-controls {
+  height: 60px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.control-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: var(--bg-card-highlight);
+  border-color: var(--accent-cyan);
+  color: #FFF;
+}
+
+.btn.primary {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+}
+
+.btn.primary:hover {
+  background: #7DD3FC;
+}
+
+.btn-icon {
+  padding: 8px;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+}
+
+.select-slide {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  max-width: 260px;
+}
+
+/* Modal de Notas para el Orador */
+.speaker-notes-modal {
+  display: none;
+  position: fixed;
+  bottom: 70px;
+  right: 24px;
+  width: 440px;
+  max-height: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-purple);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  z-index: 1000;
+  animation: slideFadeIn 0.2s ease;
+}
+
+.speaker-notes-modal.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.speaker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.speaker-header h4 {
+  font-size: 13px;
+  color: var(--accent-purple);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.speaker-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow-y: auto;
+}

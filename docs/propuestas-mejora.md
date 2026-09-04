@@ -3,7 +3,7 @@
 <!-- Bloque generado por la automatización de hotspots. -->
 <!-- No aplicar estos cambios de forma automática: el grupo decide y vuelve a medir. -->
 
-**Commit analizado:** `1727c19` · **Generado:** 2026-09-03 19:17 UTC
+**Commit analizado:** `d4e3cd4` · **Generado:** 2026-09-04 04:35 UTC
 
 ## Fuentes consultadas
 
@@ -29,14 +29,14 @@
 | line_profiler | `procesar_pedidos_secuencial:52` | pct_tiempo | 90.8 | producto = catalogo.buscar_por_id(linea.id_producto) |
 | line_profiler | `CatalogoLineal.buscar_por_nombre:57` | pct_tiempo | 62.6 | if texto_norm in producto.nombre.lower(): |
 | line_profiler | `CatalogoLineal.buscar_por_id:45` | pct_tiempo | 50.4 | if producto.id == id_producto: |
-| tabla_comparativa | `demo_oral.json / **Ranking Top-N (k=5)**` | speedup | 0.67 | base=0.044 ms · opt=0.066 ms |
-| tabla_comparativa | `demo_oral.json / **Batch Picking Consolidado**` | speedup | 0.19 | base=0.029 ms · opt=0.151 ms |
-| tabla_comparativa | `demo_oral.json / **Combinaciones Sustitutas**` | speedup | 0.74 | base=0.291 ms · opt=0.393 ms |
-| tabla_comparativa | `demo_oral.json / **Preparación de Pedidos**` | speedup | 0.01 | base=0.093 ms · opt=7.608 ms |
-| tabla_comparativa | `pequeno.json / **Ranking Top-N (k=5)**` | speedup | 0.61 | base=0.104 ms · opt=0.171 ms |
-| tabla_comparativa | `pequeno.json / **Batch Picking Consolidado**` | speedup | 0.07 | base=0.081 ms · opt=1.081 ms |
-| tabla_comparativa | `pequeno.json / **Combinaciones Sustitutas**` | speedup | 0.68 | base=0.911 ms · opt=1.348 ms |
-| tabla_comparativa | `pequeno.json / **Preparación de Pedidos**` | speedup | 0.03 | base=0.220 ms · opt=6.592 ms |
+| tabla_comparativa | `demo_oral.json / **Ranking Top-N (k=5)**` | speedup | 0.18 | base=0.044 ms · opt=0.249 ms |
+| tabla_comparativa | `demo_oral.json / **Batch Picking Consolidado**` | speedup | 0.21 | base=0.025 ms · opt=0.120 ms |
+| tabla_comparativa | `demo_oral.json / **Combinaciones Sustitutas**` | speedup | 0.85 | base=0.280 ms · opt=0.330 ms |
+| tabla_comparativa | `demo_oral.json / **Preparación de Pedidos**` | speedup | 0.0 | base=0.135 ms · opt=285.592 ms |
+| tabla_comparativa | `pequeno.json / **Ranking Top-N (k=5)**` | speedup | 0.71 | base=0.046 ms · opt=0.065 ms |
+| tabla_comparativa | `pequeno.json / **Batch Picking Consolidado**` | speedup | 0.2 | base=0.053 ms · opt=0.267 ms |
+| tabla_comparativa | `pequeno.json / **Combinaciones Sustitutas**` | speedup | 0.65 | base=0.381 ms · opt=0.585 ms |
+| tabla_comparativa | `pequeno.json / **Preparación de Pedidos**` | speedup | 0.0 | base=0.293 ms · opt=343.700 ms |
 | memory_profiler | `demo_oral.json / - Catálogo Lineal (Lista): Actual = 0.77` | pico_kb | 0.77 | - Catálogo Lineal (Lista): Actual = 0.77 KB \| Pico = 0.77 KB |
 | memory_profiler | `demo_oral.json / - Catálogo Hash (Diccionarios + Índices)` | pico_kb | 33.03 | - Catálogo Hash (Diccionarios + Índices): Actual = 32.57 KB \| Pico = 33.03 KB |
 
@@ -46,7 +46,7 @@
 
 - **Prioridad:** alta
 - **Hotspot:** `_winapi.CreateProcess` / `WaitForSingleObject` / `pickle.dumps` dominan tottime en cProfile; la tabla aislada muestra speedup < 1× incluso en `grande.json`.
-- **Evidencia:** docs/mediciones/cprofile_resumen.txt (CreateProcess 0.364 s / 0.167 s) y docs/mediciones/tabla_comparativa.md (fila Preparación, mismo CatalogoHash). Tras aislar CatalogoHash, `grande.json / **Preparación de Pedidos**` sigue en speedup 0.29× (base=21.275 ms · opt=73.583 ms). El 1.95× previo mezclaba búsqueda O(n) con el pool.
+- **Evidencia:** docs/mediciones/cprofile_resumen.txt (CreateProcess 0.364 s / 0.167 s) y docs/mediciones/tabla_comparativa.md (fila Preparación, mismo CatalogoHash). Tras aislar CatalogoHash, `grande.json / **Preparación de Pedidos**` sigue en speedup 0.06× (base=27.122 ms · opt=469.084 ms). El 1.95× previo mezclaba búsqueda O(n) con el pool.
 - **Alternativa:** 1) Por defecto procesar en secuencial. 2) Activar ProcessPool solo si el trabajo por pedido es pesado (p. ej. DP de combinaciones) o P es claramente mayor a 2.000. El umbral «P < 200» queda corto: con catálogo O(1), 2.000 pedidos (~21 ms) no cubren el IPC. 3) Pool persistente o `shared_memory` si se insiste en paralelizar.
 - **Trade-off (tiempo / memoria / claridad):** Menos latencia de arranque a costa de más ramas de código. En la oral conviene mostrar este negativo: no toda concurrencia escala.
 - **¿Ya cubierta por el motor actual?** No — queda a decisión del grupo
@@ -64,7 +64,7 @@
 
 - **Prioridad:** alta
 - **Hotspot:** Speedup < 1× en: demo_oral.json / **Ranking Top-N (k=5)**, demo_oral.json / **Batch Picking Consolidado**, demo_oral.json / **Combinaciones Sustitutas**, demo_oral.json / **Preparación de Pedidos**, pequeno.json / **Ranking Top-N (k=5)**, pequeno.json / **Batch Picking Consolidado**
-- **Evidencia:** docs/mediciones/tabla_comparativa.md — demo_oral.json / **Ranking Top-N (k=5)** 0.67× (base=0.044 ms · opt=0.066 ms); demo_oral.json / **Batch Picking Consolidado** 0.19× (base=0.029 ms · opt=0.151 ms); demo_oral.json / **Combinaciones Sustitutas** 0.74× (base=0.291 ms · opt=0.393 ms); demo_oral.json / **Preparación de Pedidos** 0.01× (base=0.093 ms · opt=7.608 ms)
+- **Evidencia:** docs/mediciones/tabla_comparativa.md — demo_oral.json / **Ranking Top-N (k=5)** 0.18× (base=0.044 ms · opt=0.249 ms); demo_oral.json / **Batch Picking Consolidado** 0.21× (base=0.025 ms · opt=0.120 ms); demo_oral.json / **Combinaciones Sustitutas** 0.85× (base=0.280 ms · opt=0.330 ms); demo_oral.json / **Preparación de Pedidos** 0.00× (base=0.135 ms · opt=285.592 ms)
 - **Alternativa:** Selector automático: heap solo si N > 50 o k/N < 0.1; pool de procesos solo si el trabajo por pedido no es un lookup O(1). Documentar el umbral real (hoy el pool pierde hasta grande.json) en la oral.
 - **Trade-off (tiempo / memoria / claridad):** Más ramas de código frente a una regla simple (optimizado siempre). La claridad de la demo oral puede sufrir si el selector oculta el contraste.
 - **¿Ya cubierta por el motor actual?** No — queda a decisión del grupo

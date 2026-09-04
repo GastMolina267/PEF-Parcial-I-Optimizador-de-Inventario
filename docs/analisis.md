@@ -275,7 +275,7 @@ Esta sección la regenera la **Automatización 1** en cada push. El análisis fo
 <!-- No editar a mano: se regenera con `python -m automations.ejecutar --complejidad`. -->
 <!-- El comentario del grupo (secciones 1-8) permanece intacto por encima de este bloque. -->
 
-**Commit analizado:** `1727c19` · **Generado:** 2026-09-03 19:17 UTC
+**Commit analizado:** `d4e3cd4` · **Generado:** 2026-09-04 04:35 UTC
 
 Criterio: se recorrió el AST de cada función fundamental. Las cotas salen de
 bucles, accesos hash, recursión, `heapq`, memoización y `ProcessPoolExecutor`
@@ -292,8 +292,8 @@ observados en el cuerpo. No se analizan UI Flet, tests ni wrappers.
 | Agrupación / batch picking | `agrupar_pedidos_batch` (L70–117) | Ω(L) | Θ(L + U) | O(L + U log U) | O(U) | bucles×2, hash, sorted, buscar_por_id |
 | Top-N más solicitados (baseline) | `calcular_top_solicitados_lineal` (L15–55) | Ω(L + N) | Θ(L + N log N) | O(L + N log N) | O(N) | bucles×2, hash, sorted, buscar_por_id |
 | Top-N más solicitados (optimizado) | `calcular_top_solicitados_heap` (L58–99) | Ω(L + N) | Θ(L + N log k) | O(L + N log k) | O(N + k) | bucles×2, hash, heapq, buscar_por_id |
-| Combinaciones sustitutas (baseline) | `BuscadorAlternativas._resolver_recursivo_puro` (L163–202) | Ω(N) | Θ(2^N) | O(2^N) | O(N) (pila de llamadas) | bucles×1, recursión |
-| Combinaciones sustitutas (optimizado) | `BuscadorAlternativas._resolver_dp_memo` (L204–249) | Ω(1) (hit de memo) | Θ(N · P) | O(N · P) | O(N · P) (tabla de estados) | bucles×1, hash, recursión, memo |
+| Combinaciones sustitutas (baseline) | `BuscadorAlternativas._resolver_recursivo_puro` (L170–209) | Ω(N) | Θ(2^N) | O(2^N) | O(N) (pila de llamadas) | bucles×1, recursión |
+| Combinaciones sustitutas (optimizado) | `BuscadorAlternativas._resolver_dp_memo` (L211–256) | Ω(1) (hit de memo) | Θ(N · P) | O(N · P) | O(N · P) (tabla de estados) | bucles×1, hash, recursión, memo |
 | Preparación de pedidos (secuencial) | `procesar_pedidos_secuencial` (L19–121) | Ω(P · L) | Θ(P · L · T_búsqueda) | O(P · L · T_búsqueda) | O(P · L) | bucles×2, buscar_por_id |
 | Preparación de pedidos (concurrente) | `procesar_pedidos_concurrente` (L100–181) | O(P · L) | O((P · L)/C + C_IPC) | O(P · L + C_IPC) | O(P · L + C · chunk) | bucles×2, hash, sorted, ProcessPool |
 | Consulta de caché LRU | `CacheLRU.obtener` (L61–68) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
@@ -367,14 +367,14 @@ observados en el cuerpo. No se analizan UI Flet, tests ni wrappers.
 
 #### `BuscadorAlternativas._resolver_recursivo_puro`
 
-- **Archivo:** `src/pedidos/combinaciones.py` líneas 163–202
+- **Archivo:** `src/pedidos/combinaciones.py` líneas 170–209
 - **Técnica:** Árbol recursivo exhaustivo
 - **Cotas:** mejor Ω(N) · promedio Θ(2^N) · peor O(2^N)
 - **Justificación (del cuerpo, no inventada):** Hay recursión sobre el índice del candidato y no se observa tabla de memoización. Cada elemento admite incluirlo o excluirlo, lo que genera un árbol de decisión de hasta 2^N hojas. El docstring del grupo coincide con esta derivación.
 
 #### `BuscadorAlternativas._resolver_dp_memo`
 
-- **Archivo:** `src/pedidos/combinaciones.py` líneas 204–249
+- **Archivo:** `src/pedidos/combinaciones.py` líneas 211–256
 - **Técnica:** Programación dinámica con memoización
 - **Cotas:** mejor Ω(1) (hit de memo) · promedio Θ(N · P) · peor O(N · P)
 - **Justificación (del cuerpo, no inventada):** La función se llama a sí misma y consulta `_memo_cache` indexado por `(indice, presupuesto_restante)`. Cada estado se resuelve a lo sumo una vez; el espacio de estados es el producto de candidatos `N` por el presupuesto discretizado `P`, de ahí la cota pseudo-polinomial O(N · P).

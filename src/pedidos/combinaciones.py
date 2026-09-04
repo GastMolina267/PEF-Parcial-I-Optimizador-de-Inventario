@@ -104,11 +104,18 @@ class BuscadorAlternativas:
         # Ordenar candidatos por precio para podas de ramas tempranas
         candidatos.sort(key=lambda p: p.precio)
 
-        # Si se especifica o si no se usa memoización, acotar a un conjunto seguro para evitar stack overflow
+        # Si se especifica o si supera un límite seguro, acotar para evitar stack overflow
         if max_candidatos is not None:
             candidatos = candidatos[:max_candidatos]
-        elif not usar_memoizacion and len(candidatos) > 16:
-            candidatos = candidatos[:16]
+        elif not usar_memoizacion:
+            if len(candidatos) > 16:
+                candidatos = candidatos[:16]
+        else:
+            # En modo memoizado, acotar a un conjunto seguro (ej. 40) para garantizar
+            # que la profundidad de recursión nunca exceda el límite del call stack de Python
+            if len(candidatos) > 40:
+                candidatos = candidatos[:40]
+
 
         presupuesto_centavos = int(round(presupuesto_maximo * 100))
 

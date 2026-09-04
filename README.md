@@ -5,6 +5,12 @@
 **Lenguaje:** Python 3  
 **Interfaz de usuario:** Flet (Flutter para Python)  
 
+> [!TIP]
+> **Recursos Clave para la Defensa Oral:**
+> - 🖥️ **Presentación Interactiva (HTML + JSON + CSS):** [docs/presentation/index.html](docs/presentation/index.html)
+> - 📖 **Guía Canónica de Flujo de la Aplicación:** [docs/app-flow-explanation.md](docs/app-flow-explanation.md)
+> - 📊 **Enunciado y Rúbrica Oficial de Cátedra:** [docs/option-six-to-be-implemented.txt](docs/option-six-to-be-implemented.txt)
+
 ---
 
 ## 1. Descripción del problema y objetivos
@@ -203,11 +209,17 @@ PEF-Parcial-I-Optimizador-de-Inventario/
 ├── docs/
 │   ├── project-planning.md             # Plan canónico de desarrollo por etapas
 │   ├── option-six-to-be-implemented.txt # Enunciado y rúbrica oficial de la cátedra
+│   ├── app-flow-explanation.md         # Guía integral del flujo de la app y funciones backend
 │   ├── analisis.md                     # Derivación de complejidad (grupo + bloque Origin)
 │   ├── propuestas-mejora.md            # Informe de hotspots (Automatización 2)
 │   ├── automatizaciones-origin.md      # Cómo activar los triggers en Cursor
 │   ├── prompts-origin/                 # Prompts listos para el dashboard
-│   └── mediciones/                     # Salidas crudas y perfiles (.prof, .txt, capturas)
+│   ├── mediciones/                     # Salidas crudas y perfiles (.prof, .txt, capturas)
+│   └── presentation/                   # Presentación interactiva para la defensa oral
+│       ├── index.html                  # Escenario y reproductor web de diapositivas
+│       ├── slides.json                 # Contenido estructurado de las 11 diapositivas
+│       ├── styles.css                  # Tema Obsidian Slate & Electric Sky
+│       └── app.js                      # Lógica interactiva, timer, atajos y notas
 ├── automations/                        # Núcleo reproducible de las automations Origin
 │   ├── ejecutar.py                     # CLI: python -m automations.ejecutar
 │   ├── analizar_complejidad.py         # AST → bloque marcado en analisis.md
@@ -293,22 +305,43 @@ python -m automations.ejecutar
 pytest tests/ -v
 ```
 
+### 6. Abrir la presentación interactiva (HTML + JSON + CSS)
+La defensa oral cuenta con una suite interactiva de diapositivas en `docs/presentation/`:
+```bash
+# Opción A: Abrir directamente en el navegador predeterminado
+start docs/presentation/index.html   # En Windows
+open docs/presentation/index.html    # En macOS
+
+# Opción B: Servir localmente con Python
+python -m http.server 8000 -d docs/presentation
+# Luego ingresar en el navegador a: http://localhost:8000
+```
+
 ---
 
-## 11. Presentación oral (Estructura de 10 a 15 minutos)
+## 11. Presentación oral interactiva (Estructura de 10 a 15 minutos)
 
-La aplicación y su documentación están especialmente diseñadas para articular la defensa oral de 10 a 15 minutos solicitada por la cátedra:
+El proyecto incluye una **plataforma web interactiva de presentación** en [docs/presentation/](docs/presentation/), diseñada en estricta conformidad con la propuesta de PowerPoint de la cátedra detallada en [docs/option-six-to-be-implemented.txt](docs/option-six-to-be-implemented.txt):
 
-1. **El Problema:** Logística de almacenes, cuello de botella en preparación de pedidos masivos sobre catálogos crecientes.
-2. **Diseño Inicial vs. Optimizado:** Presentación de la arquitectura y la separación entre el baseline y las optimizaciones.
-3. **Complejidad Algorítmica:** Derivación formal de la búsqueda lineal $O(n)$ vs. búsqueda hash $O(1)$, y análisis del costo cuadrático evitado en batch picking.
-4. **Algoritmos y Estructuras:** Justificación de la elección de `heapq` para top-N y DP para combinaciones; trade-offs asociados.
-5. **Memoización vs. Caching:** Demostración práctica en vivo de la reutilización de estados DP y de la purga reactiva de la caché LRU al modificar existencias.
-6. **Concurrencia y Paralelismo:** Análisis del uso de `ProcessPoolExecutor`, justificación del escape al GIL para tareas CPU-bound y discusión del punto de equilibrio (*break-even*) donde el overhead de IPC deja de ser despreciable.
-7. **Perfilado Sistemático:** Exhibición de evidencias recopiladas con `line_profiler`, `cProfile`, `Scalene` y `memory_profiler`.
-8. **Comparación de Resultados:** Presentación de la tabla comparativa de tiempo y memoria ante diferentes órdenes de magnitud de datos.
-9. **Demostración en Vivo:** Ejecución del escenario `demo_oral.json` en la interfaz Flet.
-10. **Conclusiones y Autocrítica:** Análisis de qué optimización generó el mayor impacto marginal y qué decisiones se abordarían de manera diferente en futuras iteraciones.
+- **Atajos de Teclado para la Exposición:**
+  - `→` / `Espacio` / `AvPág`: Siguiente diapositiva.
+  - `←` / `RePág`: Diapositiva anterior.
+  - `F`: Alternar modo pantalla completa.
+  - `N`: Abrir/cerrar el **modal de notas para el orador** con la guía discursiva de cada punto.
+  - `T`: Iniciar / pausar el cronómetro de 15 minutos integrado.
+
+### Contenido de las 11 Diapositivas Estructuradas:
+1. **El Problema:** Logística de almacenes, cuello de botella en preparación de pedidos masivos sobre catálogos crecientes (hasta 10.000 productos).
+2. **Diseño Inicial vs. Optimizado:** Arquitectura general y convivencia de la línea base (*baseline*) contra la versión optimizada bajo la fachada unificada `MotorInventario`.
+3. **Complejidad Algorítmica:** Derivación formal analítica y matemática de las operaciones críticas ($O(n) \to O(1)$, $O(P \cdot L \cdot n) \to O(P \cdot L)$, $O(2^N) \to O(N \cdot P)$).
+4. **Algoritmos y Estructuras:** Justificación rigurosa de las 4 estructuras centrales: `list`, `dict`, `heapq` y `set`.
+5. **Memoización vs. Caching:** Diferenciación conceptual estricta requerida por la rúbrica (memoización interna en DP vs. caching LRU a nivel sistema con invalidación reactiva).
+6. **Concurrencia y Paralelismo:** Análisis del uso de `ProcessPoolExecutor`, evasión del GIL de CPython, y discusión técnica de la **Ley de Amdahl** y el costo de IPC en Windows.
+7. **Perfilado Sistemático:** Diagnóstico multi-herramienta con `cProfile`, `line_profiler`, `tracemalloc`, `Scalene` y `py-spy`.
+8. **Comparación de Resultados (Tabla Oficial):** Tabla obligatoria estandarizada de Tiempo (ms), Memoria (MB), Speedup y Observación.
+9. **Demostración de la Aplicación:** Recorrido por las 7 vistas de la UI en Flet (`Inicio`, `Catálogo`, `Pedidos` con auditoría desplegable, `Batch Picking`, `Top-N`, `Alternativas DP` y `Desafío Experimental`).
+10. **Conclusiones y Autocrítica:** Evaluación de qué optimización produjo mayor impacto (DP y Hash $O(1)$) y autocrítica sobre cuándo la concurrencia no es ventajosa.
+11. **Flujo Detallado de Funciones:** Vinculación directa con la [Guía Canónica de Flujo de la Aplicación](docs/app-flow-explanation.md).
 
 ---
 

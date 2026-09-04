@@ -6,9 +6,18 @@
   <title>Optimizador de Inventario y Pedidos — Presentación Oral (Opción 6)</title>
   <meta name="description" content="Presentación interactiva de Programación Eficiente (Primer Parcial - Opción 6) en la Universidad Blas Pascal.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+  <!-- Google Fonts: Outfit, Inter y JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+  <!-- Luces ambientales de fondo (Ambient Glow) -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-grid"></div>
 
   <!-- Barra Superior de Navegación y Estado -->
   <header class="top-nav">
@@ -50,6 +59,24 @@
     </div>
   </aside>
 
+  <!-- Modal de Atajos de Teclado (Tecla H o ?) -->
+  <aside class="shortcuts-modal" id="shortcuts-modal" aria-hidden="true">
+    <div class="shortcuts-header">
+      <h4><span>⌨️</span> Atajos de Teclado de la Presentación</h4>
+      <button class="btn btn-icon" id="btn-close-shortcuts" title="Cerrar">✕</button>
+    </div>
+    <div class="shortcuts-content">
+      <div class="shortcut-row"><kbd>→</kbd> o <kbd>Espacio</kbd> <span>Siguiente Diapositiva</span></div>
+      <div class="shortcut-row"><kbd>←</kbd> o <kbd>RePág</kbd> <span>Diapositiva Anterior</span></div>
+      <div class="shortcut-row"><kbd>T</kbd> <span>Iniciar / Pausar Cronómetro (15 min)</span></div>
+      <div class="shortcut-row"><kbd>N</kbd> <span>Mostrar / Ocultar Notas de Orador</span></div>
+      <div class="shortcut-row"><kbd>F</kbd> <span>Modo Pantalla Completa</span></div>
+      <div class="shortcut-row"><kbd>H</kbd> o <kbd>?</kbd> <span>Ver esta ayuda de atajos</span></div>
+      <div class="shortcut-row"><kbd>Inicio</kbd> / <kbd>Fin</kbd> <span>Ir a Portada / Conclusiones</span></div>
+      <div class="shortcut-row"><kbd>1</kbd> - <kbd>9</kbd> <span>Saltar directamente a diapositiva 1-9</span></div>
+    </div>
+  </aside>
+
   <!-- Barra Inferior de Controles -->
   <footer class="bottom-controls">
     <div class="control-btn-group">
@@ -69,6 +96,9 @@
     </div>
 
     <div class="control-btn-group">
+      <button class="btn" id="btn-shortcuts" title="Ver atajos de teclado (Atajo: H o ?)">
+        <span>⌨️</span> Atajos
+      </button>
       <button class="btn" id="btn-notes" title="Mostrar/Ocultar notas para la defensa oral (Atajo: N)">
         <span>📝</span> Notas
       </button>

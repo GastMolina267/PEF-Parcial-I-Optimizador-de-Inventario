@@ -8,105 +8,106 @@
 (function () {
   'use strict';
 
-  // Fallback de datos embebido para ejecución directa con doble clic (file://)
+  // Fallback de datos embebido sincronizado con slides.json (para ejecucion offline y file://)
   const FALLBACK_SLIDES = [
-    {
-      id: 1,
-      tag: "01. PORTADA",
-      title: "Optimizador de Inventario y Pedidos",
-      subtitle: "Demostración de Técnicas Avanzadas de Rendimiento y Análisis Algorítmico",
-      content_html: "<div class='cover-grid'><div class='cover-card highlight'><h3>Primer Parcial — Programación Eficiente</h3><p class='lead'>Opción 6: Gestión inteligente de inventario, picking consolidado y optimización combinatoria ante catálogos masivos.</p><div class='badge-row'><span class='badge primary'>Python 3.10+</span><span class='badge success'>Flet UI (Flutter Engine)</span><span class='badge warning'>Dualidad Baseline vs. Optimizado</span></div></div><div class='cover-card'><h4>Ejes Fundamentales de Evaluación</h4><ul class='checklist'><li><strong>Complejidad Big-O:</strong> Derivación formal analítica y empírica.</li><li><strong>Estructuras de Datos:</strong> Listas, Tablas Hash, Min-Heaps y Sets.</li><li><strong>Memoización vs. Caching:</strong> Diferenciación conceptual y coherencia reactiva.</li><li><strong>Concurrencia:</strong> ProcessPoolExecutor, evasión del GIL y Ley de Amdahl.</li><li><strong>Perfilado Integral:</strong> cProfile, line_profiler, tracemalloc y Scalene.</li></ul></div></div>",
-      notes: "Introducir al equipo, presentar la materia y aclarar que el proyecto no es un simple CRUD, sino una plataforma experimental diseñada para medir y justificar cada decisión algorítmica."
-    },
-    {
-      id: 2,
-      tag: "02. EL PROBLEMA",
-      title: "El Problema Logístico y el Reto de Escala",
-      subtitle: "¿Qué problema resolvimos y por qué es crítico para el rendimiento de software?",
-      content_html: "<div class='two-col'><div class='panel'><h3>Contexto Operativo</h3><p>En centros de distribución modernos (e-commerce y retail), la preparación de pedidos (<em>order picking</em>) representa hasta el <strong>55% de los costos operativos</strong> del almacén.</p><p>A medida que el catálogo escala a <strong>10.000 artículos</strong> y se reciben <strong>2.000 pedidos concurrentes</strong>, los algoritmos ingenuos colapsan:</p><ul class='bullet-list'><li>Búsquedas lineales $O(n)$ saturan la CPU en consultas recurrentes.</li><li>Verificación de pedidos $O(P \\cdot L \\cdot n)$ tarda minutos en responder.</li><li>Búsqueda combinatoria exhaustiva $O(2^N)$ sufre explosión exponencial.</li><li>Operarios recorren kilómetros innecesarios sin consolidación de demanda.</li></ul></div><div class='panel highlight'><h3>Objetivo de Ingeniería</h3><p>Construir un motor desacoplado de alto rendimiento capaz de:</p><div class='kpi-mini-grid'><div class='kpi-box'><span class='num'>O(1)</span><span class='lbl'>Búsquedas Hash</span></div><div class='kpi-box'><span class='num'>O(L)</span><span class='lbl'>Batch Picking</span></div><div class='kpi-box'><span class='num'>O(N log k)</span><span class='lbl'>Ranking Top-N</span></div><div class='kpi-box'><span class='num'>O(N·P)</span><span class='lbl'>DP Memoizada</span></div></div><p class='mt-2'>Reducir tiempos de procesamiento de segundos a <strong>milisegundos</strong> manteniendo determinismo e integridad transaccional.</p></div></div>",
-      notes: "Enfatizar que a escala de 100 productos todo parece rápido, pero a 10.000 productos y 2.000 pedidos las diferencias de Big-O marcan la viabilidad o el fracaso del negocio."
-    },
-    {
-      id: 3,
-      tag: "03. DISEÑO INICIAL",
-      title: "Diseño Inicial: Arquitectura y Línea Base (Baseline)",
-      subtitle: "Convivencia estricta de implementaciones para evaluación comparativa",
-      content_html: "<div class='two-col'><div class='panel'><h3>Arquitectura por Capas Desacopladas</h3><p>Para garantizar reproducibilidad científica, la interfaz gráfica y los benchmarks consumen exactamente la misma fachada:</p><div class='code-block'>UI (Flet) / Benchmarks / Tests\n         │\n         ▼\n   MotorInventario (Fachada Unificada)\n         │\n ┌───────┴───────┐\n ▼               ▼\nModo Baseline   Modo Optimizado\n(Ingenuo)       (Alto Rendimiento)</div></div><div class='panel'><h3>Primera Solución Implementada (Baseline)</h3><ul class='bullet-list'><li><strong>Catálogo:</strong> <code>list[Producto]</code> contigua con búsqueda lineal secuencial.</li><li><strong>Preparación de Pedidos:</strong> Escaneo anidado producto por producto en un solo hilo.</li><li><strong>Top-N Productos:</strong> Acumulación y ordenamiento completo con <code>sort()</code> de todo el catálogo.</li><li><strong>Alternativas:</strong> Árbol de decisión binario recursivo puro sin memoria de subproblemas.</li><li><strong>Caché:</strong> Ausente; cada consulta recomputa desde cero.</li></ul></div></div>",
-      notes: "Explicar el principio de diseño: no borramos la versión lenta. Ambas conviven bajo la fachada MotorInventario para poder medir y alternar en tiempo de ejecución."
-    },
-    {
-      id: 4,
-      tag: "04. COMPLEJIDAD ALGORÍTMICA",
-      title: "Análisis Formal de Complejidad Temporal (Big-O)",
-      subtitle: "Derivación matemática de las operaciones críticas del sistema",
-      content_html: "<div class='table-container'><table class='comparison-table'><thead><tr><th>Operación Fundamental</th><th>Modo Baseline</th><th>Modo Optimizado</th><th>Derivación Teórica y Justificación</th></tr></thead><tbody><tr><td><strong>Búsqueda por ID</strong></td><td>$O(n)$</td><td><strong>$O(1)$</strong></td><td>Escaneo secuencial en lista vs. función hash con resolución de colisiones y acceso indexado directo.</td></tr><tr><td><strong>Búsqueda por Nombre</strong></td><td>$O(n \\cdot m)$</td><td><strong>$O(T)$ + LRU</strong></td><td>Evaluación de subcadenas sobre todo el catálogo vs. índice invertido tokenizado con recuperación en caché.</td></tr><tr><td><strong>Preparación de Pedidos</strong></td><td>$O(P \\cdot L \\cdot n)$</td><td><strong>$O(P \\cdot L)$</strong></td><td>$P$ pedidos con $L$ líneas. En baseline cada línea busca en lista $O(n)$; en optimizado busca en hash $O(1)$.</td></tr><tr><td><strong>Batch Picking Almacén</strong></td><td>$O(P \\cdot L \\cdot n)$</td><td><strong>$O(L_{total})$</strong></td><td>Filtros anidados repetitivos vs. acumulación hash en una sola pasada sobre las líneas de demanda.</td></tr><tr><td><strong>Ranking Top-N ($k$)</strong></td><td>$O(N \\log N)$</td><td><strong>$O(N \\log k)$</strong></td><td>Timsort ordenando todo el universo $N$ vs. Min-Heap acotado que solo mantiene los $k$ mayores en memoria.</td></tr><tr><td><strong>Combinaciones Sustitutas</strong></td><td>$O(2^N)$</td><td><strong>$O(N \\cdot P)$</strong></td><td>Árbol binario exhaustivo exponencial vs. Programación Dinámica (DP) con poda y memoización de subproblemas.</td></tr></tbody></table></div>",
-      notes: "Destacar que no solo indicamos la cota Big-O, sino cómo se deriva del código: el anidamiento de bucles for genera el producto cartesiano, mientras que la tabla hash desacopla la dependencia de n."
-    },
-    {
-      id: 5,
-      tag: "05. ESTRUCTURAS DE DATOS",
-      title: "Estructuras de Datos y Decisiones de Diseño",
-      subtitle: "Justificación de las 4 estructuras esenciales implementadas en Python",
-      content_html: "<div class='four-cards-grid'><div class='struct-card'><div class='struct-header'><span class='icon'>📋</span><h4>list (Lista Contigua)</h4></div><p><strong>Uso:</strong> Línea base (Baseline) y preservación cronológica estricta de pedidos.</p><p><strong>Complejidad:</strong> Inserción $O(1)$ amortizado; búsqueda $O(n)$.</p><p class='tag-line'>Trade-off: Excelente localidad espacial de caché L1/L2, pero ineficiente para búsquedas aleatorias.</p></div><div class='struct-card highlight'><div class='struct-header'><span class='icon'>⚡</span><h4>dict (Tabla Hash)</h4></div><p><strong>Uso:</strong> Catálogo optimizado (ID $\\to$ Producto) e índices por categoría y tokens.</p><p><strong>Complejidad:</strong> Búsqueda, inserción y actualización en tiempo promedio $O(1)$.</p><p class='tag-line'>Trade-off: Mayor consumo de memoria ($1.4\\times$ vs lista) a cambio de aceleración radical.</p></div><div class='struct-card highlight'><div class='struct-header'><span class='icon'>🌲</span><h4>heapq (Min-Heap)</h4></div><p><strong>Uso:</strong> Priorización de los $k$ productos más demandados en Top-N.</p><p><strong>Complejidad:</strong> Mantenimiento de cola de prioridad en $O(N \\log k)$.</p><p class='tag-line'>Trade-off: Memoria estrictamente acotada a $O(k)$ frente a duplicar todo el catálogo con $O(N)$.</p></div><div class='struct-card'><div class='struct-header'><span class='icon'>🎯</span><h4>set (Conjuntos Hash)</h4></div><p><strong>Uso:</strong> Validación instantánea de integridad referencial e intersección de tokens.</p><p><strong>Complejidad:</strong> Pertenencia <code>x in S</code> e intersecciones en $O(1)$ promedio.</p><p class='tag-line'>Trade-off: Garantiza unicidad matemática sin duplicidad de datos.</p></div></div>",
-      notes: "Resaltar el requisito 4 de la rúbrica: justificar formalmente al menos dos estructuras. Demostramos cuatro con análisis de trade-off tiempo vs. espacio."
-    },
-    {
-      id: 6,
-      tag: "06. MEMOIZACIÓN Y CACHING",
-      title: "Memoización vs. Caching Inteligente",
-      subtitle: "Diferenciación conceptual rigurosa y arquitectura de consistencia reactiva",
-      content_html: "<div class='two-col'><div class='panel highlight'><h3>Memoización (Nivel Algorítmico)</h3><p class='subtitle-panel'>Módulo: <code>src/pedidos/combinaciones.py</code></p><ul class='bullet-list'><li><strong>Qué almacena:</strong> Resultados de subproblemas evaluados <code>(indice_candidato, presupuesto_restante)</code>.</li><li><strong>Por qué conviene:</strong> Distintas ramas del árbol de decisión evalúan exactamente el mismo remanente presupuestario.</li><li><strong>Cuándo se reutiliza:</strong> En llamadas recursivas dentro del mismo cómputo DP.</li><li><strong>Impacto:</strong> Reduce la complejidad de $O(2^N)$ a $O(N \\cdot P)$, resolviendo en <strong>< 1 milisegundo</strong> lo que antes demoraba minutos.</li></ul></div><div class='panel'><h3>Caching Inteligente (Nivel Sistema)</h3><p class='subtitle-panel'>Módulo: <code>src/cache/cache_consultas.py</code></p><ul class='bullet-list'><li><strong>Qué almacena:</strong> Consultas frecuentes de búsqueda textual y rankings Top-N.</li><li><strong>Política de Desalojo:</strong> Capacidad acotada (128 entradas) con política <em>Least Recently Used</em> (LRU).</li><li><strong>Consistencia e Invalidación Reactiva:</strong> Para evitar devolver información obsoleta ante ventas, se purga automáticamente:<ul><li><code>invalidar_por_mutacion_stock()</code> al descontar existencias.</li><li><code>invalidar_por_nuevos_pedidos()</code> al cargar nuevas órdenes.</li></ul></li></ul></div></div>",
-      notes: "La cátedra exige diferenciar claramente ambos conceptos: memoización es interna a la función algorítmica para evitar recomputar subproblemas; caching es a nivel sistema con política de reemplazo e invalidación ante mutaciones."
-    },
-    {
-      id: 7,
-      tag: "07. CONCURRENCIA Y PARALELISMO",
-      title: "Concurrencia, Paralelismo y la Ley de Amdahl",
-      subtitle: "ProcessPoolExecutor, evasión del GIL y análisis del costo de comunicación (IPC)",
-      content_html: "<div class='two-col'><div class='panel'><h3>Implementación Multiproceso</h3><p>La preparación de un lote masivo de pedidos es una tarea <em>embarrassingly parallel</em> (cada pedido es independiente):</p><ul class='bullet-list'><li><strong>Mecanismo:</strong> <code>concurrent.futures.ProcessPoolExecutor</code> distribuyendo chunks de pedidos entre núcleos de CPU.</li><li><strong>Evasión del GIL:</strong> Al usar procesos y no hilos (<code>threading</code>), se aprovecha el 100% de los cores reales de la CPU para cómputo CPU-bound.</li><li><strong>Determinismo:</strong> El catálogo se comparte en modo de solo lectura durante la simulación de despacho.</li></ul></div><div class='panel highlight'><h3>Lección Empírica: Overhead de IPC</h3><div class='alert-box info'><strong>Hallazgo Experimental en Windows:</strong><br>Mono-hilo (Hash): <strong>29.8 ms</strong> | Concurrente: <strong>848.0 ms</strong></div><p class='mt-2'><strong>¿Por qué tardó más el modo concurrente?</strong></p><p>El acceso al catálogo Hash en memoria RAM es tan ultra-rápido ($O(1)$, nanosegundos por ítem) que el costo de crear procesos (<code>spawn</code> en Windows), serializar 10.000 productos con <code>pickle</code> y transferirlos por pipes IPC supera ampliamente al tiempo del cómputo puro.</p><p class='footnote'>Conclusión: El paralelismo tiene sentido cuando el costo computacional por ítem supera el costo fijo de coordinación.</p></div></div>",
-      notes: "Este punto es fundamental para la autocrítica en la defensa oral: demostrar que entendemos la Ley de Amdahl y el trade-off de IPC en sistemas operativos modernos."
-    },
-    {
-      id: 8,
-      tag: "08. PERFILADO Y MEDICIONES",
-      title: "Perfilado Sistemático Multi-Herramienta",
-      subtitle: "Diagnóstico instrumental de cuellos de botella y consumo de memoria",
-      content_html: "<div class='tools-grid'><div class='tool-card'><h4>cProfile & pstats</h4><p>Perfilado determinista de llamadas. Reveló que en el baseline el <strong>94.2% del tiempo total</strong> se concentraba en iteraciones repetidas dentro de <code>CatalogoLineal.buscar_por_id</code>.</p></div><div class='tool-card'><h4>line_profiler</h4><p>Instrumentación línea por línea. Identificó que la sentencia <code>if p.id == id_producto:</code> se ejecutaba más de <strong>20.000.000 de veces</strong> durante la corrida de 2.000 pedidos.</p></div><div class='tool-card'><h4>tracemalloc</h4><p>Monitoreo del heap de memoria. Demostró que el catálogo Hash y la caché LRU solo aumentaron el consumo de RAM en <strong>7.2 MB</strong>, un costo insignificante frente a la aceleración de 260x.</p></div><div class='tool-card'><h4>Scalene & py-spy</h4><p>Análisis de código nativo vs. Python y muestreo de procesos hijos sin distorsionar los tiempos con instrumentación invasiva.</p></div></div>",
-      notes: "Mostrar que se utilizó la suite recomendada en la rúbrica y cómo cada perfilador aportó una perspectiva distinta (macro con cProfile, micro con line_profiler y espacial con tracemalloc)."
-    },
-    {
-      id: 9,
-      tag: "09. RESULTADOS EXPERIMENTALES",
-      title: "Tabla Comparativa Oficial de la Rúbrica",
-      subtitle: "Mediciones empíricas sobre el dataset grande (10.000 productos, 2.000 pedidos)",
-      content_html: "<div class='table-container'><table class='benchmark-table'><thead><tr><th>Versión Evaluada</th><th>Tiempo Ejecución</th><th>Memoria Heap</th><th>Aceleración (Speedup)</th><th>Observación Algorítmica</th></tr></thead><tbody><tr class='row-base'><td><strong>1. Implementación Inicial (Baseline)</strong></td><td>804.39 ms</td><td>45.2 MB</td><td>1.0x (Referencia)</td><td>Catálogo lineal $O(n)$, ordenamiento total sort() y recursión pura.</td></tr><tr class='row-opt'><td><strong>2. Estructura Optimizada (Hash)</strong></td><td>29.80 ms</td><td>52.4 MB</td><td><strong class='highlight-green'>🚀 27.0x</strong></td><td>Diccionario hash $O(1)$. En búsquedas individuales el speedup supera <strong>260x</strong>.</td></tr><tr class='row-opt'><td><strong>3. Algoritmo Optimizado (Heap + DP)</strong></td><td>0.85 ms</td><td>48.1 MB</td><td><strong class='highlight-green'>🚀 > 100x</strong></td><td>Min-Heap $O(N \\log k)$ en Top-N y memoización $O(N \\cdot P)$ en sustitutos.</td></tr><tr class='row-warn'><td><strong>4. Concurrencia (ProcessPool)</strong></td><td>848.12 ms</td><td>118.6 MB</td><td><span class='highlight-orange'>🐢 0.95x</span></td><td>Overhead de IPC y serialización de 10.000 objetos supera el cómputo en RAM.</td></tr><tr class='row-final'><td><strong>5. Versión Final Integrada</strong></td><td><strong>1.12 ms</strong></td><td>52.8 MB</td><td><strong class='highlight-green'>🚀 718x Global</strong></td><td>Hash $O(1)$ + Min-Heap + DP Memoizada + Caché LRU reactiva mono-hilo.</td></tr></tbody></table></div>",
-      notes: "Esta diapositiva cumple al 100% con la tabla obligatoria de la consigna. Explicar claramente cada fila y cómo la versión final integrada maximiza la eficiencia."
-    },
-    {
-      id: 10,
-      tag: "10. DEMOSTRACIÓN DE LA APP",
-      title: "Recorrido por las Funcionalidades de la Aplicación",
-      subtitle: "Interfaz Flet moderna, reactiva, accesible y optimizada verticalmente",
-      content_html: "<div class='features-carousel'><div class='feature-item'><span class='badge-feat'>Inicio</span><h4>Diagnóstico Global</h4><p>Selector de datasets versionados (demo_oral a grande) y botón de ejecución integral del flujo en un clic.</p></div><div class='feature-item'><span class='badge-feat'>Catálogo</span><h4>Búsqueda Hash O(1)</h4><p>Filtro instantáneo, sincronización global de modo, y ordenamiento interactivo por Precio, Nombre y Stock.</p></div><div class='feature-item'><span class='badge-feat'>Pedidos</span><h4>Auditoría Desplegable</h4><p>ExpansionTile por pedido que audita disponibilidad línea a línea, faltantes monetarios y descuento transaccional.</p></div><div class='feature-item'><span class='badge-feat'>Agrupación</span><h4>Batch Picking O(L)</h4><p>Consolidación de demandas en una pasada para que el operario visite cada celda de stock una sola vez.</p></div><div class='feature-item'><span class='badge-feat'>Top-N</span><h4>Priorización Min-Heap</h4><p>Visualización con barras de demanda relativa y selección rápida mediante heapq.nlargest con k acotado.</p></div><div class='feature-item'><span class='badge-feat'>Alternativas</span><h4>Sustitutos DP Memoizada</h4><p>Exploración de paquetes sustitutos bajo presupuesto evitando colapsos de stack en < 1 milisegundo.</p></div><div class='feature-item'><span class='badge-feat'>Comparación</span><h4>Desafío en Vivo</h4><p>Tabla dinámica de medición en tiempo real con badges de microsegundos y cálculo interactivo de Speedup.</p></div></div>",
-      notes: "Pasar a la demostración en vivo de la aplicación si el tribunal lo solicita, utilizando el dataset demo_oral.json para exhibir la reactividad de la interfaz."
-    },
-    {
-      id: 11,
-      tag: "11. CONCLUSIONES Y AUTOCRÍTICA",
-      title: "Conclusiones, Lecciones Aprendidas y Autocrítica",
-      subtitle: "Evaluación crítica exigida por la rúbrica para el cierre de la exposición",
-      "content_html": "<div class='three-col'><div class='panel highlight'><h3>Mayor Impacto</h3><ul class='bullet-list'><li><strong>Programación Dinámica:</strong> Evitó el colapso exponencial $O(2^N)$ pasando de minutos incomputables a <strong>< 1 ms</strong> en alternativas.</li><li><strong>Catálogo Hash:</strong> Redujo la búsqueda de pedidos de $O(P \\cdot L \\cdot n)$ a $O(P \\cdot L)$, generando una aceleración de <strong>27x a 260x</strong>.</li></ul></div><div class='panel'><h3>Decisión Subóptima</h3><ul class='bullet-list'><li><strong>Paralelismo Multiproceso:</strong> Para operaciones donde el trabajo por ítem es ultra-liviano ($O(1)$ en memoria), el costo de serialización <code>pickle</code> e IPC en Windows anula la ventaja del paralelismo.</li><li>La optimización mono-hilo con estructuras adecuadas fue <strong>28 veces más rápida</strong> que el clúster multiproceso.</li></ul></div><div class='panel'><h3>¿Qué Haríamos Diferente?</h3><ul class='bullet-list'><li><strong>Memoria Compartida:</strong> Emplear <code>multiprocessing.shared_memory</code> o arrays de NumPy para evitar serializar el catálogo entre procesos.</li><li><strong>Extensiones Cython/Rust:</strong> Implementar los bucles numéricos críticos en código nativo para exprimir al máximo el hardware.</li><li><strong>Almacenamiento Persistente:</strong> Incorporar SQLite en memoria con índices B-Tree para queries complejas.</li></ul></div></div>",
-      notes: "Cerrar con autocrítica rigurosa: un buen ingeniero de software no solo sabe cuándo usar concurrencia, sino cuándo NO usarla porque la sobrecarga supera al cómputo."
-    }
-  ];
+  {
+    "id": 1,
+    "tag": "01. PORTADA",
+    "title": "Optimizador de Inventario y Pedidos",
+    "subtitle": "Demostración de Técnicas Avanzadas de Rendimiento y Análisis Algorítmico",
+    "content_html": "<div class='cover-grid'><div class='cover-card highlight'><div class='cover-badge-top'>UBP — Programación Eficiente</div><h3>Motor de Alto Rendimiento para Logística Masiva</h3><p class='lead'>Opción 6: Gestión inteligente de inventario, picking consolidado y optimización combinatoria ante catálogos de escala real.</p><div class='badge-row'><span class='badge primary'>Python 3.10+</span><span class='badge success'>Flet UI (Flutter Engine)</span><span class='badge warning'>Dualidad Baseline vs. Optimizado</span><span class='badge purple'>78 Tests Automatizados</span></div><div class='cover-meta-stats'><div class='meta-stat-item'><span class='meta-stat-num'>10.000</span><span class='meta-stat-label'>Productos en Catálogo</span></div><div class='meta-stat-item'><span class='meta-stat-num'>2.000</span><span class='meta-stat-label'>Pedidos Concurrentes</span></div><div class='meta-stat-item'><span class='meta-stat-num highlight-cyan'>718x</span><span class='meta-stat-label'>Aceleración Máxima</span></div></div></div><div class='cover-card'><h4>Ejes Fundamentales de Evaluación de la Cátedra</h4><ul class='checklist'><li><strong>Complejidad Big-O:</strong> Derivación formal analítica y validación empírica.</li><li><strong>Estructuras de Datos:</strong> Listas, Tablas Hash, Min-Heaps y Sets indexados.</li><li><strong>Memoización vs. Caching:</strong> Diferenciación conceptual y consistencia reactiva.</li><li><strong>Concurrencia y Cuellos de Botella:</strong> Multiprocesamiento vs. overhead de IPC.</li><li><strong>Perfilado Sistemático:</strong> Diagnóstico con cProfile, line_profiler y tracemalloc.</li></ul><div class='interactive-callout'><span class='callout-icon'>💡</span><span>Usa <kbd>→</kbd> para avanzar o presiona <kbd>H</kbd> para ver todos los atajos de teclado interactivos.</span></div></div></div>",
+    "notes": "Introducir al equipo, presentar la materia y aclarar que el proyecto no es un simple CRUD, sino una plataforma experimental diseñada para medir y justificar cada decisión algorítmica con rigor científico."
+  },
+  {
+    "id": 2,
+    "tag": "02. EL PROBLEMA",
+    "title": "El Problema Logístico y el Reto de Escala",
+    "subtitle": "¿Qué problema resolvimos y por qué el diseño algorítmico define la viabilidad del sistema?",
+    "content_html": "<div class='two-col'><div class='panel'><h3>Contexto Operativo: Cuello de Botella en Almacén</h3><p>En centros de distribución modernos de e-commerce, la preparación de pedidos (<em>order picking</em>) representa hasta el <strong>55% de los costos operativos</strong> totales.</p><p>Al escalar el catálogo a <strong>10.000 artículos</strong> y recibir <strong>2.000 pedidos concurrentes</strong>, los algoritmos ingenuos colapsan:</p><div class='problem-cards-list'><div class='problem-item'><span class='problem-icon'>❌</span><div><strong>Búsqueda Lineal O(n):</strong> Satura la CPU en escaneos repetitivos de lista.</div></div><div class='problem-item'><span class='problem-icon'>❌</span><div><strong>Verificación de Pedidos O(P · L · n):</strong> Tiempo de respuesta inaceptable de decenas de segundos.</div></div><div class='problem-item'><span class='problem-icon'>❌</span><div><strong>Explosión Combinatoria O(2^N):</strong> Árbol de alternativas agota memoria y colapsa el stack recursivo.</div></div><div class='problem-item'><span class='problem-icon'>❌</span><div><strong>Picking Descoordinado:</strong> Operarios recorren kilómetros redundantes sin consolidación de demanda.</div></div></div></div><div class='panel highlight'><h3>Objetivo de Ingeniería: Aceleración Radical</h3><p>Construir un motor desacoplado de alto rendimiento que transforme órdenes de magnitud teóricas y empíricas:</p><div class='kpi-mini-grid'><div class='kpi-box'><span class='num'>O(1)</span><span class='lbl'>Búsquedas Hash</span><span class='sub-kpi'>vs. O(n)</span></div><div class='kpi-box'><span class='num'>O(L)</span><span class='lbl'>Batch Picking</span><span class='sub-kpi'>Consolidado</span></div><div class='kpi-box'><span class='num'>O(N log k)</span><span class='lbl'>Ranking Top-N</span><span class='sub-kpi'>Min-Heap</span></div><div class='kpi-box'><span class='num'>O(N · P)</span><span class='lbl'>DP Memoizada</span><span class='sub-kpi'>vs. O(2^N)</span></div></div><div class='alert-box info mt-3'><strong>Meta de Rendimiento:</strong> Reducir tiempos de procesamiento de minutos a <strong>milisegundos</strong> garantizando integridad transaccional, determinismo con semilla fija y trazabilidad auditada.</div></div></div>",
+    "notes": "Enfatizar que a escala pequeña (100 productos) cualquier código parece rápido, pero a 10.000 productos y 2.000 pedidos la diferencia entre O(n) y O(1) es la diferencia entre un sistema utilizable o un servidor bloqueado."
+  },
+  {
+    "id": 3,
+    "tag": "03. DISEÑO INICIAL",
+    "title": "Diseño Inicial: Arquitectura y Línea Base (Baseline)",
+    "subtitle": "Convivencia estricta de implementaciones bajo una fachada unificada para benchmarking reproducible",
+    "content_html": "<div class='architecture-container'><div class='arch-diagram'><div class='arch-node node-client'><span class='node-tag'>Capa Superior</span><div class='node-title'>UI (Flet) / Benchmarks / Suite de Tests</div><div class='node-sub'>78 Tests Unitarios & Integración</div></div><div class='arch-connector-down'>⬇</div><div class='arch-node node-gateway'><span class='node-tag'>Fachada Unificada (Patrón Facade)</span><div class='node-title'>MotorInventario API</div><div class='node-sub'>Intercambio dinámico de estrategia en tiempo de ejecución</div></div><div class='arch-branches'><div class='arch-branch branch-baseline' id='branch-baseline-card'><div class='branch-header'><span class='branch-badge red'>Línea Base (Baseline)</span><h4>Implementación Ingenua O(n) / O(2^N)</h4></div><ul class='branch-specs'><li><strong>Catálogo:</strong> <code>list[Producto]</code> en memoria contigua.</li><li><strong>Búsqueda:</strong> Escaneo secuencial elemento a elemento O(n).</li><li><strong>Top-N:</strong> Timsort completo de todo el universo con <code>sort()</code>.</li><li><strong>Alternativas:</strong> Árbol de decisión recursivo puro sin memoria.</li><li><strong>Caché:</strong> Inexistente (cada consulta recomputa desde cero).</li></ul><div class='branch-footer baseline-foot'>Referencia obligatoria para medir el Speedup</div></div><div class='arch-branch branch-optimized' id='branch-optimized-card'><div class='branch-header'><span class='branch-badge green'>Modo Optimizado</span><h4>Estructuras Avanzadas O(1) / O(N log k)</h4></div><ul class='branch-specs'><li><strong>Catálogo:</strong> <code>dict[str, Producto]</code> hash indexado O(1).</li><li><strong>Búsqueda:</strong> Hashing directo + índice invertido tokenizado.</li><li><strong>Top-N:</strong> Min-Heap acotado con <code>heapq.nlargest</code> O(N log k).</li><li><strong>Alternativas:</strong> Programación Dinámica memoizada O(N · P).</li><li><strong>Caché:</strong> Caché LRU reactiva (128 slots) con invalidación atómica.</li></ul><div class='branch-footer opt-foot'>Hasta 718x de aceleración global comprobada</div></div></div></div></div>",
+    "notes": "Explicar la decisión de arquitectura: nunca borramos el código baseline. Ambas versiones conviven bajo la fachada MotorInventario para poder alternar con un interruptor en la UI y validar que ambas arrojan exactamente los mismos resultados de negocio."
+  },
+  {
+    "id": 4,
+    "tag": "04. COMPLEJIDAD ALGORÍTMICA",
+    "title": "Análisis Formal de Complejidad Temporal (Big-O)",
+    "subtitle": "Derivación matemática teórica vs. Simulador visual en vivo de operaciones",
+    "content_html": "<div class='tabs-container' data-tabs='complexity-tabs'><div class='tab-nav'><button class='tab-btn active' data-tab='tab-table'>📋 Tabla Formal de Derivaciones Big-O</button><button class='tab-btn' data-tab='tab-sim'>⚡ Simulador Interactivo: Búsqueda O(n) vs O(1)</button></div><div class='tab-pane active' id='tab-table'><div class='table-container'><table class='comparison-table'><thead><tr><th>Operación Fundamental</th><th>Modo Baseline</th><th>Modo Optimizado</th><th>Derivación Teórica y Justificación</th></tr></thead><tbody><tr><td><strong>Búsqueda por ID</strong></td><td><span class='badge-algo baseline'>O(n)</span></td><td><span class='badge-algo opt'>O(1)</span></td><td>Escaneo secuencial en lista vs. función hash con resolución de colisiones y acceso indexado directo.</td></tr><tr><td><strong>Búsqueda por Nombre</strong></td><td><span class='badge-algo baseline'>O(n · m)</span></td><td><span class='badge-algo opt'>O(T) + LRU</span></td><td>Evaluación de subcadenas sobre todo el catálogo vs. índice invertido tokenizado con recuperación en caché.</td></tr><tr><td><strong>Preparación de Pedidos</strong></td><td><span class='badge-algo baseline'>O(P · L · n)</span></td><td><span class='badge-algo opt'>O(P · L)</span></td><td>P pedidos con L líneas. En baseline cada línea busca en lista O(n); en optimizado busca en hash O(1).</td></tr><tr><td><strong>Batch Picking Almacén</strong></td><td><span class='badge-algo baseline'>O(P · L · n)</span></td><td><span class='badge-algo opt'>O(L_total)</span></td><td>Filtros anidados repetitivos vs. acumulación hash en una sola pasada sobre las líneas de demanda.</td></tr><tr><td><strong>Ranking Top-N (k)</strong></td><td><span class='badge-algo baseline'>O(N log N)</span></td><td><span class='badge-algo opt'>O(N log k)</span></td><td>Timsort ordenando todo el universo N vs. Min-Heap acotado que solo mantiene los k mayores en memoria.</td></tr><tr><td><strong>Combinaciones Sustitutas</strong></td><td><span class='badge-algo baseline'>O(2^N)</span></td><td><span class='badge-algo opt'>O(N · P)</span></td><td>Árbol binario exhaustivo exponencial vs. Programación Dinámica (DP) con poda y memoización de subproblemas.</td></tr></tbody></table></div></div><div class='tab-pane' id='tab-sim'><div class='sim-card'><div class='sim-controls-bar'><div class='sim-control-item'><label>Tamaño del Catálogo (N):</label><select id='sim-catalog-size' class='sim-select'><option value='1000'>1.000 productos</option><option value='5000'>5.000 productos</option><option value='10000' selected>10.000 productos (Dataset Grande)</option></select></div><div class='sim-control-item'><label>ID a buscar:</label><input type='text' id='sim-target-id' value='PROD-08420' class='sim-input' readonly></div><button id='btn-run-sim' class='btn primary btn-sim'><span>▶</span> Simular Búsqueda Comparativa</button></div><div class='sim-dual-arena'><div class='sim-lane baseline-lane'><div class='lane-header'><span class='lane-title'>Modo Baseline: Escaneo Lineal O(n)</span><span id='sim-base-status' class='lane-status'>Listo</span></div><div class='sim-track'><div id='sim-base-progress' class='sim-progress baseline'></div></div><div class='sim-metrics'><div class='sim-metric'><span class='sim-lbl'>Operaciones:</span> <span id='sim-base-ops' class='sim-val'>0</span></div><div class='sim-metric'><span class='sim-lbl'>Tiempo Estimado:</span> <span id='sim-base-time' class='sim-val'>0.00 ms</span></div></div></div><div class='sim-lane opt-lane'><div class='lane-header'><span class='lane-title'>Modo Optimizado: Hash Indexado O(1)</span><span id='sim-opt-status' class='lane-status'>Listo</span></div><div class='sim-track'><div id='sim-opt-progress' class='sim-progress opt'></div></div><div class='sim-metrics'><div class='sim-metric'><span class='sim-lbl'>Operaciones:</span> <span id='sim-opt-ops' class='sim-val'>0</span></div><div class='sim-metric'><span class='sim-lbl'>Tiempo Estimado:</span> <span id='sim-opt-time' class='sim-val'>0.00 ms</span></div></div></div></div><div id='sim-summary-box' class='sim-summary'>Presiona 'Simular Búsqueda Comparativa' para observar en tiempo real la diferencia algorítmica entre recorrer secuencialmente una lista versus indexar directamente con función hash.</div></div></div></div>",
+    "notes": "Destacar que no solo enunciamos la cota Big-O formal, sino cómo se deriva del código: el anidamiento de bucles for genera el producto cartesiano, mientras que la tabla hash desacopla la dependencia de n."
+  },
+  {
+    "id": 5,
+    "tag": "05. ESTRUCTURAS DE DATOS",
+    "title": "Estructuras de Datos y Decisiones de Diseño",
+    "subtitle": "Justificación formal de las 4 estructuras esenciales implementadas en Python y sus trade-offs",
+    "content_html": "<div class='four-cards-grid'><div class='struct-card'><div class='struct-header'><span class='icon'>📋</span><h4>list (Lista Contigua)</h4></div><div class='struct-badge-complexity'>Búsqueda: O(n) | Acceso: O(1)</div><p><strong>Uso en el Sistema:</strong> Línea base (Baseline) y preservación cronológica estricta del orden de llegada de pedidos.</p><div class='struct-visual list-vis'><span>[0]</span><span>[1]</span><span>[2]</span><span class='highlight-node'>[k]</span><span>...</span><span>[N]</span></div><p class='tag-line'><strong>Trade-off:</strong> Óptima localidad espacial de caché de hardware (L1/L2), pero ineficiente para búsquedas aleatorias frecuentes.</p></div><div class='struct-card highlight'><div class='struct-header'><span class='icon'>⚡</span><h4>dict (Tabla Hash)</h4></div><div class='struct-badge-complexity opt'>Búsqueda Promedio: O(1)</div><p><strong>Uso en el Sistema:</strong> Catálogo optimizado (ID a Producto) e índices invertidos por categoría y tokens.</p><div class='struct-visual hash-vis'><div class='hash-slot'>hash(k) ➔ Slot Directo en RAM</div></div><p class='tag-line'><strong>Trade-off:</strong> Mayor consumo de memoria (1.4x vs lista) debido a la tabla interna de punteros, a cambio de una aceleración radical.</p></div><div class='struct-card highlight'><div class='struct-header'><span class='icon'>🌲</span><h4>heapq (Min-Heap)</h4></div><div class='struct-badge-complexity opt'>Inserción / Extracción: O(log k)</div><p><strong>Uso en el Sistema:</strong> Priorización acotada de los k productos más demandados en Top-N con <code>heapq.nlargest</code>.</p><div class='struct-visual heap-vis'><div class='heap-tree'>Raíz (Min) ➔ Hijos Izq/Der ➔ Cola de Tamaño k</div></div><p class='tag-line'><strong>Trade-off:</strong> Memoria estrictamente acotada a O(k) frente a duplicar y ordenar todo el catálogo O(N log N).</p></div><div class='struct-card'><div class='struct-header'><span class='icon'>🎯</span><h4>set (Conjuntos Hash)</h4></div><div class='struct-badge-complexity'>Pertenencia: O(1)</div><p><strong>Uso en el Sistema:</strong> Validación instantánea de integridad referencial e intersección de tokens textuales en búsqueda rápida.</p><div class='struct-visual set-vis'><span>A ∩ B = { Tokens Coincidentes }</span></div><p class='tag-line'><strong>Trade-off:</strong> Garantiza unicidad matemática de claves sin duplicidad de datos ni escaneos repetidos.</p></div></div>",
+    "notes": "Resaltar el requisito 4 de la consigna oficial: justificar formalmente al menos dos estructuras. Demostramos cuatro con análisis riguroso de trade-offs tiempo vs. espacio."
+  },
+  {
+    "id": 6,
+    "tag": "06. MEMOIZACIÓN Y CACHING",
+    "title": "Memoización vs. Caching Inteligente",
+    "subtitle": "Diferenciación conceptual rigurosa y arquitectura de consistencia reactiva ante mutaciones",
+    "content_html": "<div class='two-col'><div class='panel highlight'><div class='panel-header-with-badge'><h3>Memoización (Nivel Algorítmico)</h3><span class='badge success'>Interno DP</span></div><p class='subtitle-panel'>Módulo: <code>src/pedidos/combinaciones.py</code></p><ul class='bullet-list'><li><strong>Qué almacena:</strong> Resultados de subproblemas evaluados: <code>(indice_candidato, presupuesto_restante)</code>.</li><li><strong>Por qué conviene:</strong> Distintas ramas del árbol de decisión evalúan exactamente el mismo remanente presupuestario.</li><li><strong>Ciclo de Vida:</strong> Vive durante la ejecución de una única consulta combinatoria (DP acotada).</li><li><strong>Impacto:</strong> Reduce la complejidad de O(2^N) a O(N · P), resolviendo en <strong>< 1 ms</strong> lo que en modo recursivo puro tardaba minutos.</li></ul><div class='tree-demo-box'><div class='tree-label'>Árbol de Decisión:</div><div class='tree-nodes'><span class='node-normal'>f(0, p=1000)</span> ➔ <span class='node-branch'>f(1, p=600)</span> ➔ <span class='node-memo'>⚡ Memo Hit: Retorno O(1)</span></div></div></div><div class='panel'><div class='panel-header-with-badge'><h3>Caching Inteligente (Nivel Sistema)</h3><span class='badge primary'>Global LRU</span></div><p class='subtitle-panel'>Módulo: <code>src/cache/cache_consultas.py</code></p><ul class='bullet-list'><li><strong>Qué almacena:</strong> Consultas frecuentes del usuario (búsqueda por texto y ranking Top-N).</li><li><strong>Política de Desalojo:</strong> Capacidad acotada a 128 entradas con política <em>Least Recently Used</em> (LRU).</li><li><strong>Consistencia Reactiva:</strong> Para evitar datos obsoletos (<em>stale reads</em>), el motor purga automáticamente:<ul><li><code>invalidar_por_mutacion_stock()</code> al confirmar o despachar pedidos.</li><li><code>invalidar_por_nuevos_pedidos()</code> al cargar nuevas órdenes al sistema.</li></ul></li></ul><div class='cache-interactive-widget'><div class='cache-slot-row'><span class='cache-slot-item hit'>Slot 1: \"laptop\" [Hit]</span><span class='cache-slot-item hit'>Slot 2: \"mouse\" [Hit]</span><span class='cache-slot-item lru'>Slot 3: LRU Evict</span></div></div></div></div>",
+    "notes": "La cátedra exige diferenciar claramente ambos conceptos: memoización es interna a la función algorítmica para evitar recomputar subproblemas en un árbol DP; caching es a nivel de sistema con política de desalojo (LRU) e invalidación activa ante mutaciones transaccionales."
+  },
+  {
+    "id": 7,
+    "tag": "07. CONCURRENCIA Y PARALELISMO",
+    "title": "Concurrencia, Paralelismo y la Ley de Amdahl",
+    "subtitle": "ProcessPoolExecutor, evasión del GIL y el descubrimiento del costo de comunicación (IPC)",
+    "content_html": "<div class='two-col'><div class='panel'><h3>Implementación Multiproceso</h3><p>La preparación de un lote de 2.000 pedidos es una tarea conceptualmente paralelizable (cada pedido se valida de forma independiente):</p><ul class='bullet-list'><li><strong>Mecanismo:</strong> <code>concurrent.futures.ProcessPoolExecutor</code> distribuyendo bloques (chunks) de pedidos entre los núcleos de la CPU.</li><li><strong>Evasión del GIL:</strong> Al utilizar procesos independientes (y no hilos de <code>threading</code>), se aprovecha el 100% de la potencia multinúcleo en tareas CPU-bound.</li><li><strong>Determinismo:</strong> El catálogo se comparte en modo de solo lectura durante la simulación de despacho.</li></ul></div><div class='panel highlight'><h3>Lección Empírica: Sobrecarga de IPC en Windows</h3><div class='alert-box info'><strong>Medición Experimental (Dataset Grande - 10.000 prod, 2.000 ped):</strong><br>Mono-hilo (Hash O(1)): <strong>29.80 ms</strong> | Concurrente (ProcessPool): <strong>848.12 ms</strong></div><div class='ipc-breakdown-chart'><div class='ipc-bar-title'>Desglose del Tiempo en Modo Concurrente (848 ms):</div><div class='ipc-bar-stack'><div class='ipc-seg seg-spawn' style='width: 25%' title='Creación de Procesos (Spawn en Windows): ~210 ms'>Spawn 25%</div><div class='ipc-seg seg-pickle' style='width: 38%' title='Serialización Pickle de 10.000 objetos: ~320 ms'>Pickle 38%</div><div class='ipc-seg seg-pipe' style='width: 32%' title='Transferencia por Pipes IPC: ~270 ms'>IPC Pipes 32%</div><div class='ipc-seg seg-calc' style='width: 5%' title='Cómputo Real en RAM: ~48 ms'>CPU 5%</div></div></div><p class='footnote mt-3'><strong>Conclusión Fundamental:</strong> El paralelismo solo es ventajoso si el costo de cálculo por ítem supera con creces el costo fijo de sincronización y transferencia de memoria.</p></div></div>",
+    "notes": "Este punto es fundamental para la autocrítica en la defensa oral: demostrar que entendemos la Ley de Amdahl y el trade-off de IPC en sistemas operativos modernos."
+  },
+  {
+    "id": 8,
+    "tag": "08. PERFILADO Y MEDICIONES",
+    "title": "Perfilado Sistemático Multi-Herramienta",
+    "subtitle": "Diagnóstico instrumental de cuellos de botella mediante instrumentación determinista y muestreo",
+    "content_html": "<div class='tools-grid'><div class='tool-card'><div class='tool-badge'>Perfilador Determinista</div><h4>cProfile & pstats</h4><p>Perfilado macroscópico de tiempos de llamada. Reveló que en el baseline el <strong>94.2% del tiempo total</strong> se concentraba en iteraciones repetidas dentro del método <code>CatalogoLineal.buscar_por_id</code>.</p><div class='tool-pill'>Hotspot: 94.2% CPU en iterador de lista</div></div><div class='tool-card'><div class='tool-badge'>Instrumentación Línea por Línea</div><h4>line_profiler</h4><p>Inspección microscópica instrucción a instrucción. Identificó que la sentencia condicional <code>if p.id == id_producto:</code> se ejecutaba más de <strong>20.000.000 de veces</strong> durante la corrida de 2.000 pedidos.</p><div class='tool-pill'>Hotspot: 20M comparaciones if</div></div><div class='tool-card'><div class='tool-badge'>Perfilador de Memoria Heap</div><h4>tracemalloc</h4><p>Monitoreo de asignación de memoria. Demostró que el catálogo Hash y la caché LRU solo aumentaron el consumo de RAM en <strong>7.2 MB</strong>, un costo ínfimo frente al salto de aceleración de 260x en búsquedas.</p><div class='tool-pill'>Delta de Memoria: +7.2 MB (Eficiente)</div></div><div class='tool-card'><div class='tool-badge'>Muestreo Estadístico</div><h4>Scalene & py-spy</h4><p>Análisis de código nativo CPython vs. código usuario y muestreo continuo sin distorsión de tiempos por instrumentación intrusiva, confirmando la ausencia de leaks de memoria.</p><div class='tool-pill'>Cero Fugas de Memoria</div></div></div>",
+    "notes": "Mostrar que se utilizó la suite recomendada en la rúbrica y cómo cada perfilador aportó una perspectiva distinta: macro con cProfile, micro con line_profiler y espacial con tracemalloc."
+  },
+  {
+    "id": 9,
+    "tag": "09. RESULTADOS EXPERIMENTALES",
+    "title": "Tabla Comparativa Oficial de la Rúbrica",
+    "subtitle": "Mediciones empíricas sobre el dataset grande (10.000 productos, 2.000 pedidos)",
+    "content_html": "<div class='tabs-container' data-tabs='benchmark-tabs'><div class='tab-nav'><button class='tab-btn active' data-tab='tab-bench-table'>📋 Tabla Comparativa Oficial de la Cátedra</button><button class='tab-btn' data-tab='tab-bench-chart'>📊 Gráfico Visual de Aceleración (Speedup)</button></div><div class='tab-pane active' id='tab-bench-table'><div class='table-container'><table class='benchmark-table'><thead><tr><th>Versión Evaluada</th><th>Tiempo Ejecución</th><th>Memoria Heap</th><th>Aceleración (Speedup)</th><th>Observación Algorítmica</th></tr></thead><tbody><tr class='row-base'><td><strong>1. Implementación Inicial (Baseline)</strong></td><td>804.39 ms</td><td>45.2 MB</td><td>1.0x (Referencia)</td><td>Catálogo lineal O(n), ordenamiento total sort() y recursión pura.</td></tr><tr class='row-opt'><td><strong>2. Estructura Optimizada (Hash)</strong></td><td>29.80 ms</td><td>52.4 MB</td><td><strong class='highlight-green'>🚀 27.0x</strong></td><td>Diccionario hash O(1). En búsquedas individuales el speedup supera <strong>260x</strong>.</td></tr><tr class='row-opt'><td><strong>3. Algoritmo Optimizado (Heap + DP)</strong></td><td>0.85 ms</td><td>48.1 MB</td><td><strong class='highlight-green'>🚀 > 100x</strong></td><td>Min-Heap O(N log k) en Top-N y memoización O(N · P) en sustitutos.</td></tr><tr class='row-warn'><td><strong>4. Concurrencia (ProcessPool)</strong></td><td>848.12 ms</td><td>118.6 MB</td><td><span class='highlight-orange'>🐢 0.95x</span></td><td>Overhead de IPC y serialización de 10.000 objetos supera el cómputo en RAM.</td></tr><tr class='row-final'><td><strong>5. Versión Final Integrada</strong></td><td><strong>1.12 ms</strong></td><td>52.8 MB</td><td><strong class='highlight-green'>🚀 718x Global</strong></td><td>Hash O(1) + Min-Heap + DP Memoizada + Caché LRU reactiva mono-hilo.</td></tr></tbody></table></div></div><div class='tab-pane' id='tab-bench-chart'><div class='chart-card'><div class='chart-header-row'><h4>Comparativa de Tiempos de Ejecución (Dataset Grande - Escala Logarítmica)</h4><span class='chart-sub-tag'>Menor tiempo = Mayor eficiencia</span></div><div class='speedup-bars-list'><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>1. Baseline Inicial</span><span class='bar-time'>804.39 ms</span></div><div class='bar-track'><div class='bar-fill fill-baseline' style='width: 95%'></div></div><span class='bar-speedup-tag base'>1.0x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>2. Estructura Hash O(1)</span><span class='bar-time'>29.80 ms</span></div><div class='bar-track'><div class='bar-fill fill-opt' style='width: 25%'></div></div><span class='bar-speedup-tag success'>27.0x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>3. Min-Heap + DP</span><span class='bar-time'>0.85 ms</span></div><div class='bar-track'><div class='bar-fill fill-opt' style='width: 5%'></div></div><span class='bar-speedup-tag success'>> 100x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>4. Concurrencia (ProcessPool)</span><span class='bar-time'>848.12 ms</span></div><div class='bar-track'><div class='bar-fill fill-warn' style='width: 100%'></div></div><span class='bar-speedup-tag warn'>0.95x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title highlight-cyan'>5. Versión Final Integrada</span><span class='bar-time highlight-green'>1.12 ms</span></div><div class='bar-track'><div class='bar-fill fill-final' style='width: 6%'></div></div><span class='bar-speedup-tag rocket'>🚀 718x Global</span></div></div></div></div></div>",
+    "notes": "Esta diapositiva cumple al 100% con la tabla obligatoria de la consigna. Explicar claramente cada fila y cómo la versión final integrada maximiza la eficiencia global alcanzando 718x de aceleración."
+  },
+  {
+    "id": 10,
+    "tag": "10. DEMOSTRACIÓN DE LA APP",
+    "title": "Recorrido por las Funcionalidades de la Aplicación",
+    "subtitle": "Interfaz gráfica moderna en Flet (Flutter Engine), reactiva, accesible y de alta densidad de información",
+    "content_html": "<div class='features-carousel'><div class='feature-item' data-feature='inicio'><span class='badge-feat'>Inicio</span><h4>Diagnóstico Global</h4><p>Selector de datasets versionados (demo_oral a grande) y botón de ejecución integral del flujo en un clic con persistencia de estado entre pestañas.</p></div><div class='feature-item' data-feature='catalogo'><span class='badge-feat'>Catálogo</span><h4>Búsqueda Hash O(1)</h4><p>Filtro instantáneo, sincronización global de modo (Baseline vs. Optimizado) y ordenamiento interactivo por Precio, Nombre y Unidades en Stock.</p></div><div class='feature-item' data-feature='pedidos'><span class='badge-feat'>Pedidos</span><h4>Auditoría Desplegable</h4><p>ExpansionTile por pedido que audita disponibilidad línea a línea, faltantes monetarios y descuento transaccional de stock.</p></div><div class='feature-item' data-feature='agrupacion'><span class='badge-feat'>Agrupación</span><h4>Batch Picking O(L)</h4><p>Consolidación de demandas en una pasada para que el operario visite cada celda de stock una sola vez sin traslados repetidos.</p></div><div class='feature-item' data-feature='topn'><span class='badge-feat'>Top-N</span><h4>Priorización Min-Heap</h4><p>Visualización con barras de demanda relativa y selección rápida mediante heapq.nlargest con memoria O(k) estrictamente acotada.</p></div><div class='feature-item' data-feature='alternativas'><span class='badge-feat'>Alternativas</span><h4>Sustitutos DP Memoizada</h4><p>Exploración de paquetes sustitutos bajo presupuesto evitando colapsos de stack recursivo en menos de 1 milisegundo.</p></div><div class='feature-item' data-feature='comparacion'><span class='badge-feat'>Comparación</span><h4>Desafío en Vivo</h4><p>Tabla dinámica de medición en tiempo real con badges de microsegundos y cálculo interactivo del Speedup empírico.</p></div></div>",
+    "notes": "Pasar a la demostración en vivo de la aplicación si el tribunal lo solicita, utilizando el dataset demo_oral.json para exhibir la reactividad de la interfaz y la auditoría de pedidos."
+  },
+  {
+    "id": 11,
+    "tag": "11. CONCLUSIONES Y AUTOCRÍTICA",
+    "title": "Conclusiones, Lecciones Aprendidas y Autocrítica",
+    "subtitle": "Evaluación crítica exigida por la rúbrica para el cierre riguroso de la exposición oral",
+    "content_html": "<div class='three-col'><div class='panel highlight'><div class='conclusion-header'><span class='conclusion-icon'>🏆</span><h3>Mayor Impacto</h3></div><ul class='bullet-list'><li><strong>Programación Dinámica:</strong> Evitó el colapso exponencial O(2^N) pasando de minutos incomputables a <strong>< 1 ms</strong> en la búsqueda de combinaciones sustitutas.</li><li><strong>Catálogo Hash:</strong> Redujo la búsqueda de pedidos de O(P · L · n) a O(P · L), generando una aceleración de <strong>27x a 260x</strong> en consultas directas.</li></ul></div><div class='panel'><div class='conclusion-header'><span class='conclusion-icon'>⚠️</span><h3>Decisión Subóptima</h3></div><ul class='bullet-list'><li><strong>Paralelismo Multiproceso:</strong> Para operaciones donde el trabajo por ítem es ultra-liviano (O(1) en memoria RAM), el costo de serialización <code>pickle</code> e IPC en Windows anula cualquier ventaja del paralelismo.</li><li>La optimización mono-hilo con estructuras de datos adecuadas fue <strong>28 veces más rápida</strong> que el clúster multiproceso.</li></ul></div><div class='panel'><div class='conclusion-header'><span class='conclusion-icon'>🚀</span><h3>¿Qué Haríamos Diferente?</h3></div><ul class='bullet-list'><li><strong>Memoria Compartida:</strong> Emplear <code>multiprocessing.shared_memory</code> o arrays continuos de NumPy para evitar serializar el catálogo entre procesos.</li><li><strong>Extensiones Cython/Rust:</strong> Implementar los bucles numéricos críticos en código nativo para exprimir al máximo la arquitectura de la CPU.</li><li><strong>Almacenamiento Persistente:</strong> Incorporar SQLite en memoria con índices B-Tree para queries complejas multivariable.</li></ul></div></div>",
+    "notes": "Cerrar con autocrítica rigurosa: un buen ingeniero de software no solo sabe cuándo usar concurrencia, sino cuándo NO usarla porque la sobrecarga de coordinación supera al cómputo puro."
+  }
+];
 
   let slides = FALLBACK_SLIDES;
   let currentIndex = 0;
   let timerInterval = null;
-  let timerSeconds = 15 * 60; // 15 minutos
+  let timerSeconds = 15 * 60; // 15 minutos oficiales
   let timerRunning = false;
+  let simRunning = false;
 
-  // Elementos DOM
+  // Elementos DOM Principales
   const slideContainer = document.getElementById('slide-container');
   const slideCounter = document.getElementById('slide-counter');
   const progressBar = document.getElementById('progress-bar');
@@ -115,13 +116,16 @@
   const btnNext = document.getElementById('btn-next');
   const btnFullscreen = document.getElementById('btn-fullscreen');
   const btnNotes = document.getElementById('btn-notes');
+  const btnShortcuts = document.getElementById('btn-shortcuts');
   const speakerModal = document.getElementById('speaker-modal');
+  const shortcutsModal = document.getElementById('shortcuts-modal');
   const speakerText = document.getElementById('speaker-text');
   const btnCloseNotes = document.getElementById('btn-close-notes');
+  const btnCloseShortcuts = document.getElementById('btn-close-shortcuts');
   const timerDisplay = document.getElementById('timer-display');
   const btnTimer = document.getElementById('btn-timer');
 
-  // Cargar slides.json si es posible
+  // Carga de diapositivas asincrona con fallback robusto
   async function cargarSlides() {
     try {
       const response = await fetch('slides.json');
@@ -132,10 +136,10 @@
         }
       }
     } catch (e) {
-      console.warn('Usando dataset de diapositivas local por restricción CORS:', e);
+      console.warn('Usando dataset de diapositivas local por restricción CORS (file://):', e);
     }
     inicializarDropdown();
-    renderSlide(0);
+    renderSlide(0, 'none');
   }
 
   function inicializarDropdown() {
@@ -148,13 +152,17 @@
     });
   }
 
-  function renderSlide(index) {
+  // Renderizado de Diapositiva con Soporte de Direccion y Animaciones
+  function renderSlide(index, direction) {
     if (index < 0 || index >= slides.length) return;
+    const prevIndex = currentIndex;
     currentIndex = index;
     const slide = slides[currentIndex];
 
+    const animClass = direction === 'left' ? 'slide-enter-left' : (direction === 'right' ? 'slide-enter-right' : '');
+
     slideContainer.innerHTML = `
-      <div class="slide-card">
+      <div class="slide-card ${animClass}" id="current-slide-card">
         <div class="slide-header">
           <span class="slide-tag">${slide.tag || `Diapositiva ${currentIndex + 1}`}</span>
           <h2 class="slide-title">${slide.title}</h2>
@@ -166,7 +174,7 @@
       </div>
     `;
 
-    // Actualizar UI de control
+    // Actualizar Controles de Navegacion
     slideCounter.textContent = `${currentIndex + 1} / ${slides.length}`;
     selectSlide.value = currentIndex;
     const progressPercent = ((currentIndex + 1) / slides.length) * 100;
@@ -175,19 +183,184 @@
     btnPrev.disabled = (currentIndex === 0);
     btnNext.disabled = (currentIndex === slides.length - 1);
 
-    // Actualizar notas del orador
+    // Actualizar Notas del Orador
     speakerText.textContent = slide.notes || "No hay notas adicionales para esta diapositiva.";
+
+    // Inicializar comportamientos interactivos especificos de la diapositiva
+    initSlideInteractiveBehaviors(slide.id);
   }
 
+  // Comportamientos Interactivos por Diapositiva
+  function initSlideInteractiveBehaviors(slideId) {
+    // 1. Manejo generico de Pestañas (Tabs)
+    const tabButtons = slideContainer.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const targetTabId = btn.getAttribute('data-tab');
+        const tabsContainer = btn.closest('.tabs-container');
+        if (!tabsContainer) return;
+
+        tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        tabsContainer.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const targetPane = tabsContainer.querySelector(`#${targetTabId}`);
+        if (targetPane) {
+          targetPane.classList.add('active');
+          if (targetTabId === 'tab-bench-chart') {
+            animateSpeedupBars();
+          }
+        }
+      });
+    });
+
+    // 2. Diapositiva 04: Simulador Interactivo O(n) vs O(1)
+    if (slideId === 4) {
+      const btnRunSim = document.getElementById('btn-run-sim');
+      const catalogSelect = document.getElementById('sim-catalog-size');
+      const targetInput = document.getElementById('sim-target-id');
+
+      if (catalogSelect && targetInput) {
+        catalogSelect.addEventListener('change', () => {
+          const n = parseInt(catalogSelect.value, 10);
+          const targetIndex = Math.floor(n * 0.842);
+          targetInput.value = `PROD-${targetIndex.toString().padStart(5, '0')}`;
+          resetSimUI();
+        });
+      }
+
+      if (btnRunSim) {
+        btnRunSim.addEventListener('click', runSearchSimulation);
+      }
+    }
+
+    // 3. Diapositiva 09: Animación de Barras de Rendimiento
+    if (slideId === 9) {
+      animateSpeedupBars();
+    }
+
+    // 4. Diapositiva 10: Interaccion con Caracteristicas
+    if (slideId === 10) {
+      const featureItems = slideContainer.querySelectorAll('.feature-item');
+      featureItems.forEach(item => {
+        item.addEventListener('click', () => {
+          featureItems.forEach(i => i.style.borderColor = 'var(--border-color)');
+          item.style.borderColor = 'var(--accent-cyan)';
+          item.style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.3)';
+        });
+      });
+    }
+  }
+
+  // Motor del Simulador de Busqueda (Slide 4)
+  function resetSimUI() {
+    const baseProgress = document.getElementById('sim-base-progress');
+    const optProgress = document.getElementById('sim-opt-progress');
+    const baseOps = document.getElementById('sim-base-ops');
+    const optOps = document.getElementById('sim-opt-ops');
+    const baseTime = document.getElementById('sim-base-time');
+    const optTime = document.getElementById('sim-opt-time');
+    const baseStatus = document.getElementById('sim-base-status');
+    const optStatus = document.getElementById('sim-opt-status');
+    const summaryBox = document.getElementById('sim-summary-box');
+
+    if (baseProgress) baseProgress.style.width = '0%';
+    if (optProgress) optProgress.style.width = '0%';
+    if (baseOps) baseOps.textContent = '0';
+    if (optOps) optOps.textContent = '0';
+    if (baseTime) baseTime.textContent = '0.00 ms';
+    if (optTime) optTime.textContent = '0.00 ms';
+    if (baseStatus) { baseStatus.textContent = 'Listo'; baseStatus.style.color = 'var(--text-muted)'; }
+    if (optStatus) { optStatus.textContent = 'Listo'; optStatus.style.color = 'var(--text-muted)'; }
+    if (summaryBox) {
+      summaryBox.innerHTML = "Presiona 'Simular Búsqueda Comparativa' para observar en tiempo real la diferencia algorítmica entre recorrer secuencialmente una lista versus indexar directamente con función hash.";
+    }
+  }
+
+  function runSearchSimulation() {
+    if (simRunning) return;
+    simRunning = true;
+
+    const btnRun = document.getElementById('btn-run-sim');
+    if (btnRun) btnRun.disabled = true;
+
+    const catalogSelect = document.getElementById('sim-catalog-size');
+    const n = catalogSelect ? parseInt(catalogSelect.value, 10) : 10000;
+    const targetIdx = Math.floor(n * 0.842);
+
+    const baseProgress = document.getElementById('sim-base-progress');
+    const optProgress = document.getElementById('sim-opt-progress');
+    const baseOps = document.getElementById('sim-base-ops');
+    const optOps = document.getElementById('sim-opt-ops');
+    const baseTime = document.getElementById('sim-base-time');
+    const optTime = document.getElementById('sim-opt-time');
+    const baseStatus = document.getElementById('sim-base-status');
+    const optStatus = document.getElementById('sim-opt-status');
+    const summaryBox = document.getElementById('sim-summary-box');
+
+    // 1. Optimizada O(1): Ejecución Instantánea
+    if (optStatus) { optStatus.textContent = 'Cálculo Hash Directo O(1)...'; optStatus.style.color = 'var(--accent-emerald)'; }
+    if (optProgress) optProgress.style.width = '100%';
+    if (optOps) optOps.textContent = '1 operación';
+    if (optTime) optTime.textContent = '0.001 ms';
+    if (optStatus) { optStatus.textContent = 'Encontrado (1 acceso)'; optStatus.style.color = 'var(--accent-emerald)'; }
+
+    // 2. Baseline O(n): Simulación Animada de Escaneo
+    if (baseStatus) { baseStatus.textContent = 'Escaneando lista secuencialmente...'; baseStatus.style.color = 'var(--accent-rose)'; }
+    let currentStep = 0;
+    const totalSteps = 40;
+    const stepIncrement = Math.floor(targetIdx / totalSteps);
+    const intervalMs = 25;
+
+    const scanInterval = setInterval(() => {
+      currentStep++;
+      const currentOps = Math.min(targetIdx, currentStep * stepIncrement);
+      const percent = (currentOps / n) * 100;
+
+      if (baseProgress) baseProgress.style.width = `${percent}%`;
+      if (baseOps) baseOps.textContent = `${currentOps.toLocaleString('es-AR')} ops`;
+      const simulatedMs = (currentOps * 0.00005).toFixed(2);
+      if (baseTime) baseTime.textContent = `${simulatedMs} ms`;
+
+      if (currentStep >= totalSteps) {
+        clearInterval(scanInterval);
+        if (baseOps) baseOps.textContent = `${targetIdx.toLocaleString('es-AR')} ops`;
+        if (baseTime) baseTime.textContent = `${(targetIdx * 0.00005).toFixed(2)} ms`;
+        if (baseStatus) { baseStatus.textContent = `Encontrado en posición ${targetIdx.toLocaleString('es-AR')}`; baseStatus.style.color = 'var(--accent-amber)'; }
+
+        const speedup = Math.round(targetIdx / 1);
+        if (summaryBox) {
+          summaryBox.innerHTML = `<strong>Resultado Demostrado:</strong> El escaneo lineal Baseline recorrió secuencialmente <strong>${targetIdx.toLocaleString('es-AR')} elementos</strong> en memoria, mientras que la tabla Hash Optimizada saltó al registro en <strong>1 sola operación indexada</strong> (aceleración teórica de <strong>${speedup.toLocaleString('es-AR')}x</strong> en esta búsqueda).`;
+        }
+
+        simRunning = false;
+        if (btnRun) btnRun.disabled = false;
+      }
+    }, intervalMs);
+  }
+
+  // Animación de Barras en Diapositiva 09
+  function animateSpeedupBars() {
+    const fills = slideContainer.querySelectorAll('.bar-fill');
+    fills.forEach(fill => {
+      const targetWidth = fill.style.width;
+      fill.style.width = '0%';
+      setTimeout(() => {
+        fill.style.width = targetWidth;
+      }, 50);
+    });
+  }
+
+  // Navegación
   function nextSlide() {
     if (currentIndex < slides.length - 1) {
-      renderSlide(currentIndex + 1);
+      renderSlide(currentIndex + 1, 'right');
     }
   }
 
   function prevSlide() {
     if (currentIndex > 0) {
-      renderSlide(currentIndex - 1);
+      renderSlide(currentIndex - 1, 'left');
     }
   }
 
@@ -207,7 +380,11 @@
     speakerModal.classList.toggle('active');
   }
 
-  // Cronómetro de exposición
+  function toggleShortcuts() {
+    shortcutsModal.classList.toggle('active');
+  }
+
+  // Cronómetro de Exposición
   function formatTime(totalSeconds) {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
@@ -218,37 +395,56 @@
     if (timerRunning) {
       clearInterval(timerInterval);
       timerRunning = false;
-      btnTimer.title = "Iniciar cronómetro";
+      btnTimer.title = "Iniciar cronómetro (Atajo: T)";
     } else {
       timerRunning = true;
-      btnTimer.title = "Pausar cronómetro";
+      btnTimer.title = "Pausar cronómetro (Atajo: T)";
       timerInterval = setInterval(() => {
         if (timerSeconds > 0) {
           timerSeconds--;
           timerDisplay.textContent = formatTime(timerSeconds);
+
+          if (timerSeconds <= 60) {
+            btnTimer.classList.remove('warning');
+            btnTimer.classList.add('danger');
+          } else if (timerSeconds <= 180) {
+            btnTimer.classList.add('warning');
+          }
         } else {
           clearInterval(timerInterval);
           timerRunning = false;
-          timerDisplay.style.color = 'var(--accent-rose)';
+          btnTimer.classList.remove('warning');
+          btnTimer.classList.add('danger');
         }
       }, 1000);
     }
   }
 
-  // Event Listeners
+  // Event Listeners de Controles UI
   btnNext.addEventListener('click', nextSlide);
   btnPrev.addEventListener('click', prevSlide);
-  selectSlide.addEventListener('change', (e) => renderSlide(parseInt(e.target.value, 10)));
+  selectSlide.addEventListener('change', (e) => {
+    const targetIdx = parseInt(e.target.value, 10);
+    const dir = targetIdx > currentIndex ? 'right' : 'left';
+    renderSlide(targetIdx, dir);
+  });
   btnFullscreen.addEventListener('click', toggleFullscreen);
   btnNotes.addEventListener('click', toggleNotes);
   btnCloseNotes.addEventListener('click', toggleNotes);
+  btnShortcuts.addEventListener('click', toggleShortcuts);
+  btnCloseShortcuts.addEventListener('click', toggleShortcuts);
   btnTimer.addEventListener('click', toggleTimer);
 
-  // Atajos de teclado para el presentador
+  // Atajos de Teclado Profesionales para la Defensa Oral
   window.addEventListener('keydown', (e) => {
+    // Ignorar si el usuario está interactuando con un input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      return;
+    }
+
     switch (e.key) {
       case 'ArrowRight':
-      case 'Space':
+      case ' ':
       case 'PageDown':
         e.preventDefault();
         nextSlide();
@@ -260,21 +456,46 @@
         break;
       case 'f':
       case 'F':
+        e.preventDefault();
         toggleFullscreen();
         break;
       case 'n':
       case 'N':
+        e.preventDefault();
         toggleNotes();
+        break;
+      case 'h':
+      case 'H':
+      case '?':
+        e.preventDefault();
+        toggleShortcuts();
         break;
       case 't':
       case 'T':
+        e.preventDefault();
         toggleTimer();
         break;
+      case 'Escape':
+        speakerModal.classList.remove('active');
+        shortcutsModal.classList.remove('active');
+        break;
       case 'Home':
-        renderSlide(0);
+        e.preventDefault();
+        renderSlide(0, 'left');
         break;
       case 'End':
-        renderSlide(slides.length - 1);
+        e.preventDefault();
+        renderSlide(slides.length - 1, 'right');
+        break;
+      default:
+        // Teclas numéricas 1 a 9 para saltar a diapositivas directamente
+        if (e.key >= '1' && e.key <= '9') {
+          const targetIndex = parseInt(e.key, 10) - 1;
+          if (targetIndex < slides.length) {
+            const dir = targetIndex > currentIndex ? 'right' : 'left';
+            renderSlide(targetIndex, dir);
+          }
+        }
         break;
     }
   });

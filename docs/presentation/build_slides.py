@@ -1,4 +1,7 @@
-{
+import json
+import os
+
+slides_data = {
   "meta": {
     "title": "Optimizador de Inventario y Preparación de Pedidos",
     "subtitle": "Defensa Oral — Primer Parcial de Programación Eficiente (Opción 6)",
@@ -98,3 +101,9 @@
     }
   ]
 }
+
+os.makedirs('docs/presentation', exist_ok=True)
+with open('docs/presentation/slides.json', 'w', encoding='utf-8') as f:
+    json.dump(slides_data, f, ensure_ascii=False, indent=2)
+
+print("Finished writing slides.json successfully!")

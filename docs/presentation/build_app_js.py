@@ -8,7 +8,7 @@ fallback_slides_json = json.dumps(slides_data['slides'], ensure_ascii=False, ind
 
 js_template = f"""/**
  * ==========================================================================
- * APLICACIÓN DE PRESENTACIÓN INTERACTIVA (PAPER STYLE & REACTIVE CANVAS)
+ * APLICACIÓN DE PRESENTACIÓN INTERACTIVA (MANUAL TÉCNICO 3D & PACKAGING RITUAL)
  * Programación Eficiente — Primer Parcial (Opción 6) | Universidad Blas Pascal
  * ==========================================================================
  */
@@ -21,13 +21,14 @@ js_template = f"""/**
 
   let slides = FALLBACK_SLIDES;
   let currentIndex = 0;
+  let isBookClosed = true;
+  let isPackaging = false;
   let timerInterval = null;
   let timerSeconds = 15 * 60; // 15 minutos oficiales
   let timerRunning = false;
   let simRunning = false;
 
   // Elementos DOM Principales
-  const slideContainer = document.getElementById('slide-container');
   const slideCounter = document.getElementById('slide-counter');
   const progressBar = document.getElementById('progress-bar');
   const selectSlide = document.getElementById('select-slide');
@@ -46,6 +47,23 @@ js_template = f"""/**
   const slidePills = document.getElementById('slide-pills');
   const bgCanvas = document.getElementById('bg-canvas');
 
+  // Elementos del Libro 3D y Empaquetado
+  const bookCoverClosed = document.getElementById('book-cover-closed');
+  const bookOpened = document.getElementById('book-opened');
+  const btnOpenBook = document.getElementById('btn-open-book');
+  const currentSlideCard = document.getElementById('current-slide-card');
+  const stackLeft = document.getElementById('stack-left');
+  const stackRight = document.getElementById('stack-right');
+  const turningSheet = document.getElementById('book-turning-sheet');
+  const turningShadow = document.getElementById('turning-shadow');
+  const dragHandleRight = document.getElementById('drag-handle-right');
+  const dragHandleLeft = document.getElementById('drag-handle-left');
+  const packagingOverlay = document.getElementById('packaging-overlay');
+  const boxContainer = document.getElementById('box-container');
+  const miniPackedBook = document.getElementById('mini-packed-book');
+  const btnReopenBook = document.getElementById('btn-reopen-book');
+  const btnPackPresentation = document.getElementById('btn-pack-presentation');
+
   // ==========================================================================
   // MOTOR CANVAS REACTIVO Y CINÉTICO (PAPER STYLE BACKGROUND ENGINE)
   // ==========================================================================
@@ -56,14 +74,13 @@ js_template = f"""/**
       this.ctx = canvas.getContext('2d');
       this.particles = [];
       this.ripples = [];
-      this.waves = [];
       this.slideTheme = 1;
       this.width = 0;
       this.height = 0;
       this.dpr = Math.min(window.devicePixelRatio || 1, 2);
       this.mouse = {{ x: -1000, y: -1000, active: false }};
       this.time = 0;
-      this.orbitFocus = null; // 'baseline' o 'opt' para slide 3
+      this.orbitFocus = null;
       this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       this.initDimensions();
@@ -101,7 +118,7 @@ js_template = f"""/**
           color: pColor,
           angle: Math.random() * Math.PI * 2,
           angularSpeed: (Math.random() - 0.5) * 0.02,
-          length: Math.random() * 10 + 4, // Aspecto de fibra de papel
+          length: Math.random() * 10 + 4,
           targetX: 0,
           targetY: 0
         }});
@@ -142,40 +159,30 @@ js_template = f"""/**
       this.slideTheme = slideIndex + 1;
       this.orbitFocus = null;
 
-      // Onda de choque de transición
       const startX = direction === 'left' ? this.width * 0.15 : (direction === 'right' ? this.width * 0.85 : this.width * 0.5);
       this.addRipple(startX, this.height * 0.5, this.width * 0.55, 'rgba(29, 78, 216, 0.22)');
 
-      // Impulso físico a partículas según la temática de la diapositiva
       this.particles.forEach((p, idx) => {{
         if (this.slideTheme === 2) {{
-          // Slide 2: Problema / Caos logístico ➔ velocidad alta y dispersión
           p.vx = (Math.random() - 0.5) * 3.2;
           p.vy = (Math.random() - 0.5) * 3.2;
         }} else if (this.slideTheme === 3) {{
-          // Slide 3: Arquitectura Dual ➔ atracción a dos centros
           const isLeft = idx % 2 === 0;
           p.targetX = isLeft ? this.width * 0.28 : this.width * 0.72;
           p.targetY = this.height * 0.65;
         }} else if (this.slideTheme === 5) {{
-          // Slide 5: Estructuras de Datos ➔ 4 cuadrantes
           const quad = idx % 4;
-          const qx = (quad % 2 === 0 ? 0.25 : 0.75) * this.width;
-          const qy = (quad < 2 ? 0.35 : 0.75) * this.height;
-          p.targetX = qx;
-          p.targetY = qy;
+          p.targetX = (quad % 2 === 0 ? 0.25 : 0.75) * this.width;
+          p.targetY = (quad < 2 ? 0.35 : 0.75) * this.height;
         }} else if (this.slideTheme === 7) {{
-          // Slide 7: Concurrencia ➔ canales horizontales
           const stream = (idx % 3);
           p.targetY = this.height * (0.3 + stream * 0.22);
           p.vx = (stream + 1) * 1.5;
           p.vy = 0;
         }} else if (this.slideTheme === 9) {{
-          // Slide 9: Resultados / Speedup 718x ➔ propulsión horizontal veloz
           p.vx = (Math.random() * 4 + 2);
           p.vy = (Math.random() - 0.5) * 0.4;
         }} else {{
-          // Velocidad normal suave
           p.vx = (Math.random() - 0.5) * 0.8;
           p.vy = (Math.random() - 0.5) * 0.8;
         }}
@@ -192,7 +199,6 @@ js_template = f"""/**
     update() {{
       this.time += 0.016;
 
-      // Actualizar ondas concéntricas
       for (let i = this.ripples.length - 1; i >= 0; i--) {{
         const r = this.ripples[i];
         r.radius += (r.maxRadius - r.radius) * 0.07 + 0.8;
@@ -202,13 +208,10 @@ js_template = f"""/**
         }}
       }}
 
-      // Actualizar partículas
       this.particles.forEach((p, idx) => {{
         p.angle += p.angularSpeed;
 
-        // Comportamientos reactivos según slide activa
         if (this.slideTheme === 3) {{
-          // Dual orbit (Baseline vs Optimizado)
           let targetX = (idx % 2 === 0) ? this.width * 0.28 : this.width * 0.72;
           let targetY = this.height * 0.65;
           if (this.orbitFocus === 'baseline' && idx % 2 === 0) {{
@@ -224,26 +227,19 @@ js_template = f"""/**
           p.vx *= 0.95;
           p.vy *= 0.95;
         }} else if (this.slideTheme === 5 && p.targetX && p.targetY) {{
-          // Gravitación a cuadrantes
           p.vx += (p.targetX - p.x) * 0.0015;
           p.vy += (p.targetY - p.y) * 0.0015;
           p.vx *= 0.94;
           p.vy *= 0.94;
-        }} else if (this.slideTheme === 7) {{
-          // Canales de concurrencia
-          if (p.x > this.width + 20) p.x = -20;
-        }} else if (this.slideTheme === 9) {{
-          // Ráfaga horizontal de aceleración
+        }} else if (this.slideTheme === 7 || this.slideTheme === 9) {{
           if (p.x > this.width + 20) p.x = -20;
         }} else {{
-          // Deriva ambiental estándar
           p.vx += Math.sin(this.time * 0.5 + idx) * 0.015;
           p.vy += Math.cos(this.time * 0.5 + idx) * 0.015;
           p.vx = Math.max(-1.2, Math.min(1.2, p.vx));
           p.vy = Math.max(-1.2, Math.min(1.2, p.vy));
         }}
 
-        // Reactividad ante el cursor
         if (this.mouse.active) {{
           const dx = p.x - this.mouse.x;
           const dy = p.y - this.mouse.y;
@@ -258,7 +254,6 @@ js_template = f"""/**
         p.x += p.vx;
         p.y += p.vy;
 
-        // Rebote suave en los límites
         if (p.x < -30) p.x = this.width + 30;
         if (p.x > this.width + 30) p.x = -30;
         if (p.y < -30) p.y = this.height + 30;
@@ -268,21 +263,16 @@ js_template = f"""/**
 
     draw() {{
       this.ctx.clearRect(0, 0, this.width, this.height);
-
-      // 1. Dibujar curvas topográficas de papel fluido en el fondo
       this.drawTopographicWaves();
 
-      // 2. Dibujar líneas de conexión entre partículas cercanas si es Slide 6 (Memoización)
       if (this.slideTheme === 6) {{
         this.drawTreeConnections();
       }}
 
-      // 3. Dibujar escaneo radar en Slide 8 (Perfilado)
       if (this.slideTheme === 8) {{
         this.drawScannerBar();
       }}
 
-      // 4. Dibujar ondas de choque y ripples
       this.ripples.forEach(r => {{
         this.ctx.beginPath();
         this.ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
@@ -293,14 +283,11 @@ js_template = f"""/**
       }});
       this.ctx.globalAlpha = 1;
 
-      // 5. Dibujar fibras de papel / partículas de tinta
       this.particles.forEach(p => {{
         this.ctx.save();
         this.ctx.translate(p.x, p.y);
         this.ctx.rotate(p.angle);
         this.ctx.fillStyle = `rgba(${{p.color.r}}, ${{p.color.g}}, ${{p.color.b}}, ${{p.color.a}})`;
-
-        // Dibujar pequeñas fibras rectangulares alargadas tipo grano de papel
         this.ctx.beginPath();
         this.ctx.roundRect(-p.length / 2, -p.size / 2, p.length, p.size, 2);
         this.ctx.fill();
@@ -380,8 +367,165 @@ js_template = f"""/**
     }}
   }}
 
-  // Instanciar el motor de fondo
   const canvasEngine = new PaperCanvasEngine(bgCanvas);
+
+  // ==========================================================================
+  // APERTURA Y CONTROL DEL LIBRO 3D
+  // ==========================================================================
+  function openBook() {{
+    if (!isBookClosed) return;
+    if (bookCoverClosed) {{
+      bookCoverClosed.classList.add('opening');
+    }}
+    if (canvasEngine) {{
+      canvasEngine.addRipple(window.innerWidth * 0.4, window.innerHeight * 0.5, 400, 'rgba(194, 65, 12, 0.3)');
+    }}
+
+    setTimeout(() => {{
+      if (bookCoverClosed) bookCoverClosed.style.display = 'none';
+      if (bookOpened) bookOpened.style.display = 'flex';
+      isBookClosed = false;
+      renderSlide(0, 'none');
+    }}, 650);
+  }}
+
+  function updatePageStackDepth(index) {{
+    if (!stackLeft || !stackRight) return;
+    const total = slides.length - 1;
+    const ratio = Math.max(0, Math.min(1, index / total));
+    stackLeft.style.transform = `scaleX(${{0.2 + ratio * 1.5}})`;
+    stackRight.style.transform = `scaleX(${{0.2 + (1 - ratio) * 1.5}})`;
+  }}
+
+  // ==========================================================================
+  // GESTO DE ARRASTRE DE PÁGINA (CLICK & DRAG TO FLIP)
+  // ==========================================================================
+  let isDragging = false;
+  let startX = 0;
+  let currentDx = 0;
+
+  function initDragToFlip() {{
+    if (!bookOpened || !turningSheet) return;
+
+    const handlePointerDown = (e) => {{
+      if (isBookClosed || isPackaging) return;
+      if (e.target.closest('button, input, select, textarea, a, .tab-btn, .ipc-seg')) return;
+      isDragging = true;
+      startX = e.clientX;
+      currentDx = 0;
+      turningSheet.style.display = 'block';
+    }};
+
+    const handlePointerMove = (e) => {{
+      if (!isDragging) return;
+      currentDx = e.clientX - startX;
+      const stageWidth = bookOpened.offsetWidth || 1000;
+
+      if (currentDx < 0) {{
+        // Arrastre a la izquierda ➔ Pasar página siguiente
+        const angle = Math.max(-180, Math.min(0, (currentDx / (stageWidth * 0.45)) * 180));
+        turningSheet.style.transform = `rotateY(${{angle}}deg)`;
+        if (turningShadow) turningShadow.style.opacity = `${{Math.abs(angle / 180) * 0.45}}`;
+      }} else if (currentDx > 0) {{
+        // Arrastre a la derecha ➔ Volver página anterior
+        const angle = Math.max(0, Math.min(180, (currentDx / (stageWidth * 0.45)) * 180));
+        turningSheet.style.transform = `rotateY(${{angle - 180}}deg)`;
+        if (turningShadow) turningShadow.style.opacity = `${{(1 - angle / 180) * 0.45}}`;
+      }}
+    }};
+
+    const handlePointerUp = () => {{
+      if (!isDragging) return;
+      isDragging = false;
+
+      if (currentDx < -75 && currentIndex < slides.length - 1) {{
+        turningSheet.style.transform = 'rotateY(-180deg)';
+        setTimeout(() => {{
+          turningSheet.style.display = 'none';
+          nextSlide();
+        }}, 240);
+      }} else if (currentDx > 75 && currentIndex > 0) {{
+        turningSheet.style.transform = 'rotateY(0deg)';
+        setTimeout(() => {{
+          turningSheet.style.display = 'none';
+          prevSlide();
+        }}, 240);
+      }} else {{
+        turningSheet.style.transform = 'rotateY(0deg)';
+        setTimeout(() => {{
+          turningSheet.style.display = 'none';
+        }}, 180);
+      }}
+    }};
+
+    bookOpened.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    if (dragHandleRight) {{
+      dragHandleRight.addEventListener('click', nextSlide);
+    }}
+    if (dragHandleLeft) {{
+      dragHandleLeft.addEventListener('click', prevSlide);
+    }}
+  }}
+
+  // ==========================================================================
+  // RITUAL CINEMÁTICO DE EMPAQUETADO EN CAJA KRAFT
+  // ==========================================================================
+  function startPackagingRitual() {{
+    if (isPackaging) return;
+    isPackaging = true;
+
+    if (packagingOverlay) {{
+      packagingOverlay.style.display = 'flex';
+    }}
+
+    if (boxContainer && miniPackedBook) {{
+      boxContainer.className = 'box-container';
+      miniPackedBook.className = 'mini-packed-book';
+
+      // 1. Descenso del manual dentro de la caja (400ms)
+      setTimeout(() => {{
+        miniPackedBook.classList.add('inserted');
+      }}, 400);
+
+      // 2. Plegado de solapas (1100ms)
+      setTimeout(() => {{
+        boxContainer.classList.add('closing-flaps');
+      }}, 1100);
+
+      // 3. Sellado del cuerpo exterior (1700ms)
+      setTimeout(() => {{
+        boxContainer.classList.add('sealed');
+      }}, 1700);
+
+      // 4. Encintado transversal con cinta adhesiva (2200ms)
+      setTimeout(() => {{
+        boxContainer.classList.add('taped');
+        if (canvasEngine) {{
+          canvasEngine.addRipple(window.innerWidth * 0.5, window.innerHeight * 0.5, 300, 'rgba(180, 83, 9, 0.35)');
+        }}
+      }}, 2200);
+
+      // 5. Estampado de la etiqueta logística oficial (2800ms)
+      setTimeout(() => {{
+        boxContainer.classList.add('labeled');
+      }}, 2800);
+    }}
+  }}
+
+  function reopenManual() {{
+    if (packagingOverlay) {{
+      packagingOverlay.style.display = 'none';
+    }}
+    isPackaging = false;
+    if (isBookClosed) {{
+      openBook();
+    }} else {{
+      renderSlide(currentIndex, 'none');
+    }}
+  }}
 
   // ==========================================================================
   // CARGA DE DIAPOSITIVAS Y NAVEGACIÓN
@@ -400,7 +544,7 @@ js_template = f"""/**
     }}
     inicializarDropdown();
     inicializarPills();
-    renderSlide(0, 'none');
+    initDragToFlip();
   }}
 
   function inicializarDropdown() {{
@@ -420,10 +564,11 @@ js_template = f"""/**
       const pill = document.createElement('button');
       pill.className = 'slide-pill' + (idx === currentIndex ? ' active' : '');
       pill.textContent = idx + 1;
-      pill.title = s.tag || `Diapositiva ${{idx + 1}}`;
+      pill.title = s.tag || `Página ${{idx + 1}}`;
       pill.type = 'button';
-      pill.setAttribute('aria-label', `Saltar a diapositiva ${{idx + 1}}: ${{s.title}}`);
+      pill.setAttribute('aria-label', `Saltar a página ${{idx + 1}}: ${{s.title}}`);
       pill.addEventListener('click', () => {{
+        if (isBookClosed) openBook();
         const dir = idx > currentIndex ? 'right' : 'left';
         renderSlide(idx, dir);
       }});
@@ -436,27 +581,23 @@ js_template = f"""/**
     currentIndex = index;
     const slide = slides[currentIndex];
 
-    // Notificar al motor de fondo animado
     if (canvasEngine) {{
       canvasEngine.onSlideChange(currentIndex, direction);
     }}
 
-    const animClass = direction === 'left' ? 'slide-enter-left' : (direction === 'right' ? 'slide-enter-right' : '');
+    updatePageStackDepth(currentIndex);
 
-    slideContainer.innerHTML = `
-      <div class="slide-card ${{animClass}}" id="current-slide-card">
-        <div class="slide-header">
-          <span class="slide-tag">${{slide.tag || `Diapositiva ${{currentIndex + 1}}`}}</span>
-          <h2 class="slide-title">${{slide.title}}</h2>
-          ${{slide.subtitle ? `<p class="slide-subtitle">${{slide.subtitle}}</p>` : ''}}
-        </div>
-        <div class="slide-body">
-          ${{slide.content_html}}
-        </div>
+    currentSlideCard.innerHTML = `
+      <div class="slide-header">
+        <span class="slide-tag">${{slide.tag || `Página ${{currentIndex + 1}}`}}</span>
+        <h2 class="slide-title">${{slide.title}}</h2>
+        ${{slide.subtitle ? `<p class="slide-subtitle">${{slide.subtitle}}</p>` : ''}}
+      </div>
+      <div class="slide-body">
+        ${{slide.content_html}}
       </div>
     `;
 
-    // Actualizar Controles de Navegación
     slideCounter.textContent = `${{currentIndex + 1}} / ${{slides.length}}`;
     selectSlide.value = currentIndex;
     const progressRatio = (currentIndex + 1) / slides.length;
@@ -472,10 +613,8 @@ js_template = f"""/**
     btnPrev.disabled = (currentIndex === 0);
     btnNext.disabled = (currentIndex === slides.length - 1);
 
-    // Actualizar Notas del Orador
     speakerText.textContent = slide.notes || "No hay notas adicionales para esta diapositiva.";
 
-    // Inicializar comportamientos interactivos específicos
     initSlideInteractiveBehaviors(slide.id);
   }}
 
@@ -483,8 +622,8 @@ js_template = f"""/**
   // COMPORTAMIENTOS INTERACTIVOS DENTRO DE LAS DIAPOSITIVAS
   // ==========================================================================
   function initSlideInteractiveBehaviors(slideId) {{
-    // 1. Manejo genérico de Pestañas (Tabs)
-    const tabButtons = slideContainer.querySelectorAll('.tab-btn');
+    // 1. Pestañas (Tabs)
+    const tabButtons = currentSlideCard.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {{
       btn.addEventListener('click', () => {{
         const targetTabId = btn.getAttribute('data-tab');
@@ -505,7 +644,7 @@ js_template = f"""/**
       }});
     }});
 
-    // 2. Diapositiva 03: Inspección Interactiva de Arquitectura Dual
+    // 2. Diapositiva 03: Inspección de Arquitectura Dual
     if (slideId === 3) {{
       const branchBase = document.getElementById('branch-baseline-card');
       const branchOpt = document.getElementById('branch-optimized-card');
@@ -554,15 +693,15 @@ js_template = f"""/**
       }}
     }}
 
-    // 4. Diapositiva 05: Inspector Interactivo de Estructuras de Datos
+    // 4. Diapositiva 05: Inspector Interactivo de Estructuras
     if (slideId === 5) {{
-      const structCards = slideContainer.querySelectorAll('.struct-card');
+      const structCards = currentSlideCard.querySelectorAll('.struct-card');
       const detailBox = document.getElementById('struct-detail-box');
       const structData = {{
-        'list': "<strong>list en Python:</strong> Implementada como arreglo de punteros contiguos en C (<code>PyListObject</code>). Ofrece acceso indexado <code>O(1)</code> gracias a la fórmula <code>base_ptr + i * ptr_size</code>, pero la búsqueda secuencial por valor requiere escaneo elemento a elemento <code>O(n)</code>.",
-        'dict': "<strong>dict en Python:</strong> Tabla hash compacta con arreglo denso de entradas y tabla de índices dispersa. La función <code>hash()</code> evalúa el ID en tiempo constante; ante colisiones utiliza perturbación pseudoaleatoria, logrando consultas <code>O(1)</code>.",
-        'heap': "<strong>heapq (Min-Heap):</strong> Árbol binario implícito mapeado en un array donde cada nodo cumple <code>heap[k] <= heap[2*k+1]</code>. Al mantener solo <code>k</code> elementos con <code>heapq.nlargest</code>, la inserción cuesta <code>O(log k)</code> en lugar de <code>O(N log N)</code>.",
-        'set': "<strong>set en Python:</strong> Conjunto hash puro sin almacenamiento de valores asociados. Permite validaciones de membresía <code>x in set</code> en <code>O(1)</code> e intersección vectorial instantánea para filtrado multicriterio de pedidos."
+        'list': "<strong>list en Python:</strong> Arreglo contiguo de punteros en C (<code>PyListObject</code>). Acceso indexado <code>O(1)</code> directo pero búsqueda lineal secuencial <code>O(n)</code>.",
+        'dict': "<strong>dict en Python:</strong> Tabla hash compacta indexada en tiempo constante <code>O(1)</code> con resolución cuadrática de colisiones y aceleración 260x.",
+        'heap': "<strong>heapq (Min-Heap):</strong> Árbol binario implícito con memoria acotada a <code>k</code> elementos, inserción <code>O(log k)</code> y cero necesidad de ordenar todo el universo.",
+        'set': "<strong>set en Python:</strong> Conjunto hash puro sin punteros a valores. Verificación de pertenencia e intersección multi-criterio en <code>O(1)</code>."
       }};
 
       structCards.forEach(card => {{
@@ -577,7 +716,7 @@ js_template = f"""/**
       }});
     }}
 
-    // 5. Diapositiva 06: Demostración Interactiva de Cache LRU y Consistencia
+    // 5. Diapositiva 06: Demostración de Cache LRU
     if (slideId === 6) {{
       const btnHit = document.getElementById('btn-cache-demo-hit');
       const btnMiss = document.getElementById('btn-cache-demo-miss');
@@ -591,7 +730,7 @@ js_template = f"""/**
         btnHit.addEventListener('click', () => {{
           slot1.style.background = 'var(--stamp-sage-bg)';
           slot1.style.borderColor = 'var(--stamp-sage)';
-          feedback.innerHTML = "⚡ <strong>CACHE HIT (0.01 ms):</strong> La consulta 'laptop' residía en la tabla LRU. Retorno instantáneo desde memoria sin tocar el motor de búsqueda.";
+          feedback.innerHTML = "⚡ <strong>CACHE HIT (0.01 ms):</strong> 'laptop' recuperado instantáneamente desde la tabla LRU en RAM.";
         }});
       }}
 
@@ -600,7 +739,7 @@ js_template = f"""/**
           slot3.textContent = 'Slot 3: "teclado" [Nuevo]';
           slot3.style.background = 'var(--stamp-blueprint-bg)';
           slot3.style.borderColor = 'var(--stamp-blueprint)';
-          feedback.innerHTML = "📥 <strong>CACHE MISS (28 ms):</strong> 'teclado' no estaba en caché. Se ejecutó la búsqueda completa y se insertó en la caché desalojando el elemento más antiguo (LRU).";
+          feedback.innerHTML = "📥 <strong>CACHE MISS (28 ms):</strong> Se computó la búsqueda y se guardó en el slot más antiguo desocupado (LRU).";
         }});
       }}
 
@@ -615,20 +754,20 @@ js_template = f"""/**
               s.style.borderColor = 'var(--stamp-crimson-border)';
             }}
           }});
-          feedback.innerHTML = "🛡️ <strong>INVALIDACIÓN REACTIVA ATÓMICA:</strong> Se despachó un pedido y mutó el stock disponible. El motor purgó automáticamente la caché para garantizar 100% de consistencia transaccional y cero lecturas obsoletas.";
+          feedback.innerHTML = "🛡️ <strong>INVALIDACIÓN REACTIVA ATÓMICA:</strong> Stock mutado por despacho de pedidos. Purgado atómico para prevenir lecturas obsoletas.";
         }});
       }}
     }}
 
-    // 6. Diapositiva 07: Auditoría Interactiva de Sobrecarga IPC
+    // 6. Diapositiva 07: Auditoría IPC
     if (slideId === 7) {{
-      const ipcButtons = slideContainer.querySelectorAll('.ipc-seg');
+      const ipcButtons = currentSlideCard.querySelectorAll('.ipc-seg');
       const ipcDetail = document.getElementById('ipc-detail-box');
       const explanations = {{
-        'spawn': "<strong>Spawn de Procesos en Windows (25% - ~210 ms):</strong> A diferencia del <code>fork()</code> rápido en Linux, Windows debe instanciar un nuevo ejecutable de Python completo con sus DLLs y módulos desde disco para cada worker.",
-        'pickle': "<strong>Serialización Pickle (38% - ~320 ms):</strong> Transferir 10.000 objetos <code>Producto</code> y 2.000 pedidos requirió serializar estructuras complejas a bytes y reconstruirlas en la memoria del subproceso.",
-        'pipe': "<strong>Tuberías IPC del Sistema Operativo (32% - ~270 ms):</strong> La transmisión de megabytes de datos serializados a través de pipes del kernel introdujo latencias de cambio de contexto y sincronización.",
-        'calc': "<strong>Cómputo Puro en RAM (Solo 5% - ~48 ms):</strong> El tiempo real de validación lógica fue mínimo. La sobrecarga de coordinación costó 28 veces más que el cálculo en sí, confirmando la Ley de Amdahl."
+        'spawn': "<strong>Spawn en Windows (25% - ~210 ms):</strong> Creación pesada de nuevos ejecutables de Python con importación completa de DLLs.",
+        'pickle': "<strong>Serialización Pickle (38% - ~320 ms):</strong> Conversión a bytes de 10.000 productos y 2.000 órdenes para cruzarlas entre procesos.",
+        'pipe': "<strong>Tuberías IPC del OS (32% - ~270 ms):</strong> Transferencia por pipes y sincronización del kernel de Windows.",
+        'calc': "<strong>Cómputo en RAM (5% - ~48 ms):</strong> Validación real en memoria, demostrando la Ley de Amdahl."
       }};
 
       ipcButtons.forEach(btn => {{
@@ -641,20 +780,28 @@ js_template = f"""/**
       }});
     }}
 
-    // 7. Diapositiva 09: Animación de Barras de Rendimiento
+    // 7. Diapositiva 09: Barras Speedup
     if (slideId === 9) {{
       animateSpeedupBars();
     }}
 
-    // 8. Diapositiva 10: Interacción con Tarjetas de Características
+    // 8. Diapositiva 10: Características de la App
     if (slideId === 10) {{
-      const featureItems = slideContainer.querySelectorAll('.feature-item');
+      const featureItems = currentSlideCard.querySelectorAll('.feature-item');
       featureItems.forEach(item => {{
         item.addEventListener('click', () => {{
           featureItems.forEach(i => i.classList.remove('active'));
           item.classList.add('active');
         }});
       }});
+    }}
+
+    // 9. Diapositiva 11: Botón de Empaquetado
+    if (slideId === 11) {{
+      const btnPackSlide = document.getElementById('btn-pack-from-slide');
+      if (btnPackSlide) {{
+        btnPackSlide.addEventListener('click', startPackagingRitual);
+      }}
     }}
   }}
 
@@ -706,13 +853,11 @@ js_template = f"""/**
     const optStatus = document.getElementById('sim-opt-status');
     const summaryBox = document.getElementById('sim-summary-box');
 
-    // 1. Optimizada O(1): Ejecución Instantánea
     if (optStatus) {{ optStatus.textContent = 'Cálculo Hash Directo O(1)'; optStatus.className = 'lane-status completed'; }}
     if (optProgress) optProgress.style.transform = 'scaleX(1)';
     if (optOps) optOps.textContent = '1 operación';
     if (optTime) optTime.textContent = '0.001 ms';
 
-    // 2. Baseline O(n): Simulación Animada de Escaneo
     if (baseStatus) {{ baseStatus.textContent = 'Escaneando lista secuencialmente...'; baseStatus.className = 'lane-status running'; }}
     let currentStep = 0;
     const totalSteps = 40;
@@ -746,9 +891,8 @@ js_template = f"""/**
     }}, intervalMs);
   }}
 
-  // Animación de Barras en Diapositiva 09 (Hardware-accelerated)
   function animateSpeedupBars() {{
-    const fills = slideContainer.querySelectorAll('.bar-fill');
+    const fills = currentSlideCard.querySelectorAll('.bar-fill');
     fills.forEach(fill => {{
       fill.style.transform = 'scaleX(0)';
       requestAnimationFrame(() => {{
@@ -763,6 +907,10 @@ js_template = f"""/**
   // NAVEGACIÓN Y CONTROLADORES
   // ==========================================================================
   function nextSlide() {{
+    if (isBookClosed) {{
+      openBook();
+      return;
+    }}
     if (currentIndex < slides.length - 1) {{
       renderSlide(currentIndex + 1, 'right');
     }}
@@ -834,9 +982,15 @@ js_template = f"""/**
   }}
 
   // Event Listeners de Controles UI
+  if (btnOpenBook) btnOpenBook.addEventListener('click', openBook);
+  if (bookCoverClosed) bookCoverClosed.addEventListener('click', openBook);
+  if (btnReopenBook) btnReopenBook.addEventListener('click', reopenManual);
+  if (btnPackPresentation) btnPackPresentation.addEventListener('click', startPackagingRitual);
+
   btnNext.addEventListener('click', nextSlide);
   btnPrev.addEventListener('click', prevSlide);
   selectSlide.addEventListener('change', (e) => {{
+    if (isBookClosed) openBook();
     const targetIdx = parseInt(e.target.value, 10);
     const dir = targetIdx > currentIndex ? 'right' : 'left';
     renderSlide(targetIdx, dir);
@@ -848,7 +1002,7 @@ js_template = f"""/**
   btnCloseShortcuts.addEventListener('click', toggleShortcuts);
   btnTimer.addEventListener('click', toggleTimer);
 
-  // Atajos de Teclado Profesionales para la Defensa Oral
+  // Atajos de Teclado
   window.addEventListener('keydown', (e) => {{
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {{
       return;
@@ -865,6 +1019,11 @@ js_template = f"""/**
       case 'PageUp':
         e.preventDefault();
         prevSlide();
+        break;
+      case 'p':
+      case 'P':
+        e.preventDefault();
+        startPackagingRitual();
         break;
       case 'f':
       case 'F':
@@ -890,19 +1049,23 @@ js_template = f"""/**
       case 'Escape':
         speakerModal.classList.remove('active');
         shortcutsModal.classList.remove('active');
+        if (isPackaging) reopenManual();
         break;
       case 'Home':
         e.preventDefault();
+        if (isBookClosed) openBook();
         renderSlide(0, 'left');
         break;
       case 'End':
         e.preventDefault();
+        if (isBookClosed) openBook();
         renderSlide(slides.length - 1, 'right');
         break;
       default:
         if (e.key >= '1' && e.key <= '9') {{
           const targetIndex = parseInt(e.key, 10) - 1;
           if (targetIndex < slides.length) {{
+            if (isBookClosed) openBook();
             const dir = targetIndex > currentIndex ? 'right' : 'left';
             renderSlide(targetIndex, dir);
           }}
@@ -919,4 +1082,4 @@ js_template = f"""/**
 with open('docs/presentation/app.js', 'w', encoding='utf-8') as f:
     f.write(js_template)
 
-print("Successfully generated docs/presentation/app.js!")
+print("Successfully generated docs/presentation/app.js with 3D Book and Packaging ritual!")

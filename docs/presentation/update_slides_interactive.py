@@ -165,6 +165,19 @@ for s in data['slides']:
             "</div>"
             "</div>"
         )
+    elif s['id'] == 11:
+        s['content_html'] = (
+            "<div class='three-col'>"
+            "<div class='panel highlight'><div class='conclusion-header'><span class='conclusion-icon'>🏆</span><h3>Mayor Impacto</h3></div><ul class='bullet-list'><li><strong>Programación Dinámica:</strong> Evitó el colapso exponencial O(2^N) pasando de minutos incomputables a <strong>< 1 ms</strong> en combinaciones sustitutas.</li><li><strong>Catálogo Hash:</strong> Redujo la búsqueda de pedidos de O(P · L · n) a O(P · L), generando una aceleración de <strong>27x a 260x</strong>.</li></ul></div>"
+            "<div class='panel'><div class='conclusion-header'><span class='conclusion-icon'>⚠️</span><h3>Decisión Subóptima</h3></div><ul class='bullet-list'><li><strong>Paralelismo Multiproceso:</strong> Para operaciones O(1) en RAM, la serialización <code>pickle</code> e IPC en Windows anuló cualquier ventaja multinúcleo.</li><li>La optimización mono-hilo fue <strong>28 veces más rápida</strong> que el clúster multiproceso.</li></ul></div>"
+            "<div class='panel'><div class='conclusion-header'><span class='conclusion-icon'>🚀</span><h3>¿Qué Haríamos Diferente?</h3></div><ul class='bullet-list'><li><strong>Memoria Compartida:</strong> Emplear <code>multiprocessing.shared_memory</code> o buffers contiguos de NumPy.</li><li><strong>Extensiones Nativas:</strong> Implementar los bucles críticos en Cython/Rust para exprimir la CPU.</li><li><strong>Persistencia Indexada:</strong> SQLite en memoria con índices B-Tree para queries multivariable.</li></ul></div>"
+            "</div>"
+            "<div class='mt-3' style='text-align: center;'>"
+            "<button type='button' class='btn btn-primary btn-pack-slide' id='btn-pack-from-slide' style='font-size: 13.5px; padding: 10px 22px; gap: 8px;'>"
+            "<span>📦 Empaquetar y Despachar Presentación</span>"
+            "</button>"
+            "</div>"
+        )
 
 with open('docs/presentation/slides.json', 'w', encoding='utf-8') as f:
     json.dump(data, f, ensure_ascii=False, indent=2)

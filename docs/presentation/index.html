@@ -4,55 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Optimizador de Inventario y Pedidos — Presentación Oral (Opción 6)</title>
-  <meta name="description" content="Presentación interactiva de Programación Eficiente (Primer Parcial - Opción 6) en la Universidad Blas Pascal.">
+  <meta name="description" content="Defensa oral interactiva de Programación Eficiente (Primer Parcial - Opción 6) en la Universidad Blas Pascal.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-  <!-- Google Fonts: Outfit, Inter y JetBrains Mono -->
+  <!-- Tipografía Editorial Paper Style: DM Serif Display (Titulares), Albert Sans (Texto & UI) y JetBrains Mono (Datos) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Luces ambientales de fondo (Ambient Glow) -->
-  <div class="ambient-glow glow-1"></div>
-  <div class="ambient-glow glow-2"></div>
-  <div class="ambient-grid"></div>
+  <!-- Lienzo Canvas de Fondo Activo y Reactivo -->
+  <canvas id="bg-canvas" class="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Capa de Textura Sutil de Papel de Archivo -->
+  <div class="paper-grain-overlay" aria-hidden="true"></div>
 
   <!-- Barra Superior de Navegación y Estado -->
   <header class="top-nav">
     <div class="brand-section">
-      <div class="logo-badge">PEF 2026</div>
+      <span class="logo-stamp">PEF 2026</span>
       <div class="brand-text">
-        <h1>Optimizador de Inventario y Pedidos</h1>
-        <span>Universidad Blas Pascal — Programación Eficiente (Opción 6)</span>
+        <h1 class="brand-title">Optimizador de Inventario y Pedidos</h1>
+        <span class="brand-subtitle">Universidad Blas Pascal — Programación Eficiente (Opción 6)</span>
       </div>
     </div>
 
     <div class="presentation-meta">
-      <div class="timer-box" id="btn-timer" title="Clic para iniciar/pausar cronómetro (Atajo: T)">
-        <span class="timer-icon">⏱️</span>
-        <span id="timer-display">15:00</span>
-      </div>
-      <div class="slide-counter" id="slide-counter">1 / 11</div>
+      <button class="timer-box" id="btn-timer" type="button" aria-label="Iniciar o pausar cronómetro de 15 minutos" title="Clic para iniciar/pausar cronómetro (Atajo: T)">
+        <span class="timer-indicator" aria-hidden="true"></span>
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span id="timer-display" class="timer-digits">15:00</span>
+      </button>
+      <div class="slide-counter" id="slide-counter" aria-live="polite">1 / 11</div>
     </div>
   </header>
 
-  <!-- Barra de Progreso Superior -->
-  <div class="progress-bar-container">
+  <!-- Barra de Progreso Superior (GPU-accelerated via transform: scaleX) -->
+  <div class="progress-bar-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="11" aria-label="Progreso de la exposición">
     <div class="progress-bar-fill" id="progress-bar"></div>
   </div>
 
-  <!-- Escenario de la Diapositiva -->
-  <main class="slide-stage" id="slide-container" role="region" aria-label="Contenido de la diapositiva">
+  <!-- Escenario Principal de la Diapositiva (Estilo Hoja de Papel / Ficha Editorial) -->
+  <main class="slide-stage" id="slide-container" role="region" aria-label="Contenido de la diapositiva" aria-live="polite">
     <!-- Renderizado dinámico desde app.js -->
   </main>
 
   <!-- Modal Flotante de Notas para el Orador (Tecla N) -->
-  <aside class="speaker-notes-modal" id="speaker-modal" aria-hidden="true">
+  <aside class="speaker-notes-modal" id="speaker-modal" role="dialog" aria-modal="false" aria-label="Guía para el orador" aria-hidden="true">
     <div class="speaker-header">
-      <h4><span>🎙️</span> Guía para el Orador (Defensa Oral)</h4>
-      <button class="btn btn-icon" id="btn-close-notes" title="Cerrar notas">✕</button>
+      <h2 class="modal-title">
+        <svg class="modal-title-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="22"></line>
+        </svg>
+        Guía para el Orador (Defensa Oral)
+      </h2>
+      <button class="btn btn-icon" id="btn-close-notes" type="button" aria-label="Cerrar notas de orador" title="Cerrar notas">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
     <div class="speaker-content" id="speaker-text">
       Cargando notas de la diapositiva...
@@ -60,10 +74,24 @@
   </aside>
 
   <!-- Modal de Atajos de Teclado (Tecla H o ?) -->
-  <aside class="shortcuts-modal" id="shortcuts-modal" aria-hidden="true">
+  <aside class="shortcuts-modal" id="shortcuts-modal" role="dialog" aria-modal="false" aria-label="Atajos de teclado" aria-hidden="true">
     <div class="shortcuts-header">
-      <h4><span>⌨️</span> Atajos de Teclado de la Presentación</h4>
-      <button class="btn btn-icon" id="btn-close-shortcuts" title="Cerrar">✕</button>
+      <h2 class="modal-title">
+        <svg class="modal-title-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+          <line x1="6" y1="8" x2="6" y2="8"></line>
+          <line x1="10" y1="8" x2="10" y2="8"></line>
+          <line x1="14" y1="8" x2="14" y2="8"></line>
+          <line x1="18" y1="8" x2="18" y2="8"></line>
+          <line x1="6" y1="12" x2="6" y2="12"></line>
+          <line x1="18" y1="12" x2="18" y2="12"></line>
+          <line x1="10" y1="16" x2="14" y2="16"></line>
+        </svg>
+        Atajos de Teclado de la Presentación
+      </h2>
+      <button class="btn btn-icon" id="btn-close-shortcuts" type="button" aria-label="Cerrar ventana de atajos" title="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
     <div class="shortcuts-content">
       <div class="shortcut-row"><kbd>→</kbd> o <kbd>Espacio</kbd> <span>Siguiente Diapositiva</span></div>
@@ -77,33 +105,60 @@
     </div>
   </aside>
 
-  <!-- Barra Inferior de Controles -->
+  <!-- Barra Inferior de Controles y Navegación -->
   <footer class="bottom-controls">
-    <div class="control-btn-group">
-      <button class="btn" id="btn-prev" title="Diapositiva Anterior (Atajo: Flecha Izquierda / RePág)">
-        <span>←</span> Anterior
+    <div class="control-btn-group nav-arrows">
+      <button class="btn" id="btn-prev" type="button" title="Diapositiva Anterior (Atajo: Flecha Izquierda / RePág)">
+        <svg class="btn-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Anterior</span>
       </button>
-      <button class="btn primary" id="btn-next" title="Siguiente Diapositiva (Atajo: Flecha Derecha / Espacio / AvPág)">
-        Siguiente <span>→</span>
+      <button class="btn btn-primary" id="btn-next" type="button" title="Siguiente Diapositiva (Atajo: Flecha Derecha / Espacio / AvPág)">
+        <span>Siguiente</span>
+        <svg class="btn-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
       </button>
     </div>
 
-    <div class="control-btn-group">
-      <label for="select-slide" class="sr-only" style="display:none;">Saltar a diapositiva</label>
+    <!-- Píldoras de Navegación Rápida de Diapositivas (Dots / Numeradas) -->
+    <nav class="slide-pills-nav" id="slide-pills" aria-label="Acceso directo a diapositivas"></nav>
+
+    <div class="control-btn-group nav-actions">
+      <label for="select-slide" class="sr-only">Saltar a diapositiva</label>
       <select class="select-slide" id="select-slide" title="Seleccionar diapositiva">
         <!-- Opciones generadas dinámicamente -->
       </select>
-    </div>
 
-    <div class="control-btn-group">
-      <button class="btn" id="btn-shortcuts" title="Ver atajos de teclado (Atajo: H o ?)">
-        <span>⌨️</span> Atajos
+      <button class="btn" id="btn-shortcuts" type="button" title="Ver atajos de teclado (Atajo: H o ?)">
+        <svg class="btn-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+          <line x1="6" y1="8" x2="6" y2="8"></line>
+          <line x1="10" y1="8" x2="10" y2="8"></line>
+          <line x1="14" y1="8" x2="14" y2="8"></line>
+          <line x1="18" y1="8" x2="18" y2="8"></line>
+        </svg>
+        <span>Atajos</span>
       </button>
-      <button class="btn" id="btn-notes" title="Mostrar/Ocultar notas para la defensa oral (Atajo: N)">
-        <span>📝</span> Notas
+
+      <button class="btn" id="btn-notes" type="button" title="Mostrar/Ocultar notas para la defensa oral (Atajo: N)">
+        <svg class="btn-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span>Notas</span>
       </button>
-      <button class="btn btn-icon" id="btn-fullscreen" title="Pantalla Completa (Atajo: F)">
-        <span>⛶</span>
+
+      <button class="btn btn-icon" id="btn-fullscreen" type="button" title="Pantalla Completa (Atajo: F)" aria-label="Pantalla completa">
+        <svg class="btn-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
       </button>
     </div>
   </footer>

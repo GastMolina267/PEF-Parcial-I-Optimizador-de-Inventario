@@ -1,0 +1,139 @@
+name: CD - Compilación y Empaquetado de la Aplicación
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: '¿Publicar GitHub Release con los artefactos compilados?'
+        required: true
+        type: boolean
+        default: false
+      mode:
+        description: 'Modo de empaquetado de PyInstaller'
+        required: true
+        type: choice
+        options:
+          - onedir
+          - onefile
+        default: onedir
+
+permissions:
+  contents: write
+
+jobs:
+  # =========================================================================
+  # 1. Compilación de Ejecutables Standalone Nativos (Windows & Linux)
+  # =========================================================================
+  build-binaries:
+    name: Compilar Binario (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: OptimizadorInventario-windows-x64
+            archive_file: OptimizadorInventario-windows-x64.zip
+          - os: ubuntu-latest
+            artifact_name: OptimizadorInventario-linux-x64
+            archive_file: OptimizadorInventario-linux-x64.tar.gz
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar dependencias y empaquetador
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Compilar aplicación con PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          python scripts/compile.py --mode ${{ inputs.mode || 'onedir' }} --clean
+          Compress-Archive -Path dist/OptimizadorInventario* -DestinationPath dist/${{ matrix.archive_file }}
+
+      - name: Compilar aplicación con PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python scripts/compile.py --mode ${{ inputs.mode || 'onedir' }} --clean
+          tar -czvf dist/${{ matrix.archive_file }} -C dist $(ls dist)
+
+      - name: Subir binario compilado como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.archive_file }}
+          retention-days: 30
+
+  # =========================================================================
+  # 2. Compilación de Paquete Python Estándar (Wheel y Source Distribution)
+  # =========================================================================
+  build-python-packages:
+    name: Compilar Paquetes Python (Wheel & SDist)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar herramientas de empaquetado estándar
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Compilar Wheel y SDist (PEP 517)
+        run: |
+          python -m build
+
+      - name: Subir paquetes Python como artefactos
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-wheel-sdist
+          path: dist/*
+          retention-days: 30
+
+  # =========================================================================
+  # 3. Publicación Automática en GitHub Releases (Ante Tags 'v*' o manual)
+  # =========================================================================
+  publish-release:
+    name: Publicar GitHub Release
+    needs: [build-binaries, build-python-packages]
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Descargar todos los artefactos compilados
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Organizar archivos para Release
+        run: |
+          mkdir -p final-release/
+          find release-assets/ -type f \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.whl" \) -exec cp {} final-release/ \;
+          ls -la final-release/
+
+      - name: Publicar Release en GitHub con Binarios Adjuntos
+        uses: softprops/action-gh-release@v2
+        with:
+          files: final-release/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false

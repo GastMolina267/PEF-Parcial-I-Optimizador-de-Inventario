@@ -1,0 +1,153 @@
+name: CI - Verificación del Proyecto
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # =========================================================================
+  # 1. Chequeo de Sintaxis y Análisis Estático
+  # =========================================================================
+  lint-and-syntax:
+    name: Sintaxis y Análisis Estático
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar herramientas de análisis
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff compileall2
+
+      - name: Compilación de sintaxis bytecode (Zero Syntax Errors)
+        run: |
+          python -m compileall -q src automations tests scripts main.py
+
+      - name: Análisis estático con Ruff
+        run: |
+          ruff check src/ automations/ tests/ scripts/ main.py
+
+  # =========================================================================
+  # 2. Matriz de Pruebas Unitarias y Cobertura (Linux & Windows)
+  # =========================================================================
+  test-suite:
+    name: Pruebas (${{ matrix.os }} - Python ${{ matrix.python-version }})
+    needs: lint-and-syntax
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        python-version: [ "3.10", "3.11", "3.12" ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Ejecutar Suite de 78 Pruebas con Cobertura (Pytest)
+        run: |
+          python -m pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+
+      - name: Subir reporte de cobertura (Ubuntu / Python 3.11)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14
+
+  # =========================================================================
+  # 3. Verificación de Integridad de Datos, AST y Presentación Oral
+  # =========================================================================
+  integrity-checks:
+    name: Integridad de Datasets, AST y Presentación
+    needs: lint-and-syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Instalar dependencias del proyecto
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Ejecutar motor de análisis AST de complejidad
+        run: |
+          python -m automations.ejecutar
+
+      - name: Validar integridad de datasets JSON
+        run: |
+          python -c "
+          from pathlib import Path
+          from src.datos.cargador import cargar_dataset
+          from src.datos.validador import ValidadorDataset
+
+          datasets_dir = Path('data/datasets')
+          assert datasets_dir.exists(), 'Carpeta data/datasets no existe'
+          archivos = list(datasets_dir.glob('*.json'))
+          assert len(archivos) >= 4, f'Se esperaban al menos 4 datasets, encontrados {len(archivos)}'
+
+          for ruta in archivos:
+              productos, pedidos = cargar_dataset(ruta)
+              validador = ValidadorDataset(productos, pedidos)
+              res = validador.validar_todo()
+              assert res.es_valido, f'Dataset {ruta.name} inválido: {res.errores}'
+              print(f'✓ {ruta.name}: {len(productos)} productos, {len(pedidos)} pedidos válidos')
+          "
+
+      - name: Validar presentación oral (cero delimitadores '$' y JSON válido)
+        run: |
+          python -c "
+          import json
+          from pathlib import Path
+
+          ruta_json = Path('docs/presentation/slides.json')
+          assert ruta_json.exists(), 'docs/presentation/slides.json no existe'
+          with open(ruta_json, 'r', encoding='utf-8') as f:
+              data = json.load(f)
+
+          slides = data.get('slides', [])
+          assert len(slides) == 11, f'Se esperaban 11 slides, encontradas {len(slides)}'
+          
+          dollar = chr(36)
+          raw_text = json.dumps(data, ensure_ascii=False)
+          assert raw_text.count(dollar) == 0, f'Se encontraron {raw_text.count(dollar)} símbolos $ en slides.json'
+          print('✓ Presentación validada: 11 diapositivas conformes y 0 símbolos $ detectados.')
+          "

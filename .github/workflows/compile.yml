@@ -10,6 +10,11 @@ on:
         required: true
         type: boolean
         default: false
+      tag_name:
+        description: 'Nombre del tag/etiqueta para el Release (ej. v1.0.0). Por defecto toma la versión de pyproject.toml'
+        required: false
+        type: string
+        default: ''
       mode:
         description: 'Modo de empaquetado de PyInstaller'
         required: true
@@ -18,6 +23,9 @@ on:
           - onedir
           - onefile
         default: onedir
+
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 permissions:
   contents: write
@@ -130,10 +138,28 @@ jobs:
           find release-assets/ -type f \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.whl" \) -exec cp {} final-release/ \;
           ls -la final-release/
 
+      - name: Determinar etiqueta de versión (tag)
+        id: resolver_tag
+        run: |
+          if [ -n "${{ inputs.tag_name }}" ]; then
+            TAG="${{ inputs.tag_name }}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION=$(python -c "import re; m=re.search(r'version\s*=\s*\"([^\"]+)\"', open('pyproject.toml').read()); print(m.group(1))")
+            TAG="v${VERSION}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Etiqueta para el Release: $TAG"
+
       - name: Publicar Release en GitHub con Binarios Adjuntos
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.resolver_tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: "Optimizador de Inventario ${{ steps.resolver_tag.outputs.tag }}"
           files: final-release/*
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ startsWith(github.ref, 'refs/heads/dev') || contains(steps.resolver_tag.outputs.tag, 'dev') || contains(steps.resolver_tag.outputs.tag, 'rc') }}
+

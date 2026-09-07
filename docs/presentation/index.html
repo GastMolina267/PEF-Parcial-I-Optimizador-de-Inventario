@@ -11,6 +11,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    try {
+      if (sessionStorage.getItem('pef-presentation-force-motion') !== '0') {
+        document.documentElement.classList.add('force-motion');
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body>
 
@@ -38,6 +45,12 @@
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
         <span id="timer-display" class="timer-digits">15:00</span>
+      </button>
+      <button class="motion-box is-on" id="btn-motion" type="button" aria-pressed="true" aria-label="Activar o desactivar animaciones del manual" title="Windows puede apagar las animaciones del sistema. Clic para forzarlas (Atajo: M)">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span id="motion-label">Animaciones</span>
       </button>
       <div class="slide-counter" id="slide-counter" aria-live="polite">Manual Cerrado</div>
     </div>
@@ -301,49 +314,76 @@
                     <span class="grade-seal-score" id="grade-seal-score">—</span>
                   </div>
                 </div>
+              </div>
+              <div class="stamp-anchor" id="stamp-anchor" aria-hidden="true">
                 <div class="stamp-press" id="stamp-press" hidden>
-                  <div class="stamp-rig">
-                    <div class="stamp-3d">
-                      <div class="stamp-knob">
-                        <span class="stamp-cap"></span>
-                        <span class="stamp-slat" style="--r:0deg"></span>
-                        <span class="stamp-slat" style="--r:45deg"></span>
-                        <span class="stamp-slat" style="--r:90deg"></span>
-                        <span class="stamp-slat" style="--r:135deg"></span>
-                      </div>
-                      <div class="stamp-shaft">
-                        <span class="stamp-slat" style="--r:0deg"></span>
-                        <span class="stamp-slat" style="--r:30deg"></span>
-                        <span class="stamp-slat" style="--r:60deg"></span>
-                        <span class="stamp-slat" style="--r:90deg"></span>
-                        <span class="stamp-slat" style="--r:120deg"></span>
-                        <span class="stamp-slat" style="--r:150deg"></span>
-                      </div>
+                  <div class="stamp-shadow"></div>
+                  <div class="stamp-3d">
+                    <div class="stamp-die">
+                      <span class="stamp-face stamp-die-top"></span>
+                      <span class="stamp-face stamp-die-bottom"></span>
+                      <span class="stamp-face stamp-die-front"></span>
+                      <span class="stamp-face stamp-die-back"></span>
+                      <span class="stamp-face stamp-die-left"></span>
+                      <span class="stamp-face stamp-die-right"></span>
+                    </div>
+                    <div class="stamp-block">
+                      <span class="stamp-face stamp-block-top">
+                        <span class="stamp-press-note stamp-grade-num" id="stamp-press-note">9</span>
+                      </span>
+                      <span class="stamp-face stamp-block-bottom"></span>
+                      <span class="stamp-face stamp-block-front">
+                        <span class="stamp-die-num stamp-grade-num">9</span>
+                      </span>
+                      <span class="stamp-face stamp-block-back"></span>
+                      <span class="stamp-face stamp-block-left"></span>
+                      <span class="stamp-face stamp-block-right"></span>
+                    </div>
+                    <div class="stamp-handle">
                       <div class="stamp-collar">
                         <span class="stamp-collar-cap"></span>
-                        <span class="stamp-slat" style="--r:0deg"></span>
-                        <span class="stamp-slat" style="--r:45deg"></span>
-                        <span class="stamp-slat" style="--r:90deg"></span>
-                        <span class="stamp-slat" style="--r:135deg"></span>
+                        <span class="stamp-slat" style="--a:0deg"></span>
+                        <span class="stamp-slat" style="--a:30deg"></span>
+                        <span class="stamp-slat" style="--a:60deg"></span>
+                        <span class="stamp-slat" style="--a:90deg"></span>
+                        <span class="stamp-slat" style="--a:120deg"></span>
+                        <span class="stamp-slat" style="--a:150deg"></span>
+                        <span class="stamp-slat" style="--a:180deg"></span>
+                        <span class="stamp-slat" style="--a:210deg"></span>
+                        <span class="stamp-slat" style="--a:240deg"></span>
+                        <span class="stamp-slat" style="--a:270deg"></span>
+                        <span class="stamp-slat" style="--a:300deg"></span>
+                        <span class="stamp-slat" style="--a:330deg"></span>
                       </div>
-                      <div class="stamp-block">
-                        <span class="stamp-face stamp-block-front">
-                          <span class="stamp-press-note stamp-grade-num" id="stamp-press-note">9</span>
-                        </span>
-                        <span class="stamp-face stamp-block-back"></span>
-                        <span class="stamp-face stamp-block-left"></span>
-                        <span class="stamp-face stamp-block-right"></span>
-                        <span class="stamp-face stamp-block-top"></span>
-                        <span class="stamp-face stamp-block-bottom"></span>
+                      <div class="stamp-shaft">
+                        <span class="stamp-slat" style="--a:0deg"></span>
+                        <span class="stamp-slat" style="--a:30deg"></span>
+                        <span class="stamp-slat" style="--a:60deg"></span>
+                        <span class="stamp-slat" style="--a:90deg"></span>
+                        <span class="stamp-slat" style="--a:120deg"></span>
+                        <span class="stamp-slat" style="--a:150deg"></span>
+                        <span class="stamp-slat" style="--a:180deg"></span>
+                        <span class="stamp-slat" style="--a:210deg"></span>
+                        <span class="stamp-slat" style="--a:240deg"></span>
+                        <span class="stamp-slat" style="--a:270deg"></span>
+                        <span class="stamp-slat" style="--a:300deg"></span>
+                        <span class="stamp-slat" style="--a:330deg"></span>
                       </div>
-                      <div class="stamp-die">
-                        <span class="stamp-face stamp-die-front">
-                          <span class="stamp-die-num stamp-grade-num">9</span>
-                        </span>
-                        <span class="stamp-face stamp-die-back"></span>
-                        <span class="stamp-face stamp-die-left"></span>
-                        <span class="stamp-face stamp-die-right"></span>
-                        <span class="stamp-face stamp-die-bottom"></span>
+                      <div class="stamp-knob">
+                        <span class="stamp-cap"></span>
+                        <span class="stamp-knob-base"></span>
+                        <span class="stamp-slat" style="--a:0deg"></span>
+                        <span class="stamp-slat" style="--a:30deg"></span>
+                        <span class="stamp-slat" style="--a:60deg"></span>
+                        <span class="stamp-slat" style="--a:90deg"></span>
+                        <span class="stamp-slat" style="--a:120deg"></span>
+                        <span class="stamp-slat" style="--a:150deg"></span>
+                        <span class="stamp-slat" style="--a:180deg"></span>
+                        <span class="stamp-slat" style="--a:210deg"></span>
+                        <span class="stamp-slat" style="--a:240deg"></span>
+                        <span class="stamp-slat" style="--a:270deg"></span>
+                        <span class="stamp-slat" style="--a:300deg"></span>
+                        <span class="stamp-slat" style="--a:330deg"></span>
                       </div>
                     </div>
                   </div>
@@ -362,7 +402,10 @@
           </div>
         </div>
         <div class="pack-tools">
-          <button type="button" class="btn-puntuar-hud" id="btn-puntuar-hud">PUNTUAR</button>
+          <div class="pack-tools-actions">
+            <button type="button" class="btn-reopen-hud" id="btn-reopen-hud">Reabrir manual</button>
+            <button type="button" class="btn-puntuar-hud" id="btn-puntuar-hud">PUNTUAR</button>
+          </div>
           <p class="pack-inspect-hint" id="pack-inspect-hint">Arrastrá para rotar · Levantá la guía para firmar · PUNTUAR en la tapa</p>
         </div>
   </div>
@@ -412,6 +455,7 @@
       <div class="shortcut-row"><kbd>←</kbd> o <kbd>RePág</kbd> <span>Página Anterior (o Arrastrar Ratón Derecha)</span></div>
       <div class="shortcut-row"><kbd>P</kbd> <span>Empaquetar y Despachar en Caja Kraft</span></div>
       <div class="shortcut-row"><kbd>T</kbd> <span>Iniciar / Pausar Cronómetro (15 min)</span></div>
+      <div class="shortcut-row"><kbd>M</kbd> <span>Forzar / respetar animaciones (si Windows las apagó)</span></div>
       <div class="shortcut-row"><kbd>N</kbd> <span>Mostrar / Ocultar Notas de Orador</span></div>
       <div class="shortcut-row"><kbd>F</kbd> <span>Modo Pantalla Completa</span></div>
       <div class="shortcut-row"><kbd>H</kbd> o <kbd>?</kbd> <span>Ver esta ayuda de atajos</span></div>

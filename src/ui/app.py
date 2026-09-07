@@ -22,10 +22,8 @@ from src.ui.tema import (
     COLOR_FONDO_APP,
     COLOR_PRIMARIO,
 
-    COLOR_SECUNDARIO,
     COLOR_SUPERFICIE,
     COLOR_TARJETA,
-    COLOR_TEXTO_MUTED,
     COLOR_TEXTO_PRIMARIO,
     COLOR_TEXTO_SECUNDARIO,
     crear_dialogo_explicativo_modos,

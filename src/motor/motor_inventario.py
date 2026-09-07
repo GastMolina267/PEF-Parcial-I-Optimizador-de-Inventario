@@ -250,7 +250,7 @@ class MotorInventario:
         stock_total = sum(p.stock for p in prods)
         categorias = sorted({p.categoria for p in prods})
         total_lineas = sum(len(p.lineas) for p in self._pedidos)
-        unidades_demandadas = sum(l.cantidad for p in self._pedidos for l in p.lineas)
+        unidades_demandadas = sum(lin.cantidad for p in self._pedidos for lin in p.lineas)
 
         stats: dict[str, Any] = {
             "estrategia": self._estrategia,

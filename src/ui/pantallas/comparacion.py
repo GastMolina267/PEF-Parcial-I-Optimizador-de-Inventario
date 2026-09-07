@@ -14,7 +14,6 @@ from src.ui.tema import (
     COLOR_PELIGRO,
     COLOR_PRIMARIO,
     COLOR_SECUNDARIO,
-    COLOR_SUPERFICIE,
     COLOR_TARJETA,
     COLOR_TEXTO_MUTED,
     COLOR_TEXTO_PRIMARIO,
@@ -195,22 +194,23 @@ class PantallaComparacion(ft.Container):
 
         # 3. Preparación de pedidos (Secuencial vs Concurrente)
         t0 = time.perf_counter()
-        res_sec = procesar_pedidos_secuencial(self.motor.catalogo, peds, descontar_stock=False)
+        _ = procesar_pedidos_secuencial(self.motor.catalogo, peds, descontar_stock=False)
         t_ped_base = (time.perf_counter() - t0) * 1000.0
 
         t0 = time.perf_counter()
-        res_conc = procesar_pedidos_concurrente(self.motor.catalogo, peds, descontar_stock=False)
+        _ = procesar_pedidos_concurrente(self.motor.catalogo, peds, descontar_stock=False)
         t_ped_opt = (time.perf_counter() - t0) * 1000.0
 
         # 4. Alternativas (Recursivo puro vs DP Memoizado)
         cat_ejemplo = prods[0].categoria
         t0 = time.perf_counter()
-        res_alt_puro = self.motor.buscar_alternativas(cat_ejemplo, 35000.0, forzar_memoizacion=False, max_combinaciones=10)
+        _ = self.motor.buscar_alternativas(cat_ejemplo, 35000.0, forzar_memoizacion=False, max_combinaciones=10)
         t_alt_base = (time.perf_counter() - t0) * 1000.0
 
         t0 = time.perf_counter()
         res_alt_memo = self.motor.buscar_alternativas(cat_ejemplo, 35000.0, forzar_memoizacion=True, max_combinaciones=10)
         t_alt_opt = (time.perf_counter() - t0) * 1000.0
+
 
         # Medición de memoria general del proceso
         tracemalloc.start()

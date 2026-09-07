@@ -1,6 +1,5 @@
 """Validador de workflows YAML y configuración del proyecto."""
 
-import json
 import sys
 from pathlib import Path
 

@@ -22,7 +22,6 @@ from src.ui.tema import (
     crear_badge_estado,
     crear_tarjeta_kpi,
     crear_banner_explicativo,
-    crear_badge_tiempo,
     crear_dropdown,
 )
 
@@ -206,20 +205,20 @@ class PantallaPedidos(ft.Container):
         items = []
         max_mostrar = 100
         for ped in self.pedidos_actuales[:max_mostrar]:
-            total_unidades = sum(l.cantidad for l in ped.lineas)
+            total_unidades = sum(linea.cantidad for linea in ped.lineas)
 
             # Construir desglose de líneas desplegables
             filas_lineas = []
             precio_total_estimado = 0.0
-            for l in ped.lineas:
-                prod = self.motor.buscar_por_id(l.id_producto)
-                nombre_p = prod.nombre if prod else f"Producto #{l.id_producto}"
+            for linea in ped.lineas:
+                prod = self.motor.buscar_por_id(linea.id_producto)
+                nombre_p = prod.nombre if prod else f"Producto #{linea.id_producto}"
                 stock_p = prod.stock if prod else 0
                 precio_p = prod.precio if prod else 0.0
-                subtotal = precio_p * l.cantidad
+                subtotal = precio_p * linea.cantidad
                 precio_total_estimado += subtotal
 
-                if stock_p >= l.cantidad:
+                if stock_p >= linea.cantidad:
                     badge_linea = ft.Container(
                         content=ft.Text(f"Cubierta (Stock: {stock_p})", size=11, color=COLOR_EXITO, weight=ft.FontWeight.BOLD),
                         bgcolor=COLOR_FONDO_EXITO,
@@ -228,7 +227,7 @@ class PantallaPedidos(ft.Container):
                     )
                 elif stock_p > 0:
                     badge_linea = ft.Container(
-                        content=ft.Text(f"Parcial (Stock: {stock_p} / Falta: {l.cantidad - stock_p})", size=11, color="#F59E0B", weight=ft.FontWeight.BOLD),
+                        content=ft.Text(f"Parcial (Stock: {stock_p} / Falta: {linea.cantidad - stock_p})", size=11, color="#F59E0B", weight=ft.FontWeight.BOLD),
                         bgcolor=COLOR_FONDO_ADVERTENCIA,
                         padding=padding_symmetric(horizontal=8, vertical=3),
                         border_radius=6,
@@ -245,9 +244,9 @@ class PantallaPedidos(ft.Container):
                     ft.Container(
                         content=ft.Row(
                             controls=[
-                                ft.Text(f"#{l.id_producto}", size=12, color=COLOR_PRIMARIO, weight=ft.FontWeight.BOLD, width=50),
+                                ft.Text(f"#{linea.id_producto}", size=12, color=COLOR_PRIMARIO, weight=ft.FontWeight.BOLD, width=50),
                                 ft.Text(nombre_p, size=13, color=COLOR_TEXTO_PRIMARIO, expand=True),
-                                ft.Text(f"Pedido: {l.cantidad} Unidades", size=12, color=COLOR_TEXTO_SECUNDARIO, width=140),
+                                ft.Text(f"Pedido: {linea.cantidad} Unidades", size=12, color=COLOR_TEXTO_SECUNDARIO, width=140),
                                 ft.Text(f"${subtotal:,.2f}", size=12, color=COLOR_TEXTO_PRIMARIO, weight=ft.FontWeight.W_600, width=90),
                                 badge_linea,
                             ],
@@ -256,6 +255,7 @@ class PantallaPedidos(ft.Container):
                         padding=padding_symmetric(horizontal=8, vertical=4),
                     )
                 )
+
 
             desglose = ft.Container(
                 content=ft.Column(
@@ -400,9 +400,4 @@ class PantallaPedidos(ft.Container):
         except Exception as err:
             self.notificar(f"Error al procesar pedidos: {err}", ft.Icons.ERROR)
 
-    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
-        """Sincroniza el switch de procesamiento concurrente con la estrategia global."""
-        es_opt = (nueva_estrategia == "optimizado")
-        self.switch_concurrente.value = es_opt
-        actualizar_control(self.switch_concurrente)
 

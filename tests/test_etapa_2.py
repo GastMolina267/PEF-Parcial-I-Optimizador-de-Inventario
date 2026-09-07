@@ -11,7 +11,6 @@ Verifica:
 """
 
 from __future__ import annotations
-import json
 import pytest
 from pathlib import Path
 
@@ -20,7 +19,6 @@ from src.modelos.pedido import (
     EstadoPedido,
     LineaPedido,
     Pedido,
-    ResultadoPedido,
     ResumenProcesamiento,
 )
 from src.inventario.catalogo_lineal import CatalogoLineal
@@ -28,7 +26,6 @@ from src.ranking.top_productos import calcular_top_solicitados_lineal
 from src.pedidos.procesador_secuencial import procesar_pedidos_secuencial
 from src.datos.cargador import (
     cargar_dataset_json,
-    guardar_dataset_json,
     validar_dataset,
 )
 from src.motor.motor_inventario import MotorInventario

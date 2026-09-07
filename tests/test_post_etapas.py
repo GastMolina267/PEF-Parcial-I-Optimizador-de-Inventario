@@ -20,8 +20,6 @@ from src.ui.tema import (
     crear_dialogo_explicativo_modos,
     crear_dropdown,
 )
-from src.ui.componentes.panel_estado import PanelEstado
-from src.ui.pantallas.inicio import PantallaInicio
 from src.ui.pantallas.catalogo import PantallaCatalogo
 from src.ui.pantallas.pedidos import PantallaPedidos
 from src.ui.pantallas.agrupacion import PantallaAgrupacion

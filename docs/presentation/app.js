@@ -135,15 +135,31 @@
   const currentSlideCard = document.getElementById('current-slide-card');
   const stackLeft = document.getElementById('stack-left');
   const stackRight = document.getElementById('stack-right');
-  const turningSheet = document.getElementById('book-turning-sheet');
-  const turningShadow = document.getElementById('turning-shadow');
+  const bookTurningLeaf = document.getElementById('book-turning-leaf');
+  const turningMesh = document.getElementById('turning-mesh');
+  const turningCastShadow = document.getElementById('turning-cast-shadow');
   const dragHandleRight = document.getElementById('drag-handle-right');
   const dragHandleLeft = document.getElementById('drag-handle-left');
   const packagingOverlay = document.getElementById('packaging-overlay');
-  const boxContainer = document.getElementById('box-container');
-  const miniPackedBook = document.getElementById('mini-packed-book');
+  const packedManualBook = document.getElementById('packed-manual-book');
+  const isoBox3d = document.getElementById('iso-box-3d');
+  const isoBoxStage = document.getElementById('iso-box-stage');
   const btnReopenBook = document.getElementById('btn-reopen-book');
   const btnPackPresentation = document.getElementById('btn-pack-presentation');
+  const packInspectHint = document.getElementById('pack-inspect-hint');
+  const btnPuntuar = document.getElementById('btn-puntuar');
+  const btnPuntuarHud = document.getElementById('btn-puntuar-hud');
+  const btnPeelLabel = document.getElementById('btn-peel-label');
+  const btnStampConfirm = document.getElementById('btn-stamp-confirm');
+  const btnGradeCancel = document.getElementById('btn-grade-cancel');
+  const gradeDock = document.getElementById('grade-dock');
+  const gradePads = document.getElementById('grade-pads');
+  const gradeSeal = document.getElementById('grade-seal');
+  const gradeSealScore = document.getElementById('grade-seal-score');
+  const stampPress = document.getElementById('stamp-press');
+  const stampPressNote = document.getElementById('stamp-press-note');
+  const reduceMotionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const motionOff = () => reduceMotionMq.matches;
 
   // ==========================================================================
   // MOTOR CANVAS REACTIVO Y CINÉTICO (PAPER STYLE BACKGROUND ENGINE)
@@ -455,156 +471,784 @@
   // ==========================================================================
   function openBook() {
     if (!isBookClosed) return;
-    if (bookCoverClosed) {
-      bookCoverClosed.classList.add('opening');
+
+    if (motionOff()) {
+      if (bookCoverClosed) bookCoverClosed.style.display = 'none';
+      if (bookOpened) bookOpened.style.display = 'flex';
+      isBookClosed = false;
+      renderSlide(0, 'none', false);
+      return;
     }
+
+    if (bookOpened) {
+      bookOpened.style.display = 'flex';
+    }
+    isBookClosed = false;
+    renderSlide(0, 'none', false);
+
+    let coverSettled = false;
+    const settleCover = () => {
+      if (coverSettled) return;
+      coverSettled = true;
+      if (bookCoverClosed) {
+        bookCoverClosed.style.display = 'none';
+        bookCoverClosed.classList.remove('opening');
+      }
+    };
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!bookCoverClosed) {
+          settleCover();
+          return;
+        }
+        bookCoverClosed.addEventListener('animationend', (ev) => {
+          if (ev.target !== bookCoverClosed) return;
+          settleCover();
+        }, { once: true });
+        bookCoverClosed.classList.add('opening');
+      });
+    });
+
     if (canvasEngine) {
       canvasEngine.addRipple(window.innerWidth * 0.4, window.innerHeight * 0.5, 400, 'rgba(194, 65, 12, 0.3)');
     }
 
-    setTimeout(() => {
-      if (bookCoverClosed) bookCoverClosed.style.display = 'none';
-      if (bookOpened) bookOpened.style.display = 'flex';
-      isBookClosed = false;
-      renderSlide(0, 'none');
-    }, 650);
+    setTimeout(settleCover, 1250);
   }
 
   function updatePageStackDepth(index) {
     if (!stackLeft || !stackRight) return;
-    const total = slides.length - 1;
+    const total = Math.max(1, slides.length - 1);
     const ratio = Math.max(0, Math.min(1, index / total));
     stackLeft.style.transform = `scaleX(${0.2 + ratio * 1.5})`;
     stackRight.style.transform = `scaleX(${0.2 + (1 - ratio) * 1.5})`;
   }
 
   // ==========================================================================
-  // GESTO DE ARRASTRE DE PÁGINA (CLICK & DRAG TO FLIP)
+  // MOTOR DE PÁGINA ARTICULADA (CURL POR TIRAS + FÍSICA DE ARRASTRE)
   // ==========================================================================
-  let isDragging = false;
-  let startX = 0;
-  let currentDx = 0;
+  const STRIP_COUNT = 12;
+  let isFlipping = false;
+  let flipStrips = [];
+  let flipProgress = 0;
+  let flipForward = true;
+  let meshReady = false;
+
+  function easeOutQuint(t) {
+    return 1 - Math.pow(1 - t, 5);
+  }
+
+  function clamp01(v) {
+    return Math.max(0, Math.min(1, v));
+  }
+
+  function buildTurningMesh() {
+    if (!turningMesh || meshReady) return;
+    turningMesh.style.setProperty('--strip-count', String(STRIP_COUNT));
+    turningMesh.innerHTML = '';
+    flipStrips = [];
+
+    let parent = turningMesh;
+    for (let i = 0; i < STRIP_COUNT; i++) {
+      const strip = document.createElement('div');
+      strip.className = 'leaf-strip' + (i === STRIP_COUNT - 1 ? ' is-edge' : '');
+      strip.style.setProperty('--strip-index', String(i));
+
+      const front = document.createElement('div');
+      front.className = 'strip-front';
+      const inner = document.createElement('div');
+      inner.className = 'strip-inner';
+      front.appendChild(inner);
+
+      const back = document.createElement('div');
+      back.className = 'strip-back';
+      back.innerHTML = `
+        <div class="archive-watermark">MANUAL TÉCNICO • UBP 2026</div>
+        <div class="archive-seal">AUDITADO<br>DETERMINISTA</div>
+        <div class="archive-folio"></div>
+      `;
+
+      const shade = document.createElement('div');
+      shade.className = 'strip-shade';
+
+      strip.appendChild(front);
+      strip.appendChild(back);
+      strip.appendChild(shade);
+      parent.appendChild(strip);
+      flipStrips.push({ strip, inner, shade, folio: back.querySelector('.archive-folio') });
+      parent = strip;
+    }
+    meshReady = true;
+  }
+
+  function stripDeltas(progress) {
+    const curl = Math.sin(progress * Math.PI);
+    const weights = [];
+    for (let i = 0; i < STRIP_COUNT; i++) {
+      const x = i / Math.max(1, STRIP_COUNT - 1);
+      weights.push(1 + curl * 0.28 * Math.pow(x, 1.15));
+    }
+    const sum = weights.reduce((a, b) => a + b, 0);
+    const total = progress * 180;
+    return weights.map((w) => total * (w / sum));
+  }
+
+  function applyFlipProgress(progress, isForward) {
+    flipProgress = progress;
+    const deltas = stripDeltas(progress);
+    let accum = 0;
+    for (let i = 0; i < flipStrips.length; i++) {
+      const deg = isForward ? -deltas[i] : deltas[i];
+      flipStrips[i].strip.style.transform = `rotateY(${deg}deg)`;
+      accum += deltas[i];
+      const crease = Math.pow(Math.abs(Math.sin((accum * Math.PI) / 180)), 1.35);
+      const highlight = Math.max(0, Math.cos((accum * Math.PI) / 180));
+      flipStrips[i].shade.style.opacity = String(0.06 + crease * 0.22);
+      flipStrips[i].shade.style.background = `linear-gradient(90deg,
+        rgba(15,23,42,${0.04 + crease * 0.16}) 0%,
+        rgba(255,255,255,${0.10 * highlight}) 50%,
+        rgba(15,23,42,${0.05 + crease * 0.18}) 100%)`;
+    }
+    if (turningMesh) {
+      const lift = Math.sin(progress * Math.PI) * 5;
+      turningMesh.style.transform = `translateZ(1.5px) rotateX(${lift}deg)`;
+    }
+    if (turningCastShadow) {
+      const shadowLift = Math.sin(progress * Math.PI);
+      turningCastShadow.style.opacity = String(shadowLift * 0.4);
+      turningCastShadow.style.transform = `scaleX(${0.25 + progress * 0.75})`;
+    }
+  }
+
+  function sanitizeClone(root) {
+    root.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+  }
+
+  function paintLeafContent(html, folioText) {
+    flipStrips.forEach((item) => {
+      item.inner.innerHTML = `<div class="slide-card turning-clone">${html}</div>`;
+      sanitizeClone(item.inner);
+      if (item.folio) item.folio.textContent = folioText;
+    });
+  }
+
+  function showTurningLeaf() {
+    if (!bookTurningLeaf) return;
+    bookTurningLeaf.classList.add('is-active');
+    bookTurningLeaf.style.display = 'block';
+    if (bookOpened) bookOpened.classList.add('is-flipping');
+  }
+
+  function hideTurningLeaf() {
+    if (!bookTurningLeaf) return;
+    bookTurningLeaf.classList.remove('is-active');
+    bookTurningLeaf.style.display = 'none';
+    if (bookOpened) bookOpened.classList.remove('is-flipping');
+    flipStrips.forEach((item) => { item.inner.innerHTML = ''; });
+    if (turningCastShadow) turningCastShadow.style.opacity = '0';
+  }
+
+  function animateProgress(from, to, duration, isForward, onDone) {
+    const start = performance.now();
+    const tick = (now) => {
+      const t = clamp01((now - start) / duration);
+      applyFlipProgress(from + (to - from) * easeOutQuint(t), isForward);
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else if (onDone) {
+        onDone();
+      }
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function renderCardHTML(slide, index) {
+    return `
+      <div class="slide-header">
+        <span class="slide-tag">${slide.tag || `Página ${index + 1}`}</span>
+        <h2 class="slide-title">${slide.title}</h2>
+        ${slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : ''}
+      </div>
+      <div class="slide-body">
+        ${slide.content_html}
+      </div>
+    `;
+  }
+
+  function updateControlsUI() {
+    const currentSlide = slides[currentIndex];
+    slideCounter.textContent = `${currentIndex + 1} / ${slides.length}`;
+    selectSlide.value = currentIndex;
+    const progressRatio = (currentIndex + 1) / slides.length;
+    progressBar.style.transform = `scaleX(${progressRatio})`;
+
+    if (slidePills) {
+      const pills = slidePills.querySelectorAll('.slide-pill');
+      pills.forEach((p, idx) => {
+        p.classList.toggle('active', idx === currentIndex);
+      });
+    }
+
+    btnPrev.disabled = (currentIndex === 0);
+    btnNext.disabled = (currentIndex === slides.length - 1);
+
+    speakerText.textContent = currentSlide.notes || "No hay notas adicionales para esta diapositiva.";
+  }
+
+  function finishFlipTo(targetIndex, direction) {
+    currentIndex = targetIndex;
+    updateControlsUI();
+    initSlideInteractiveBehaviors(slides[currentIndex].id);
+    if (canvasEngine) canvasEngine.onSlideChange(currentIndex, direction);
+    updatePageStackDepth(currentIndex);
+    hideTurningLeaf();
+    isFlipping = false;
+  }
+
+  function flipToSlide(targetIndex, direction) {
+    if (isFlipping || targetIndex === currentIndex) return;
+    if (targetIndex < 0 || targetIndex >= slides.length) return;
+
+    if (motionOff() || !bookTurningLeaf || !turningMesh) {
+      renderSlide(targetIndex, direction, false);
+      return;
+    }
+
+    buildTurningMesh();
+    isFlipping = true;
+    const isForward = targetIndex > currentIndex;
+    const outgoing = slides[currentIndex];
+    const incoming = slides[targetIndex];
+    const dirKey = isForward ? 'right' : 'left';
+
+    showTurningLeaf();
+
+    if (isForward) {
+      paintLeafContent(currentSlideCard.innerHTML, `ARCHIVADO • ${outgoing.tag || `Pág. ${currentIndex + 1}`}`);
+      currentIndex = targetIndex;
+      currentSlideCard.innerHTML = renderCardHTML(incoming, currentIndex);
+      updatePageStackDepth(currentIndex);
+      applyFlipProgress(0, true);
+      animateProgress(0, 1, 620, true, () => finishFlipTo(targetIndex, dirKey));
+    } else {
+      paintLeafContent(renderCardHTML(incoming, targetIndex), `ARCHIVADO • ${outgoing.tag || `Pág. ${currentIndex + 1}`}`);
+      applyFlipProgress(1, true);
+      animateProgress(1, 0, 620, true, () => {
+        currentSlideCard.innerHTML = renderCardHTML(incoming, targetIndex);
+        finishFlipTo(targetIndex, dirKey);
+      });
+    }
+  }
 
   function initDragToFlip() {
-    if (!bookOpened || !turningSheet) return;
+    if (!bookOpened || !bookTurningLeaf) return;
+    buildTurningMesh();
 
-    const handlePointerDown = (e) => {
-      if (isBookClosed || isPackaging) return;
-      if (e.target.closest('button, input, select, textarea, a, .tab-btn, .ipc-seg')) return;
-      isDragging = true;
-      startX = e.clientX;
-      currentDx = 0;
-      turningSheet.style.display = 'block';
-    };
+    let dragging = false;
+    let armed = false;
+    let startX = 0;
+    let lastX = 0;
+    let lastT = 0;
+    let velocity = 0;
+    let mode = null;
+    let targetIndex = -1;
+    let liveProgress = 0;
+    let pointerId = null;
 
-    const handlePointerMove = (e) => {
-      if (!isDragging) return;
-      currentDx = e.clientX - startX;
-      const stageWidth = bookOpened.offsetWidth || 1000;
-
-      if (currentDx < 0) {
-        // Arrastre a la izquierda ➔ Pasar página siguiente
-        const angle = Math.max(-180, Math.min(0, (currentDx / (stageWidth * 0.45)) * 180));
-        turningSheet.style.transform = `rotateY(${angle}deg)`;
-        if (turningShadow) turningShadow.style.opacity = `${Math.abs(angle / 180) * 0.45}`;
-      } else if (currentDx > 0) {
-        // Arrastre a la derecha ➔ Volver página anterior
-        const angle = Math.max(0, Math.min(180, (currentDx / (stageWidth * 0.45)) * 180));
-        turningSheet.style.transform = `rotateY(${angle - 180}deg)`;
-        if (turningShadow) turningShadow.style.opacity = `${(1 - angle / 180) * 0.45}`;
-      }
-    };
-
-    const handlePointerUp = () => {
-      if (!isDragging) return;
-      isDragging = false;
-
-      if (currentDx < -75 && currentIndex < slides.length - 1) {
-        turningSheet.style.transform = 'rotateY(-180deg)';
-        setTimeout(() => {
-          turningSheet.style.display = 'none';
-          nextSlide();
-        }, 240);
-      } else if (currentDx > 75 && currentIndex > 0) {
-        turningSheet.style.transform = 'rotateY(0deg)';
-        setTimeout(() => {
-          turningSheet.style.display = 'none';
-          prevSlide();
-        }, 240);
+    const beginTurn = (isForward) => {
+      mode = isForward ? 'forward' : 'back';
+      targetIndex = isForward ? currentIndex + 1 : currentIndex - 1;
+      const outgoing = slides[currentIndex];
+      showTurningLeaf();
+      if (isForward) {
+        paintLeafContent(currentSlideCard.innerHTML, `ARCHIVADO • ${outgoing.tag || `Pág. ${currentIndex + 1}`}`);
+        currentSlideCard.innerHTML = renderCardHTML(slides[targetIndex], targetIndex);
       } else {
-        turningSheet.style.transform = 'rotateY(0deg)';
-        setTimeout(() => {
-          turningSheet.style.display = 'none';
-        }, 180);
+        paintLeafContent(renderCardHTML(slides[targetIndex], targetIndex), `ARCHIVADO • ${outgoing.tag || `Pág. ${currentIndex + 1}`}`);
+      }
+      applyFlipProgress(isForward ? 0 : 1, true);
+      liveProgress = isForward ? 0 : 1;
+    };
+
+    const onDown = (e) => {
+      if (isBookClosed || isPackaging || isFlipping || motionOff()) return;
+      if (e.target.closest('button, input, select, textarea, a, .tab-btn, .ipc-seg, .struct-card')) return;
+      dragging = true;
+      armed = false;
+      startX = e.clientX;
+      lastX = e.clientX;
+      lastT = performance.now();
+      velocity = 0;
+      mode = null;
+      pointerId = e.pointerId;
+      if (e.target.setPointerCapture) {
+        try { e.target.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
       }
     };
 
-    bookOpened.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
+    const onMove = (e) => {
+      if (!dragging) return;
+      const now = performance.now();
+      const dx = e.clientX - startX;
+      const dt = Math.max(8, now - lastT);
+      velocity = (e.clientX - lastX) / dt;
+      lastX = e.clientX;
+      lastT = now;
+
+      if (!armed && Math.abs(dx) < 12) return;
+
+      const canForward = currentIndex < slides.length - 1;
+      const canBack = currentIndex > 0;
+
+      if (!armed) {
+        if (dx < 0 && canForward) {
+          armed = true;
+          isFlipping = true;
+          beginTurn(true);
+        } else if (dx > 0 && canBack) {
+          armed = true;
+          isFlipping = true;
+          beginTurn(false);
+        } else {
+          return;
+        }
+      }
+
+      const width = bookOpened.offsetWidth || 1000;
+      let p;
+      if (mode === 'forward') {
+        p = clamp01(-dx / (width * 0.58));
+      } else {
+        p = clamp01(1 - dx / (width * 0.58));
+      }
+      liveProgress += (p - liveProgress) * 0.34;
+      applyFlipProgress(liveProgress, true);
+    };
+
+    const settle = (complete) => {
+      const isForward = mode === 'forward';
+      const dest = complete ? (isForward ? 1 : 0) : (isForward ? 0 : 1);
+      const dist = Math.abs(dest - liveProgress);
+      const duration = Math.round(280 + dist * 340);
+      animateProgress(liveProgress, dest, duration, true, () => {
+        if (complete) {
+          if (!isForward) {
+            currentSlideCard.innerHTML = renderCardHTML(slides[targetIndex], targetIndex);
+          }
+          finishFlipTo(targetIndex, isForward ? 'right' : 'left');
+        } else {
+          currentSlideCard.innerHTML = renderCardHTML(slides[currentIndex], currentIndex);
+          initSlideInteractiveBehaviors(slides[currentIndex].id);
+          hideTurningLeaf();
+          isFlipping = false;
+        }
+      });
+    };
+
+    let skipHandleClick = false;
+
+    const onUp = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (!armed || mode == null) return;
+      skipHandleClick = true;
+      const flick = mode === 'forward' ? velocity < -0.45 : velocity > 0.45;
+      const farEnough = mode === 'forward' ? liveProgress > 0.28 : liveProgress < 0.72;
+      settle(flick || farEnough);
+    };
+
+    bookOpened.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
 
     if (dragHandleRight) {
-      dragHandleRight.addEventListener('click', nextSlide);
+      dragHandleRight.addEventListener('click', (e) => {
+        if (skipHandleClick) { skipHandleClick = false; e.preventDefault(); return; }
+        nextSlide();
+      });
     }
     if (dragHandleLeft) {
-      dragHandleLeft.addEventListener('click', prevSlide);
+      dragHandleLeft.addEventListener('click', (e) => {
+        if (skipHandleClick) { skipHandleClick = false; e.preventDefault(); return; }
+        prevSlide();
+      });
     }
   }
 
   // ==========================================================================
-  // RITUAL CINEMÁTICO DE EMPAQUETADO EN CAJA KRAFT
+  // RITUAL CINEMÁTICO DE EMPAQUETADO EN CAJA KRAFT ISOMÉTRICA 3D
   // ==========================================================================
+  let packTimers = [];
+
+  const boxInspect = {
+    rotX: 22,
+    rotY: -34,
+    panX: 0,
+    panY: 0,
+    scale: 1,
+    ready: false,
+    locked: false,
+    dragging: false,
+    panning: false,
+    lastX: 0,
+    lastY: 0,
+    apply() {
+      if (!isoBoxStage) return;
+      isoBoxStage.style.setProperty('--rx', `${this.rotX}deg`);
+      isoBoxStage.style.setProperty('--ry', `${this.rotY}deg`);
+      isoBoxStage.style.setProperty('--px', `${this.panX}px`);
+      isoBoxStage.style.setProperty('--py', `${this.panY}px`);
+      isoBoxStage.style.setProperty('--inspect-scale', String(this.scale));
+    },
+    reset(rotX, rotY, scale, ready = true) {
+      this.rotX = rotX;
+      this.rotY = rotY;
+      this.panX = 0;
+      this.panY = 0;
+      this.scale = scale;
+      this.ready = ready;
+      if (packagingOverlay) packagingOverlay.classList.toggle('is-inspecting', ready);
+      this.apply();
+    }
+  };
+
+  const BOX_POSE_PACK = { rx: 22, ry: -34, scale: 1 };
+  const BOX_POSE_READ = { rx: 8, ry: -4, scale: 1.16 };
+  const BOX_POSE_PEEL = { rx: 20, ry: -10, scale: 1.3 };
+  const BOX_POSE_ZENITH = { rx: -58, ry: 12, scale: 1.45 };
+  const BOX_POSE_STRIKE = { rx: -16, ry: 38, scale: 1.7 };
+  const BOX_POSE_SEALED = { rx: -26, ry: -16, scale: 1.22 };
+  const BOX_UI_SELECTOR = '#btn-reopen-book, #btn-puntuar, #btn-puntuar-hud, #btn-peel-label, #btn-stamp-confirm, #btn-grade-cancel, .grade-pad, .grade-dock, .iso-label-hinge, .iso-shipping-label, button, a, input';
+
+  let isGrading = false;
+  let pendingGrade = null;
+  let packGrade = null;
+
+  function readingScale() {
+    return window.innerWidth < 1024 ? 0.82 : BOX_POSE_READ.scale;
+  }
+
+  function peelScale() {
+    return window.innerWidth < 1024 ? 0.9 : BOX_POSE_PEEL.scale;
+  }
+
+  function zenithScale() {
+    return window.innerWidth < 1024 ? 0.95 : BOX_POSE_ZENITH.scale;
+  }
+
+  function setLabelPeeled(on) {
+    const wasPeeled = !!(isoBox3d && isoBox3d.classList.contains('label-peeled'));
+    if (isoBox3d) isoBox3d.classList.toggle('label-peeled', !!on);
+    if (btnPeelLabel) {
+      btnPeelLabel.setAttribute('aria-expanded', on ? 'true' : 'false');
+      btnPeelLabel.textContent = on ? 'Bajar guía' : 'Levantar guía';
+    }
+    if (!isoBoxStage || !boxInspect.ready || isGrading) return;
+    isoBoxStage.classList.remove('is-orbiting');
+    if (on) {
+      boxInspect.reset(BOX_POSE_PEEL.rx, BOX_POSE_PEEL.ry, peelScale(), true);
+    } else if (wasPeeled) {
+      boxInspect.reset(BOX_POSE_READ.rx, BOX_POSE_READ.ry, readingScale(), true);
+    }
+  }
+
+  function selectPendingGrade(n) {
+    pendingGrade = n;
+    if (!gradePads) return;
+    gradePads.querySelectorAll('.grade-pad').forEach((el) => {
+      const on = Number(el.dataset.grade) === n;
+      el.classList.toggle('is-selected', on);
+      el.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (btnStampConfirm) btnStampConfirm.disabled = !n;
+  }
+
+  function buildGradePads() {
+    if (!gradePads || gradePads.dataset.ready === '1') return;
+    gradePads.dataset.ready = '1';
+    for (let n = 1; n <= 10; n += 1) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'grade-pad';
+      btn.dataset.grade = String(n);
+      btn.textContent = String(n);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', () => selectPendingGrade(n));
+      gradePads.appendChild(btn);
+    }
+  }
+
+  function enterGradeMode() {
+    if (isGrading) return;
+    if (!isoBox3d || !isoBox3d.classList.contains('labeled')) return;
+    isGrading = true;
+    boxInspect.locked = true;
+    setLabelPeeled(false);
+    if (isoBoxStage) isoBoxStage.classList.remove('is-orbiting');
+    boxInspect.reset(BOX_POSE_ZENITH.rx, BOX_POSE_ZENITH.ry, zenithScale(), true);
+    boxInspect.locked = true;
+    if (packagingOverlay) packagingOverlay.classList.add('is-grading');
+    if (gradeDock) {
+      gradeDock.hidden = false;
+      gradeDock.removeAttribute('hidden');
+    }
+    if (packInspectHint) packInspectHint.classList.remove('is-visible');
+    if (btnPuntuarHud) btnPuntuarHud.hidden = true;
+    if (packGrade) {
+      selectPendingGrade(packGrade);
+    } else {
+      selectPendingGrade(0);
+      pendingGrade = null;
+      if (btnStampConfirm) btnStampConfirm.disabled = true;
+    }
+  }
+
+  function exitGradeMode(restoreView) {
+    isGrading = false;
+    boxInspect.locked = false;
+    if (packagingOverlay) packagingOverlay.classList.remove('is-grading');
+    if (gradeDock) gradeDock.hidden = true;
+    if (restoreView && isoBoxStage) {
+      isoBoxStage.classList.remove('is-orbiting');
+      const pose = packGrade ? BOX_POSE_SEALED : BOX_POSE_READ;
+      const scale = packGrade
+        ? (window.innerWidth < 1024 ? 0.88 : BOX_POSE_SEALED.scale)
+        : readingScale();
+      boxInspect.reset(pose.rx, pose.ry, scale, true);
+    }
+    if (restoreView && packInspectHint) packInspectHint.classList.add('is-visible');
+    if (btnPuntuarHud) btnPuntuarHud.hidden = false;
+  }
+
+  function pressSeal() {
+    if (!pendingGrade) return;
+    packGrade = pendingGrade;
+    if (gradeSealScore) gradeSealScore.textContent = String(packGrade);
+    document.querySelectorAll('.stamp-grade-num').forEach((el) => {
+      el.textContent = String(packGrade);
+    });
+    if (gradeDock) gradeDock.hidden = true;
+    if (packagingOverlay) packagingOverlay.classList.add('is-stamping');
+    if (isoBoxStage) isoBoxStage.classList.remove('is-orbiting');
+    boxInspect.reset(
+      BOX_POSE_STRIKE.rx,
+      BOX_POSE_STRIKE.ry,
+      window.innerWidth < 1024 ? 1.08 : BOX_POSE_STRIKE.scale,
+      true
+    );
+    boxInspect.locked = true;
+
+    if (stampPress) {
+      stampPress.hidden = false;
+      stampPress.classList.remove('is-striking');
+      void stampPress.offsetWidth;
+      stampPress.classList.add('is-striking');
+    }
+
+    const inkAt = motionOff() ? 0 : 520;
+    const doneAt = motionOff() ? 80 : 1650;
+
+    setTimeout(() => {
+      if (gradeSeal) {
+        gradeSeal.hidden = false;
+        gradeSeal.classList.remove('is-inked');
+        void gradeSeal.offsetWidth;
+        gradeSeal.classList.add('is-inked');
+      }
+    }, inkAt);
+
+    setTimeout(() => {
+      if (stampPress) {
+        stampPress.classList.remove('is-striking');
+        stampPress.hidden = true;
+      }
+      if (packagingOverlay) packagingOverlay.classList.remove('is-stamping');
+      exitGradeMode(true);
+    }, doneAt);
+  }
+
+  function initBoxRitualUI() {
+    buildGradePads();
+    if (btnPuntuar) btnPuntuar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      enterGradeMode();
+    });
+    if (btnPuntuarHud) btnPuntuarHud.addEventListener('click', (e) => {
+      e.stopPropagation();
+      enterGradeMode();
+    });
+    if (btnPeelLabel) btnPeelLabel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isGrading || !isoBox3d || !isoBox3d.classList.contains('labeled')) return;
+      setLabelPeeled(!isoBox3d.classList.contains('label-peeled'));
+    });
+    if (btnStampConfirm) btnStampConfirm.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pressSeal();
+    });
+    if (btnGradeCancel) btnGradeCancel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exitGradeMode(true);
+    });
+  }
+
+  function initBoxInspect() {
+    if (!packagingOverlay || !isoBoxStage || packagingOverlay.dataset.inspectBound === '1') return;
+    packagingOverlay.dataset.inspectBound = '1';
+
+    const onDown = (e) => {
+      if (!boxInspect.ready || boxInspect.locked || isGrading) return;
+      if (e.target.closest(BOX_UI_SELECTOR)) return;
+      boxInspect.dragging = true;
+      boxInspect.panning = e.shiftKey || e.button === 1;
+      boxInspect.lastX = e.clientX;
+      boxInspect.lastY = e.clientY;
+      isoBoxStage.classList.add('is-orbiting');
+      if (e.currentTarget.setPointerCapture) {
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      }
+      e.preventDefault();
+    };
+
+    const onMove = (e) => {
+      if (!boxInspect.dragging) return;
+      const dx = e.clientX - boxInspect.lastX;
+      const dy = e.clientY - boxInspect.lastY;
+      boxInspect.lastX = e.clientX;
+      boxInspect.lastY = e.clientY;
+      if (boxInspect.panning || e.shiftKey) {
+        boxInspect.panX += dx;
+        boxInspect.panY += dy;
+      } else {
+        boxInspect.rotY += dx * 0.45;
+        boxInspect.rotX = Math.max(-80, Math.min(42, boxInspect.rotX + dy * 0.38));
+      }
+      boxInspect.apply();
+    };
+
+    const onUp = () => {
+      if (!boxInspect.dragging) return;
+      boxInspect.dragging = false;
+      boxInspect.panning = false;
+      isoBoxStage.classList.remove('is-orbiting');
+    };
+
+    packagingOverlay.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+
+    packagingOverlay.addEventListener('wheel', (e) => {
+      if (!boxInspect.ready || boxInspect.locked || isGrading) return;
+      e.preventDefault();
+      const next = boxInspect.scale + (e.deltaY > 0 ? -0.08 : 0.08);
+      boxInspect.scale = Math.max(0.55, Math.min(2.2, next));
+      isoBoxStage.classList.add('is-orbiting');
+      boxInspect.apply();
+    }, { passive: false });
+
+    packagingOverlay.addEventListener('dblclick', (e) => {
+      if (!boxInspect.ready || boxInspect.locked || isGrading) return;
+      if (e.target.closest(BOX_UI_SELECTOR)) return;
+      isoBoxStage.classList.remove('is-orbiting');
+      boxInspect.reset(BOX_POSE_READ.rx, BOX_POSE_READ.ry, readingScale(), true);
+    });
+  }
+
+  function clearPackTimers() {
+    packTimers.forEach((id) => clearTimeout(id));
+    packTimers = [];
+  }
+
+  function later(ms, fn) {
+    packTimers.push(setTimeout(fn, ms));
+  }
+
   function startPackagingRitual() {
     if (isPackaging) return;
     isPackaging = true;
+    clearPackTimers();
+    exitGradeMode(false);
+    setLabelPeeled(false);
+    boxInspect.locked = false;
 
     if (packagingOverlay) {
       packagingOverlay.style.display = 'flex';
+      packagingOverlay.setAttribute('aria-hidden', 'false');
+    }
+    if (isoBoxStage) {
+      isoBoxStage.classList.remove('hero-angle', 'inspectable', 'is-orbiting');
+      boxInspect.reset(BOX_POSE_PACK.rx, BOX_POSE_PACK.ry, BOX_POSE_PACK.scale, false);
+    }
+    if (packInspectHint) packInspectHint.classList.remove('is-visible');
+    if (packedManualBook) packedManualBook.className = 'packed-manual-book';
+    if (isoBox3d) isoBox3d.className = 'iso-box-3d';
+
+    if (motionOff()) {
+      if (packedManualBook) packedManualBook.classList.add('dropped-in');
+      if (isoBox3d) isoBox3d.classList.add('closing-sides', 'closing-flaps', 'taped', 'labeled');
+      if (isoBoxStage) {
+        isoBoxStage.classList.add('hero-angle', 'inspectable');
+        boxInspect.reset(BOX_POSE_READ.rx, BOX_POSE_READ.ry, readingScale(), true);
+      }
+      if (packInspectHint) packInspectHint.classList.add('is-visible');
+      return;
     }
 
-    if (boxContainer && miniPackedBook) {
-      boxContainer.className = 'box-container';
-      miniPackedBook.className = 'mini-packed-book';
-
-      // 1. Descenso del manual dentro de la caja (400ms)
-      setTimeout(() => {
-        miniPackedBook.classList.add('inserted');
-      }, 400);
-
-      // 2. Plegado de solapas (1100ms)
-      setTimeout(() => {
-        boxContainer.classList.add('closing-flaps');
-      }, 1100);
-
-      // 3. Sellado del cuerpo exterior (1700ms)
-      setTimeout(() => {
-        boxContainer.classList.add('sealed');
-      }, 1700);
-
-      // 4. Encintado transversal con cinta adhesiva (2200ms)
-      setTimeout(() => {
-        boxContainer.classList.add('taped');
-        if (canvasEngine) {
-          canvasEngine.addRipple(window.innerWidth * 0.5, window.innerHeight * 0.5, 300, 'rgba(180, 83, 9, 0.35)');
-        }
-      }, 2200);
-
-      // 5. Estampado de la etiqueta logística oficial (2800ms)
-      setTimeout(() => {
-        boxContainer.classList.add('labeled');
-      }, 2800);
-    }
+    later(180, () => {
+      if (packedManualBook) packedManualBook.classList.add('dropped-in');
+    });
+    later(920, () => {
+      if (canvasEngine) {
+        canvasEngine.addRipple(window.innerWidth * 0.5, window.innerHeight * 0.46, 320, 'rgba(194, 65, 12, 0.32)');
+      }
+      if (isoBox3d) isoBox3d.classList.add('closing-sides');
+    });
+    later(1480, () => {
+      if (isoBox3d) isoBox3d.classList.add('closing-flaps');
+    });
+    later(2080, () => {
+      if (isoBox3d) isoBox3d.classList.add('taped');
+      if (canvasEngine) {
+        canvasEngine.addRipple(window.innerWidth * 0.5, window.innerHeight * 0.46, 200, 'rgba(180, 83, 9, 0.28)');
+      }
+    });
+    later(2580, () => {
+      if (isoBox3d) isoBox3d.classList.add('labeled');
+      if (isoBoxStage) {
+        isoBoxStage.classList.add('hero-angle', 'inspectable');
+        boxInspect.reset(BOX_POSE_READ.rx, BOX_POSE_READ.ry, readingScale(), true);
+      }
+      if (packInspectHint) packInspectHint.classList.add('is-visible');
+      if (canvasEngine) {
+        canvasEngine.addRipple(window.innerWidth * 0.5, window.innerHeight * 0.46, 140, 'rgba(21, 128, 61, 0.28)');
+      }
+    });
   }
 
   function reopenManual() {
+    clearPackTimers();
     if (packagingOverlay) {
       packagingOverlay.style.display = 'none';
+      packagingOverlay.setAttribute('aria-hidden', 'true');
     }
     isPackaging = false;
+    exitGradeMode(false);
+    setLabelPeeled(false);
+    boxInspect.locked = false;
+    if (packedManualBook) packedManualBook.className = 'packed-manual-book';
+    if (isoBox3d) isoBox3d.className = 'iso-box-3d';
+    if (isoBoxStage) {
+      isoBoxStage.classList.remove('hero-angle', 'inspectable', 'is-orbiting');
+      boxInspect.reset(BOX_POSE_PACK.rx, BOX_POSE_PACK.ry, BOX_POSE_PACK.scale, false);
+    }
+    if (packInspectHint) packInspectHint.classList.remove('is-visible');
     if (isBookClosed) {
       openBook();
     } else {
-      renderSlide(currentIndex, 'none');
+      renderSlide(currentIndex, 'none', false);
     }
   }
 
@@ -626,6 +1270,8 @@
     inicializarDropdown();
     inicializarPills();
     initDragToFlip();
+    initBoxInspect();
+    initBoxRitualUI();
   }
 
   function inicializarDropdown() {
@@ -651,14 +1297,19 @@
       pill.addEventListener('click', () => {
         if (isBookClosed) openBook();
         const dir = idx > currentIndex ? 'right' : 'left';
-        renderSlide(idx, dir);
+        flipToSlide(idx, dir);
       });
       slidePills.appendChild(pill);
     });
   }
 
-  function renderSlide(index, direction) {
+  function renderSlide(index, direction, usePageTurn = true) {
     if (index < 0 || index >= slides.length) return;
+    if (usePageTurn && !isBookClosed && index !== currentIndex) {
+      flipToSlide(index, direction);
+      return;
+    }
+
     currentIndex = index;
     const slide = slides[currentIndex];
 
@@ -667,35 +1318,8 @@
     }
 
     updatePageStackDepth(currentIndex);
-
-    currentSlideCard.innerHTML = `
-      <div class="slide-header">
-        <span class="slide-tag">${slide.tag || `Página ${currentIndex + 1}`}</span>
-        <h2 class="slide-title">${slide.title}</h2>
-        ${slide.subtitle ? `<p class="slide-subtitle">${slide.subtitle}</p>` : ''}
-      </div>
-      <div class="slide-body">
-        ${slide.content_html}
-      </div>
-    `;
-
-    slideCounter.textContent = `${currentIndex + 1} / ${slides.length}`;
-    selectSlide.value = currentIndex;
-    const progressRatio = (currentIndex + 1) / slides.length;
-    progressBar.style.transform = `scaleX(${progressRatio})`;
-
-    if (slidePills) {
-      const pills = slidePills.querySelectorAll('.slide-pill');
-      pills.forEach((p, idx) => {
-        p.classList.toggle('active', idx === currentIndex);
-      });
-    }
-
-    btnPrev.disabled = (currentIndex === 0);
-    btnNext.disabled = (currentIndex === slides.length - 1);
-
-    speakerText.textContent = slide.notes || "No hay notas adicionales para esta diapositiva.";
-
+    currentSlideCard.innerHTML = renderCardHTML(slide, currentIndex);
+    updateControlsUI();
     initSlideInteractiveBehaviors(slide.id);
   }
 
@@ -993,13 +1617,13 @@
       return;
     }
     if (currentIndex < slides.length - 1) {
-      renderSlide(currentIndex + 1, 'right');
+      flipToSlide(currentIndex + 1, 'right');
     }
   }
 
   function prevSlide() {
     if (currentIndex > 0) {
-      renderSlide(currentIndex - 1, 'left');
+      flipToSlide(currentIndex - 1, 'left');
     }
   }
 

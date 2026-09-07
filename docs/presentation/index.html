@@ -9,7 +9,7 @@
   <!-- Tipografía Editorial Paper Style: DM Serif Display (Titulares), Albert Sans (Texto & UI) y JetBrains Mono (Datos) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -54,40 +54,60 @@
       
       <!-- ESTADO 1: Tapa Dura Cerrada Inicial (Front Cover) -->
       <div class="book-cover-closed" id="book-cover-closed">
+        <div class="cover-front">
         <div class="book-spine" aria-hidden="true">
-          <span class="spine-text">PEF 2026 • Manual Técnico</span>
+          <div class="spine-rivet rivet-top"></div>
+          <span class="spine-text">PEF 2026 • MANUAL DE OPERACIONES</span>
+          <div class="spine-rivet rivet-bot"></div>
         </div>
         <div class="cover-inner">
-          <span class="cover-badge-tech">Opción 6 • Manual Técnico Oficial</span>
+          <div class="cover-top-meta">
+            <span class="cover-badge-tech">UBP 2026 • Cátedra de Programación Eficiente</span>
+            <span class="cover-doc-id">DOC-REF: PARCIAL-1-OPCION-6</span>
+          </div>
           <h2 class="cover-book-title">Optimizador de Inventario y Pedidos</h2>
-          <p class="cover-book-subtitle">Universidad Blas Pascal • Cátedra de Programación Eficiente</p>
+          <p class="cover-book-subtitle">Manual de Operaciones y Optimización Algorítmica a Gran Escala</p>
           <div class="cover-divider" aria-hidden="true"></div>
-          <p class="cover-book-desc">Defensa Oral de Ingeniería Algorítmica: Complejidad Teórica, Dualidad de Estrategias y Benchmarking Empírico a Gran Escala</p>
+          <p class="cover-book-desc">Defensa Oral de Ingeniería de Software: Dualidad de Estrategias (Línea Base vs. Modo Optimizado), Arquitectura Desacoplada, Big-O Formal y Benchmarking Empírico (718x de Aceleración Máxima).</p>
+          
           <div class="cover-specs-strip">
             <div class="cover-spec-cell">
-              <span class="spec-label">Escala real:</span>
-              <strong class="spec-val">10.000 Artículos</strong>
+              <span class="spec-label">Artículos Catálogo:</span>
+              <strong class="spec-val">10.000 SKUs</strong>
             </div>
             <div class="cover-spec-cell">
-              <span class="spec-label">Carga máxima:</span>
+              <span class="spec-label">Carga en Lote:</span>
               <strong class="spec-val">2.000 Pedidos</strong>
             </div>
             <div class="cover-spec-cell">
-              <span class="spec-label">Aceleración:</span>
-              <strong class="spec-val highlight-cyan">718x Global</strong>
+              <span class="spec-label">Búsqueda Hash:</span>
+              <strong class="spec-val highlight-cyan">O(1) Amortizado</strong>
+            </div>
+            <div class="cover-spec-cell">
+              <span class="spec-label">Speedup Récord:</span>
+              <strong class="spec-val highlight-terracotta">718.3x Global</strong>
             </div>
           </div>
-          <button type="button" class="btn btn-primary btn-open-book" id="btn-open-book">
-            <span>📖 Abrir Manual Técnico</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </button>
-          <div class="cover-hint">Haz clic en el botón, usa la flecha <kbd>→</kbd> o arrastra con el ratón para abrir</div>
+
+          <div class="cover-actions">
+            <button type="button" class="btn btn-primary btn-open-book" id="btn-open-book">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <span>Abrir Manual Técnico</span>
+            </button>
+            <span class="cover-hint">Presiona <kbd>Enter</kbd> o haz clic para ingresar al manual</span>
+          </div>
+        </div>
+        </div>
+        <div class="cover-inside" aria-hidden="true">
+          <span class="cover-inside-mark">MANUAL TÉCNICO • UBP 2026</span>
         </div>
       </div>
 
       <!-- ESTADO 2: Libro Abierto con Hojas Técnicas y Pila de Páginas -->
       <div class="book-opened" id="book-opened" style="display: none;">
+        <!-- Pliegue de lomo central y cinta marcapáginas -->
         <div class="book-spine-open" aria-hidden="true"></div>
+        <div class="book-ribbon-bookmark" aria-hidden="true"></div>
         <div class="book-pages-stack left" id="stack-left" aria-hidden="true"></div>
         
         <div class="book-page-container" id="book-page-container">
@@ -97,62 +117,255 @@
 
         <div class="book-pages-stack right" id="stack-right" aria-hidden="true"></div>
 
-        <!-- Hoja Flotante 3D para Animación y Gesto de Arrastre (Drag & Flip) -->
-        <div class="book-turning-sheet" id="book-turning-sheet" aria-hidden="true">
-          <div class="turning-sheet-front" id="turning-front"></div>
-          <div class="turning-sheet-back" id="turning-back"></div>
-          <div class="turning-sheet-shadow" id="turning-shadow"></div>
+        <!-- Hoja 3D articulada: tiras anidadas con contenido clonado y reverso de archivo -->
+        <div class="book-turning-leaf" id="book-turning-leaf" aria-hidden="true">
+          <div class="turning-cast-shadow" id="turning-cast-shadow"></div>
+          <div class="turning-mesh" id="turning-mesh" style="--strip-count: 12"></div>
         </div>
 
-        <!-- Asas Táctiles de Arrastre de Página -->
-        <div class="page-drag-handle right" id="drag-handle-right" title="Arrastra con el ratón hacia la izquierda para pasar página"></div>
-        <div class="page-drag-handle left" id="drag-handle-left" title="Arrastra con el ratón hacia la derecha para volver"></div>
-      </div>
-
-      <!-- ESTADO 3: Ritual Cinemático de Empaquetado en Caja Kraft -->
-      <div class="packaging-ritual-overlay" id="packaging-overlay" style="display: none;" aria-hidden="true">
-        <div class="packaging-scene">
-          <div class="box-container" id="box-container">
-            <!-- Solapas articuladas 3D -->
-            <div class="box-flap box-flap-back"></div>
-            <div class="box-flap box-flap-left" id="flap-left"></div>
-            <div class="box-flap box-flap-right" id="flap-right"></div>
-            <div class="box-flap box-flap-front"></div>
-            
-            <!-- Interior de la caja donde entra el libro -->
-            <div class="box-interior">
-              <div class="mini-packed-book" id="mini-packed-book">
-                <span class="mini-book-title">Manual Técnico • PEF 2026</span>
-              </div>
-            </div>
-
-            <!-- Cuerpo exterior de la caja Kraft -->
-            <div class="box-body">
-              <div class="box-tape-track">
-                <div class="box-tape-strip" id="box-tape-strip"></div>
-              </div>
-              <div class="box-shipping-label" id="box-shipping-label">
-                <div class="label-header">
-                  <span class="label-brand">ALMACÉN LOGÍSTICO UBP</span>
-                  <span class="label-status">DESPACHADO</span>
-                </div>
-                <div class="label-barcode">||| | |||| || ||| |||| | |||</div>
-                <div class="label-meta">
-                  <div><strong>ORDEN:</strong> PEF-2026-OPCION-6</div>
-                  <div><strong>DESTINO:</strong> TRIBUNAL EVALUADOR</div>
-                  <div><strong>RESULTADO:</strong> 718x ACELERACIÓN MÁXIMA</div>
-                </div>
-                <button type="button" class="btn btn-sm btn-reopen" id="btn-reopen-book">
-                  <span>📖 Reabrir Manual (Preguntas del Tribunal)</span>
-                </button>
-              </div>
-            </div>
-          </div>
+        <!-- Indicadores y Asas Táctiles de Arrastre de Página -->
+        <div class="page-drag-handle right" id="drag-handle-right" title="Arrastra hacia la izquierda para pasar página">
+          <div class="page-curl-hint" aria-hidden="true"></div>
+        </div>
+        <div class="page-drag-handle left" id="drag-handle-left" title="Arrastra hacia la derecha para volver">
+          <div class="page-curl-hint" aria-hidden="true"></div>
         </div>
       </div>
 
     </div>
   </main>
+
+  <div class="packaging-ritual-overlay" id="packaging-overlay" style="display: none;" aria-hidden="true">
+        <div class="packaging-scene">
+          <div class="iso-box-stage" id="iso-box-stage">
+
+            <div class="iso-box-3d" id="iso-box-3d">
+
+              <div class="iso-face iso-bottom" aria-hidden="true">
+                <div class="cavity-ao"></div>
+              </div>
+              <div class="iso-face iso-inner-back" aria-hidden="true"></div>
+
+              <div class="iso-face iso-wall iso-back-wall">
+                <div class="iso-flap iso-flap-back" id="iso-flap-back"></div>
+              </div>
+
+              <div class="iso-face iso-wall iso-left-wall">
+                <div class="iso-flap iso-flap-left" id="iso-flap-left"></div>
+              </div>
+
+              <div class="iso-face iso-wall iso-right-wall">
+                <div class="side-spec-item">UBP-COR-LOGISTICS</div>
+                <div class="side-barcode" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="side-spec-item">LATENCIA: 0.05ms</div>
+                <div class="iso-flap iso-flap-right" id="iso-flap-right"></div>
+              </div>
+
+              <div class="packed-manual-book" id="packed-manual-book">
+                <div class="packed-book-spine"></div>
+                <div class="packed-book-face">
+                  <div class="packed-book-crest">UBP 2026</div>
+                  <div class="packed-book-title">MANUAL TÉCNICO DE OPERACIONES</div>
+                  <div class="packed-book-metric">718x ACELERACIÓN GLOBAL</div>
+                </div>
+              </div>
+
+              <div class="iso-face iso-wall iso-front-wall">
+                <div class="iso-front-main">
+                  <div class="warehouse-symbols" aria-hidden="true">
+                    <div class="iso-stamp" title="Manejar con cuidado / Frágil">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 22h8"/><path d="M12 15v7"/><path d="M7 8a5 5 0 0 1 10 0c0 3.2-2.4 5-5 7-2.6-2-5-3.8-5-7z"/><path d="M12 2v3"/></svg>
+                      <span class="symbol-name">FRÁGIL</span>
+                    </div>
+                    <div class="iso-stamp" title="Este lado hacia arriba">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/><path d="M6 21h12"/></svg>
+                      <span class="symbol-name">ARRIBA</span>
+                    </div>
+                    <div class="iso-stamp" title="Mantener seco">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13a8 8 0 0 1 16 0"/><path d="M12 13v7"/><path d="M8 21h8"/><path d="M7 7c1.5-2 3-3 5-3s3.5 1 5 3"/></svg>
+                      <span class="symbol-name">SECO</span>
+                    </div>
+                  </div>
+                  <div class="box-signatures" id="box-signatures">
+                    <p class="sig-caption">Recibido y firmado<br>por el equipo</p>
+                    <div class="sig-roll">
+                      <p class="sig sig-edgar"><span>Edgar Karpowicz</span></p>
+                      <p class="sig sig-gaston"><span>Gastón Molina</span></p>
+                      <p class="sig sig-tomas"><span>Tomás Molina</span></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="iso-front-brand">
+                  <span class="brand-corp">CENTRO DE DISTRIBUCIÓN UBP</span>
+                  <span class="brand-batch">EXPEDICIÓN: PEF-2026-PARCIAL-1</span>
+                </div>
+                <div class="iso-flap iso-flap-front" id="iso-flap-front"></div>
+                <div class="iso-label-hinge" id="iso-label-hinge">
+                  <div class="iso-shipping-label" id="iso-shipping-label">
+                    <button type="button" class="label-peel-tab" id="btn-peel-label" aria-expanded="false" aria-controls="box-signatures">Levantar guía</button>
+                    <div class="label-header">
+                      <div class="label-title">GUÍA OFICIAL DE EXPEDICIÓN</div>
+                      <span class="label-badge-priority">PRIORIDAD A1</span>
+                    </div>
+                    <div class="label-routing-grid">
+                      <div class="routing-cell">
+                        <span class="rc-tag">REMITENTE:</span>
+                        <strong class="rc-name">Laboratorio Algorítmico UBP</strong>
+                        <span class="rc-detail">Cátedra Programación Eficiente</span>
+                      </div>
+                      <div class="routing-cell">
+                        <span class="rc-tag">DESTINATARIO:</span>
+                        <strong class="rc-name">Tribunal Evaluador</strong>
+                        <span class="rc-detail">Defensa Oral Primer Parcial</span>
+                      </div>
+                    </div>
+                    <div class="label-kpis-strip">
+                      <div class="kpi-cell">
+                        <span class="kpi-lbl">Aceleración:</span>
+                        <strong class="kpi-val highlight">718.3x</strong>
+                      </div>
+                      <div class="kpi-cell">
+                        <span class="kpi-lbl">Catálogo:</span>
+                        <strong class="kpi-val">10.000 SKUs</strong>
+                      </div>
+                      <div class="kpi-cell">
+                        <span class="kpi-lbl">Búsqueda:</span>
+                        <strong class="kpi-val">O(1) Hash</strong>
+                      </div>
+                      <div class="kpi-cell">
+                        <span class="kpi-lbl">Dictamen:</span>
+                        <strong class="kpi-val status-ok">DESPACHADO</strong>
+                      </div>
+                    </div>
+                    <div class="label-actions-footer">
+                      <div class="label-barcode-zone">
+                        <svg class="barcode-svg" width="160" height="24" viewBox="0 0 160 24" fill="currentColor" aria-hidden="true">
+                          <rect x="0" y="0" width="3" height="24"/>
+                          <rect x="5" y="0" width="1" height="24"/>
+                          <rect x="8" y="0" width="4" height="24"/>
+                          <rect x="15" y="0" width="2" height="24"/>
+                          <rect x="20" y="0" width="5" height="24"/>
+                          <rect x="28" y="0" width="2" height="24"/>
+                          <rect x="33" y="0" width="3" height="24"/>
+                          <rect x="39" y="0" width="4" height="24"/>
+                          <rect x="46" y="0" width="2" height="24"/>
+                          <rect x="51" y="0" width="1" height="24"/>
+                          <rect x="55" y="0" width="6" height="24"/>
+                          <rect x="64" y="0" width="2" height="24"/>
+                          <rect x="69" y="0" width="4" height="24"/>
+                          <rect x="76" y="0" width="1" height="24"/>
+                          <rect x="80" y="0" width="5" height="24"/>
+                          <rect x="88" y="0" width="3" height="24"/>
+                          <rect x="94" y="0" width="2" height="24"/>
+                          <rect x="99" y="0" width="4" height="24"/>
+                          <rect x="106" y="0" width="1" height="24"/>
+                          <rect x="110" y="0" width="3" height="24"/>
+                          <rect x="116" y="0" width="5" height="24"/>
+                          <rect x="124" y="0" width="2" height="24"/>
+                          <rect x="129" y="0" width="4" height="24"/>
+                          <rect x="136" y="0" width="1" height="24"/>
+                          <rect x="140" y="0" width="3" height="24"/>
+                          <rect x="146" y="0" width="5" height="24"/>
+                          <rect x="154" y="0" width="2" height="24"/>
+                        </svg>
+                        <span class="barcode-text">*UBP-PEF-2026-718X*</span>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-reopen" id="btn-reopen-book">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <span>Reabrir Manual para Preguntas</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="iso-lid" id="iso-lid">
+                <div class="iso-tape-strip" id="iso-tape-strip">
+                  <span class="tape-text">SEALED • UBP PEF 2026 • AUDITADO DETERMINÍSTICO • 718x</span>
+                </div>
+                <button type="button" class="btn-puntuar" id="btn-puntuar">PUNTUAR</button>
+                <div class="grade-seal" id="grade-seal" hidden>
+                  <svg class="grade-seal-ring" viewBox="0 0 160 160" aria-hidden="true">
+                    <circle cx="80" cy="80" r="74" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                    <circle cx="80" cy="80" r="68" fill="none" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 4"/>
+                    <circle cx="80" cy="80" r="42" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                    <text class="seal-arc" x="80" y="36" text-anchor="middle">TRIBUNAL EVALUADOR</text>
+                    <text class="seal-arc seal-arc-bottom" x="80" y="132" text-anchor="middle">UBP · PEF 2026</text>
+                  </svg>
+                  <div class="grade-seal-core">
+                    <span class="grade-seal-label">NOTA</span>
+                    <span class="grade-seal-score" id="grade-seal-score">—</span>
+                  </div>
+                </div>
+                <div class="stamp-press" id="stamp-press" hidden>
+                  <div class="stamp-rig">
+                    <div class="stamp-3d">
+                      <div class="stamp-knob">
+                        <span class="stamp-cap"></span>
+                        <span class="stamp-slat" style="--r:0deg"></span>
+                        <span class="stamp-slat" style="--r:45deg"></span>
+                        <span class="stamp-slat" style="--r:90deg"></span>
+                        <span class="stamp-slat" style="--r:135deg"></span>
+                      </div>
+                      <div class="stamp-shaft">
+                        <span class="stamp-slat" style="--r:0deg"></span>
+                        <span class="stamp-slat" style="--r:30deg"></span>
+                        <span class="stamp-slat" style="--r:60deg"></span>
+                        <span class="stamp-slat" style="--r:90deg"></span>
+                        <span class="stamp-slat" style="--r:120deg"></span>
+                        <span class="stamp-slat" style="--r:150deg"></span>
+                      </div>
+                      <div class="stamp-collar">
+                        <span class="stamp-collar-cap"></span>
+                        <span class="stamp-slat" style="--r:0deg"></span>
+                        <span class="stamp-slat" style="--r:45deg"></span>
+                        <span class="stamp-slat" style="--r:90deg"></span>
+                        <span class="stamp-slat" style="--r:135deg"></span>
+                      </div>
+                      <div class="stamp-block">
+                        <span class="stamp-face stamp-block-front">
+                          <span class="stamp-press-note stamp-grade-num" id="stamp-press-note">9</span>
+                        </span>
+                        <span class="stamp-face stamp-block-back"></span>
+                        <span class="stamp-face stamp-block-left"></span>
+                        <span class="stamp-face stamp-block-right"></span>
+                        <span class="stamp-face stamp-block-top"></span>
+                        <span class="stamp-face stamp-block-bottom"></span>
+                      </div>
+                      <div class="stamp-die">
+                        <span class="stamp-face stamp-die-front">
+                          <span class="stamp-die-num stamp-grade-num">9</span>
+                        </span>
+                        <span class="stamp-face stamp-die-back"></span>
+                        <span class="stamp-face stamp-die-left"></span>
+                        <span class="stamp-face stamp-die-right"></span>
+                        <span class="stamp-face stamp-die-bottom"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="grade-dock" id="grade-dock" hidden>
+          <p class="grade-dock-copy">Elegí la nota del tribunal y sellá la caja</p>
+          <div class="grade-pads" id="grade-pads" role="group" aria-label="Nota del 1 al 10"></div>
+          <div class="grade-dock-actions">
+            <button type="button" class="btn btn-primary btn-seal" id="btn-stamp-confirm" disabled>Sellar caja</button>
+            <button type="button" class="btn btn-grade-cancel" id="btn-grade-cancel">Volver</button>
+          </div>
+        </div>
+        <div class="pack-tools">
+          <button type="button" class="btn-puntuar-hud" id="btn-puntuar-hud">PUNTUAR</button>
+          <p class="pack-inspect-hint" id="pack-inspect-hint">Arrastrá para rotar · Levantá la guía para firmar · PUNTUAR en la tapa</p>
+        </div>
+  </div>
 
   <!-- Modal Flotante de Notas para el Orador (Tecla N) -->
   <aside class="speaker-notes-modal" id="speaker-modal" role="dialog" aria-modal="false" aria-label="Guía para el orador" aria-hidden="true">

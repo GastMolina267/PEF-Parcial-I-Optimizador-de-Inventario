@@ -275,7 +275,7 @@ Esta sección la regenera la **Automatización 1** en cada push. El análisis fo
 <!-- No editar a mano: se regenera con `python -m automations.ejecutar --complejidad`. -->
 <!-- El comentario del grupo (secciones 1-8) permanece intacto por encima de este bloque. -->
 
-**Commit analizado:** `4b8d8c4` · **Generado:** 2026-09-07 13:37 UTC
+**Commit analizado:** `17e402b` · **Generado:** 2026-09-07 15:50 UTC
 
 Criterio: se recorrió el AST de cada función fundamental. Las cotas salen de
 bucles, accesos hash, recursión, `heapq`, memoización y `ProcessPoolExecutor`

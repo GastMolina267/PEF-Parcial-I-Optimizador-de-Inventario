@@ -72,9 +72,15 @@ def construir_comando(mode: str, debug: bool) -> list[str]:
     if pres_dir.exists():
         cmd.extend(["--add-data", f"{pres_dir}{sep}docs/presentation"])
 
+    # Colección completa de assets, datos (icons.json), metadatos y módulos de Flet
+    cmd.extend(["--collect-all", "flet"])
+    cmd.extend(["--copy-metadata", "flet"])
+    cmd.extend(["--collect-all", "flet_desktop"])
+
     # Hidden imports requeridos por Flet y multiproceso
     hidden_imports = [
         "flet",
+        "flet_desktop",
         "concurrent.futures",
         "multiprocessing",
         "src.motor.motor_inventario",
@@ -86,6 +92,8 @@ def construir_comando(mode: str, debug: bool) -> list[str]:
         "src.pedidos.combinaciones",
         "src.ranking.top_productos",
         "src.cache.cache_consultas",
+        "src.datos.cargador",
+        "src.datos.validador",
     ]
     for imp in hidden_imports:
         cmd.extend(["--hidden-import", imp])

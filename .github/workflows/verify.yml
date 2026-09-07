@@ -25,10 +25,10 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.11
+      - name: Configurar Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.14"
           cache: "pip"
 
       - name: Instalar herramientas de análisis
@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-        python-version: [ "3.10", "3.11", "3.12" ]
+        python-version: [ "3.14" ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -96,10 +96,10 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.11
+      - name: Configurar Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.14"
           cache: "pip"
 
       - name: Instalar dependencias del proyecto
@@ -115,6 +115,9 @@ jobs:
       - name: Validar integridad de datasets JSON
         run: |
           python -c "
+          import sys
+          if hasattr(sys.stdout, 'reconfigure'):
+              sys.stdout.reconfigure(encoding='utf-8')
           from pathlib import Path
           from src.datos.cargador import cargar_dataset
           from src.datos.validador import ValidadorDataset
@@ -135,6 +138,9 @@ jobs:
       - name: Validar presentación oral (cero delimitadores '$' y JSON válido)
         run: |
           python -c "
+          import sys
+          if hasattr(sys.stdout, 'reconfigure'):
+              sys.stdout.reconfigure(encoding='utf-8')
           import json
           from pathlib import Path
 

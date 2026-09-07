@@ -28,6 +28,7 @@ from src.datos.cargador import (
     cargar_dataset_json,
     validar_dataset,
 )
+from src.datos.validador import ValidadorDataset
 from src.motor.motor_inventario import MotorInventario
 from benchmarks.generar_datos import generar_dataset_sintetico, crear_dataset_demo_oral
 
@@ -122,6 +123,16 @@ class TestCargadorYDatasets:
         }
         with pytest.raises(ValueError, match="duplicado"):
             validar_dataset(datos_duplicados)
+
+    def test_validador_dataset_clase(self):
+        ruta = DATASETS_DIR / "demo_oral.json"
+        productos, pedidos = cargar_dataset_json(ruta)
+        validador = ValidadorDataset(productos, pedidos)
+        res = validador.validar_todo()
+        assert res.es_valido
+        assert res.total_productos == 30
+        assert res.total_pedidos == 8
+        assert len(res.errores) == 0
 
 
 class TestCatalogoLineal:

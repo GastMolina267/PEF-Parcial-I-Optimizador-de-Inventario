@@ -12,10 +12,8 @@ Cierre general de la Etapa 3: alternancia dinámica de estrategias sobre los mis
 
 from __future__ import annotations
 from pathlib import Path
-import pytest
 
 from src.modelos.producto import Producto
-from src.modelos.pedido import Pedido, LineaPedido, EstadoPedido
 from src.inventario.catalogo_lineal import CatalogoLineal
 from src.inventario.catalogo_hash import CatalogoHash
 from src.ranking.top_productos import (
@@ -26,7 +24,7 @@ from src.pedidos.agrupador import agrupar_pedidos_batch
 from src.pedidos.combinaciones import BuscadorAlternativas
 from src.pedidos.procesador_secuencial import procesar_pedidos_secuencial
 from src.pedidos.procesador_concurrente import procesar_pedidos_concurrente
-from src.cache.cache_consultas import CacheLRU, GestorCacheConsultas
+from src.cache.cache_consultas import GestorCacheConsultas
 from src.datos.cargador import cargar_dataset_json
 from src.motor.motor_inventario import MotorInventario
 

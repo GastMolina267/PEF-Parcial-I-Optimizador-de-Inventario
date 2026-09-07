@@ -20,13 +20,9 @@ import pytest
 import flet as ft
 
 from src.motor.motor_inventario import MotorInventario
-from src.datos.cargador import cargar_dataset_json
 from src.ui.tema import (
     crear_badge_estado,
     crear_tarjeta_kpi,
-    COLOR_EXITO,
-    COLOR_ADVERTENCIA,
-    COLOR_PELIGRO,
 )
 from src.ui.componentes.panel_estado import PanelEstado
 from src.ui.pantallas.inicio import PantallaInicio

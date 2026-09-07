@@ -11,7 +11,7 @@ Compara:
 
 from __future__ import annotations
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Sequence
 from src.modelos.producto import Producto
 

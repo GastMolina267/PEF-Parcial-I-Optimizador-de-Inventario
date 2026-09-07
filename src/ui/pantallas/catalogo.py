@@ -208,9 +208,34 @@ class PantallaCatalogo(ft.Container):
         self._mostrar_todos()
 
     def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
-        """Sincroniza el switch local cuando cambia la estrategia global."""
-        self.switch_estrategia_local.value = (nueva_estrategia == "optimizado")
-        actualizar_control(self.switch_estrategia_local)
+        """Sincroniza el switch local y el badge cuando cambia la estrategia global."""
+        if hasattr(self, "switch_estrategia_local") and self.switch_estrategia_local:
+            self.switch_estrategia_local.value = (nueva_estrategia == "optimizado")
+            actualizar_control(self.switch_estrategia_local)
+
+        if hasattr(self, "badge_estrategia") and self.badge_estrategia:
+            es_opt = (nueva_estrategia == "optimizado")
+            color_badge = COLOR_EXITO if es_opt else COLOR_ADVERTENCIA
+            self.badge_estrategia.content = ft.Row(
+                controls=[
+                    ft.Icon(
+                        ft.Icons.BOLT_ROUNDED if es_opt else ft.Icons.LIST_ALT_ROUNDED,
+                        size=15,
+                        color=color_badge,
+                    ),
+                    ft.Text(
+                        "Búsqueda Hash O(1) con LRU" if es_opt else "Búsqueda Lineal O(n)",
+                        size=12,
+                        weight=ft.FontWeight.BOLD,
+                        color=color_badge,
+                    ),
+                ],
+                spacing=5,
+                tight=True,
+            )
+            self.badge_estrategia.border = borde_all(1, color_badge)
+            actualizar_control(self.badge_estrategia)
+
 
     def _al_cambiar_switch(self, e):
         nueva = "optimizado" if self.switch_estrategia_local.value else "baseline"
@@ -365,27 +390,4 @@ class PantallaCatalogo(ft.Container):
         self.col_productos.controls = items
         actualizar_control(self)
 
-    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
-        """Sincroniza el badge de estrategia cuando el switch superior conmuta."""
-        es_opt = (nueva_estrategia == "optimizado")
-        color_badge = COLOR_EXITO if es_opt else COLOR_ADVERTENCIA
-        self.badge_estrategia.content = ft.Row(
-            controls=[
-                ft.Icon(
-                    ft.Icons.BOLT_ROUNDED if es_opt else ft.Icons.LIST_ALT_ROUNDED,
-                    size=15,
-                    color=color_badge,
-                ),
-                ft.Text(
-                    "Búsqueda Hash O(1) con LRU" if es_opt else "Búsqueda Lineal O(n)",
-                    size=12,
-                    weight=ft.FontWeight.BOLD,
-                    color=color_badge,
-                ),
-            ],
-            spacing=5,
-            tight=True,
-        )
-        self.badge_estrategia.border = borde_all(1, color_badge)
-        actualizar_control(self.badge_estrategia)
 

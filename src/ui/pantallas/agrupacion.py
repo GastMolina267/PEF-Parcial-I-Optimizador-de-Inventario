@@ -19,7 +19,6 @@ from src.ui.tema import (
     padding_symmetric,
     crear_tarjeta_kpi,
     crear_banner_explicativo,
-    crear_badge_tiempo,
     crear_dropdown,
 )
 

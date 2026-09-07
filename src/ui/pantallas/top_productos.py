@@ -21,7 +21,6 @@ from src.ui.tema import (
     padding_symmetric,
     crear_tarjeta_kpi,
     crear_banner_explicativo,
-    crear_badge_tiempo,
     crear_dropdown,
 )
 
@@ -208,7 +207,7 @@ class PantallaTopProductos(ft.Container):
         self.fila_kpis.controls = [
             crear_tarjeta_kpi("Productos en Ranking", f"{len(resultados)} / {k}", f"Top-{k} solicitado", ft.Icons.LEADERBOARD, COLOR_PRIMARIO),
             crear_tarjeta_kpi("Demanda Acumulada", f"{demanda_total_top:,}", "Unidades requeridas", ft.Icons.TRENDING_UP, COLOR_EXITO),
-            crear_tarjeta_kpi("Tiempo de Cómputo", f"{duracion_ms:.3f} ms", f"Algoritmo: {metodo.upper()}", ft.Icons.SPEED, COLOR_SECUNDARIO),
+            crear_tarjeta_kpi("Tiempo de Cómputo", f"{duracion_ms:.3f} ms", alg_desc, ft.Icons.SPEED, COLOR_SECUNDARIO),
             crear_tarjeta_kpi("Cota de Complejidad", "O(N log k)" if metodo == "heap" else "O(N log N)", "Consumo acotado a k" if metodo == "heap" else "Ordena universo N", ft.Icons.MEMORY, COLOR_PRIMARIO),
         ]
 

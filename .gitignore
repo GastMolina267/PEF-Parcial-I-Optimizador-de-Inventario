@@ -27,3 +27,13 @@ Desktop.ini
 *.prof
 *.lprof
 mprofile_*.dat
+coverage.xml
+
+# Compilación y Empaquetado (PyInstaller, Build, Wheels)
+build/
+dist/
+*.spec
+*.egg-info/
+*.egg
+.eggs/
+

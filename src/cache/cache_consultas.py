@@ -100,6 +100,11 @@ class GestorCacheConsultas:
         self._cache_categorias = CacheLRU[list[Producto]](capacidad_busquedas)
         self._cache_top_n = CacheLRU[list[tuple[Producto, int]]](capacidad_ranking)
 
+    @property
+    def metricas(self) -> MetricasCache:
+        """Métricas operativas de la partición de búsqueda de texto."""
+        return self._cache_busquedas.metricas
+
     # --- Búsquedas por nombre ---
     def obtener_busqueda_nombre(self, texto: str) -> list[Producto] | None:
         """Obtiene el resultado almacenado para una búsqueda por texto."""

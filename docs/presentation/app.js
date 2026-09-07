@@ -79,7 +79,7 @@
     "tag": "09. RESULTADOS EXPERIMENTALES",
     "title": "Tabla Comparativa Oficial de la Rúbrica",
     "subtitle": "Mediciones empíricas sobre el dataset grande (10.000 productos, 2.000 pedidos)",
-    "content_html": "<div class='tabs-container' data-tabs='benchmark-tabs'><div class='tab-nav'><button class='tab-btn active' data-tab='tab-bench-table'>📋 Tabla Comparativa Oficial de la Cátedra</button><button class='tab-btn' data-tab='tab-bench-chart'>📊 Gráfico Visual de Aceleración (Speedup)</button></div><div class='tab-pane active' id='tab-bench-table'><div class='table-container'><table class='benchmark-table'><thead><tr><th>Versión Evaluada</th><th>Tiempo Ejecución</th><th>Memoria Heap</th><th>Aceleración (Speedup)</th><th>Observación Algorítmica</th></tr></thead><tbody><tr class='row-base'><td><strong>1. Implementación Inicial (Baseline)</strong></td><td>804.39 ms</td><td>45.2 MB</td><td>1.0x (Referencia)</td><td>Catálogo lineal O(n), ordenamiento total sort() y recursión pura.</td></tr><tr class='row-opt'><td><strong>2. Estructura Optimizada (Hash)</strong></td><td>29.80 ms</td><td>52.4 MB</td><td><strong class='highlight-green'>🚀 27.0x</strong></td><td>Diccionario hash O(1). En búsquedas individuales el speedup supera <strong>260x</strong>.</td></tr><tr class='row-opt'><td><strong>3. Algoritmo Optimizado (Heap + DP)</strong></td><td>0.85 ms</td><td>48.1 MB</td><td><strong class='highlight-green'>🚀 > 100x</strong></td><td>Min-Heap O(N log k) en Top-N y memoización O(N · P) en sustitutos.</td></tr><tr class='row-warn'><td><strong>4. Concurrencia (ProcessPool)</strong></td><td>848.12 ms</td><td>118.6 MB</td><td><span class='highlight-orange'>🐢 0.95x</span></td><td>Overhead de IPC y serialización de 10.000 objetos supera el cómputo en RAM.</td></tr><tr class='row-final'><td><strong>5. Versión Final Integrada</strong></td><td><strong>1.12 ms</strong></td><td>52.8 MB</td><td><strong class='highlight-green'>🚀 718x Global</strong></td><td>Hash O(1) + Min-Heap + DP Memoizada + Caché LRU reactiva mono-hilo.</td></tr></tbody></table></div></div><div class='tab-pane' id='tab-bench-chart'><div class='chart-card'><div class='chart-header-row'><h4>Comparativa de Tiempos de Ejecución (Dataset Grande - Escala Logarítmica)</h4><span class='chart-sub-tag'>Menor tiempo = Mayor eficiencia</span></div><div class='speedup-bars-list'><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>1. Baseline Inicial</span><span class='bar-time'>804.39 ms</span></div><div class='bar-track'><div class='bar-fill fill-baseline' style='width: 95%'></div></div><span class='bar-speedup-tag base'>1.0x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>2. Estructura Hash O(1)</span><span class='bar-time'>29.80 ms</span></div><div class='bar-track'><div class='bar-fill fill-opt' style='width: 25%'></div></div><span class='bar-speedup-tag success'>27.0x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>3. Min-Heap + DP</span><span class='bar-time'>0.85 ms</span></div><div class='bar-track'><div class='bar-fill fill-opt' style='width: 5%'></div></div><span class='bar-speedup-tag success'>> 100x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>4. Concurrencia (ProcessPool)</span><span class='bar-time'>848.12 ms</span></div><div class='bar-track'><div class='bar-fill fill-warn' style='width: 100%'></div></div><span class='bar-speedup-tag warn'>0.95x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title highlight-cyan'>5. Versión Final Integrada</span><span class='bar-time highlight-green'>1.12 ms</span></div><div class='bar-track'><div class='bar-fill fill-final' style='width: 6%'></div></div><span class='bar-speedup-tag rocket'>🚀 718x Global</span></div></div></div></div></div>",
+    "content_html": "<div class='tabs-container' data-tabs='benchmark-tabs'><div class='tab-nav'><button class='tab-btn active' data-tab='tab-bench-table'>📋 Tabla Comparativa Oficial de la Cátedra</button><button class='tab-btn' data-tab='tab-bench-chart'>📊 Gráfico Visual de Aceleración (Speedup)</button></div><div class='tab-pane active' id='tab-bench-table'><div class='table-container'><table class='benchmark-table'><thead><tr><th>Versión Evaluada</th><th>Tiempo Ejecución</th><th>Memoria Heap</th><th>Aceleración (Speedup)</th><th>Observación Algorítmica</th></tr></thead><tbody><tr class='row-base'><td><strong>1. Implementación Inicial (Baseline)</strong></td><td>804.39 ms</td><td>45.2 MB</td><td>1.0x (Referencia)</td><td>Catálogo lineal O(n), ordenamiento total sort() y recursión pura.</td></tr><tr class='row-opt'><td><strong>2. Estructura Optimizada (Hash)</strong></td><td>29.80 ms</td><td>52.4 MB</td><td><strong class='highlight-green'>🚀 27.0x</strong></td><td>Diccionario hash O(1). En búsquedas individuales el speedup supera <strong>260x</strong>.</td></tr><tr class='row-opt'><td><strong>3. Algoritmo Optimizado (Heap + DP)</strong></td><td>0.85 ms</td><td>48.1 MB</td><td><strong class='highlight-green'>🚀 > 100x</strong></td><td>Min-Heap O(N log k) en Top-N y memoización O(N · P) en sustitutos.</td></tr><tr class='row-warn'><td><strong>4. Concurrencia (ProcessPool)</strong></td><td>848.12 ms</td><td>118.6 MB</td><td><span class='highlight-orange'>🐢 0.95x</span></td><td>Overhead de IPC y serialización de 10.000 objetos supera el cómputo en RAM.</td></tr><tr class='row-final'><td><strong>5. Versión Final Integrada</strong></td><td><strong>1.12 ms</strong></td><td>52.8 MB</td><td><strong class='highlight-green'>🚀 718x Global</strong></td><td>Hash O(1) + Min-Heap + DP Memoizada + Caché LRU reactiva mono-hilo.</td></tr></tbody></table></div></div><div class='tab-pane' id='tab-bench-chart'><div class='chart-card'><div class='chart-header-row'><h4>Comparativa de Tiempos de Ejecución (Dataset Grande - Escala Logarítmica)</h4><span class='chart-sub-tag'>Menor tiempo = Mayor eficiencia</span></div><div class='speedup-bars-list'><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>1. Baseline Inicial</span><span class='bar-time'>804.39 ms</span></div><div class='bar-track'><div class='bar-fill fill-baseline' style='width: 99.3%'></div></div><span class='bar-speedup-tag base'>1.0x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>2. Estructura Hash O(1)</span><span class='bar-time'>29.80 ms</span></div><div class='bar-track'><div class='bar-fill fill-opt' style='width: 55.0%'></div></div><span class='bar-speedup-tag success'>27.0x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>3. Min-Heap + DP</span><span class='bar-time'>0.85 ms</span></div><div class='bar-track'><div class='bar-fill fill-opt' style='width: 7.1%'></div></div><span class='bar-speedup-tag success'>> 100x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title'>4. Concurrencia (ProcessPool)</span><span class='bar-time'>848.12 ms</span></div><div class='bar-track'><div class='bar-fill fill-warn' style='width: 100.0%'></div></div><span class='bar-speedup-tag warn'>0.95x</span></div><div class='speedup-bar-row'><div class='bar-label-group'><span class='bar-title highlight-cyan'>5. Versión Final Integrada</span><span class='bar-time highlight-green'>1.12 ms</span></div><div class='bar-track'><div class='bar-fill fill-final' style='width: 10.8%'></div></div><span class='bar-speedup-tag rocket'>🚀 718x Global</span></div></div></div></div></div>",
     "notes": "Esta diapositiva cumple al 100% con la tabla obligatoria de la consigna. Explicar claramente cada fila y cómo la versión final integrada maximiza la eficiencia global alcanzando 718x de aceleración."
   },
   {
@@ -125,6 +125,8 @@
   const btnCloseShortcuts = document.getElementById('btn-close-shortcuts');
   const timerDisplay = document.getElementById('timer-display');
   const btnTimer = document.getElementById('btn-timer');
+  const btnMotion = document.getElementById('btn-motion');
+  const motionLabel = document.getElementById('motion-label');
   const slidePills = document.getElementById('slide-pills');
   const bgCanvas = document.getElementById('bg-canvas');
 
@@ -145,6 +147,7 @@
   const isoBox3d = document.getElementById('iso-box-3d');
   const isoBoxStage = document.getElementById('iso-box-stage');
   const btnReopenBook = document.getElementById('btn-reopen-book');
+  const btnReopenHud = document.getElementById('btn-reopen-hud');
   const btnPackPresentation = document.getElementById('btn-pack-presentation');
   const packInspectHint = document.getElementById('pack-inspect-hint');
   const btnPuntuar = document.getElementById('btn-puntuar');
@@ -158,8 +161,39 @@
   const gradeSealScore = document.getElementById('grade-seal-score');
   const stampPress = document.getElementById('stamp-press');
   const stampPressNote = document.getElementById('stamp-press-note');
+  const MOTION_STORAGE_KEY = 'pef-presentation-force-motion';
   const reduceMotionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const motionOff = () => reduceMotionMq.matches;
+  const motionForced = () => document.documentElement.classList.contains('force-motion');
+  const motionOff = () => reduceMotionMq.matches && !motionForced();
+
+  function syncMotionButton() {
+    if (!btnMotion) return;
+    const animationsOn = !motionOff();
+    btnMotion.classList.toggle('is-on', animationsOn);
+    btnMotion.classList.toggle('is-off', !animationsOn);
+    btnMotion.setAttribute('aria-pressed', animationsOn ? 'true' : 'false');
+    if (motionLabel) {
+      motionLabel.textContent = animationsOn ? 'Animaciones' : 'Sin animación';
+    }
+    btnMotion.title = animationsOn
+      ? 'Animaciones activas. Clic para respetar la preferencia del sistema (Atajo: M)'
+      : 'Windows apagó las animaciones del sistema. Clic para forzarlas en la defensa (Atajo: M)';
+  }
+
+  function setForceMotion(enabled) {
+    document.documentElement.classList.toggle('force-motion', enabled);
+    try {
+      sessionStorage.setItem(MOTION_STORAGE_KEY, enabled ? '1' : '0');
+    } catch (e) {}
+    if (typeof canvasEngine !== 'undefined' && canvasEngine) {
+      canvasEngine.setReducedMotion(motionOff());
+    }
+    syncMotionButton();
+  }
+
+  function toggleForceMotion() {
+    setForceMotion(!motionForced());
+  }
 
   // ==========================================================================
   // MOTOR CANVAS REACTIVO Y CINÉTICO (PAPER STYLE BACKGROUND ENGINE)
@@ -178,7 +212,8 @@
       this.mouse = { x: -1000, y: -1000, active: false };
       this.time = 0;
       this.orbitFocus = null;
-      this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.looping = false;
+      this.reducedMotion = motionOff();
 
       this.initDimensions();
       this.initParticles();
@@ -448,14 +483,28 @@
       this.ctx.restore();
     }
 
+    setReducedMotion(off) {
+      this.reducedMotion = off;
+      if (!off) this.startLoop();
+    }
+
     startLoop() {
       if (this.reducedMotion) {
+        this.looping = false;
         this.update();
         this.draw();
         return;
       }
+      if (this.looping) return;
+      this.looping = true;
 
       const loop = () => {
+        if (this.reducedMotion) {
+          this.looping = false;
+          this.update();
+          this.draw();
+          return;
+        }
         this.update();
         this.draw();
         requestAnimationFrame(loop);
@@ -773,7 +822,7 @@
 
     const onDown = (e) => {
       if (isBookClosed || isPackaging || isFlipping || motionOff()) return;
-      if (e.target.closest('button, input, select, textarea, a, .tab-btn, .ipc-seg, .struct-card')) return;
+      if (e.target.closest('button, input, select, textarea, a, .tab-btn, .tab-nav, .tabs-container, .ipc-seg, .struct-card')) return;
       dragging = true;
       armed = false;
       startX = e.clientX;
@@ -917,10 +966,10 @@
   const BOX_POSE_PACK = { rx: 22, ry: -34, scale: 1 };
   const BOX_POSE_READ = { rx: 8, ry: -4, scale: 1.16 };
   const BOX_POSE_PEEL = { rx: 20, ry: -10, scale: 1.3 };
-  const BOX_POSE_ZENITH = { rx: -58, ry: 12, scale: 1.45 };
-  const BOX_POSE_STRIKE = { rx: -16, ry: 38, scale: 1.7 };
-  const BOX_POSE_SEALED = { rx: -26, ry: -16, scale: 1.22 };
-  const BOX_UI_SELECTOR = '#btn-reopen-book, #btn-puntuar, #btn-puntuar-hud, #btn-peel-label, #btn-stamp-confirm, #btn-grade-cancel, .grade-pad, .grade-dock, .iso-label-hinge, .iso-shipping-label, button, a, input';
+  const BOX_POSE_ZENITH = { rx: -72, ry: 8, scale: 1.48 };
+  const BOX_POSE_STRIKE = { rx: -18, ry: 44, scale: 1.56 };
+  const BOX_POSE_SEALED = { rx: -48, ry: -18, scale: 1.32 };
+  const BOX_UI_SELECTOR = '#btn-reopen-book, #btn-reopen-hud, #btn-puntuar, #btn-puntuar-hud, #btn-peel-label, #btn-stamp-confirm, #btn-grade-cancel, .grade-pad, .grade-dock, .iso-label-hinge, .iso-shipping-label, button, a, input';
 
   let isGrading = false;
   let pendingGrade = null;
@@ -935,7 +984,7 @@
   }
 
   function zenithScale() {
-    return window.innerWidth < 1024 ? 0.95 : BOX_POSE_ZENITH.scale;
+    return window.innerWidth < 1024 ? 1.12 : BOX_POSE_ZENITH.scale;
   }
 
   function setLabelPeeled(on) {
@@ -1014,7 +1063,7 @@
       isoBoxStage.classList.remove('is-orbiting');
       const pose = packGrade ? BOX_POSE_SEALED : BOX_POSE_READ;
       const scale = packGrade
-        ? (window.innerWidth < 1024 ? 0.88 : BOX_POSE_SEALED.scale)
+        ? (window.innerWidth < 1024 ? 1.08 : BOX_POSE_SEALED.scale)
         : readingScale();
       boxInspect.reset(pose.rx, pose.ry, scale, true);
     }
@@ -1035,7 +1084,7 @@
     boxInspect.reset(
       BOX_POSE_STRIKE.rx,
       BOX_POSE_STRIKE.ry,
-      window.innerWidth < 1024 ? 1.08 : BOX_POSE_STRIKE.scale,
+      window.innerWidth < 1024 ? 1.18 : BOX_POSE_STRIKE.scale,
       true
     );
     boxInspect.locked = true;
@@ -1047,8 +1096,8 @@
       stampPress.classList.add('is-striking');
     }
 
-    const inkAt = motionOff() ? 0 : 520;
-    const doneAt = motionOff() ? 80 : 1650;
+    const inkAt = motionOff() ? 0 : 640;
+    const doneAt = motionOff() ? 80 : 1700;
 
     setTimeout(() => {
       if (gradeSeal) {
@@ -1071,6 +1120,13 @@
 
   function initBoxRitualUI() {
     buildGradePads();
+    const reopen = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      reopenManual();
+    };
+    if (btnReopenBook) btnReopenBook.addEventListener('click', reopen);
+    if (btnReopenHud) btnReopenHud.addEventListener('click', reopen);
     if (btnPuntuar) btnPuntuar.addEventListener('click', (e) => {
       e.stopPropagation();
       enterGradeMode();
@@ -1233,11 +1289,13 @@
     if (packagingOverlay) {
       packagingOverlay.style.display = 'none';
       packagingOverlay.setAttribute('aria-hidden', 'true');
+      packagingOverlay.classList.remove('is-inspecting', 'is-grading', 'is-stamping');
     }
     isPackaging = false;
     exitGradeMode(false);
     setLabelPeeled(false);
     boxInspect.locked = false;
+    boxInspect.ready = false;
     if (packedManualBook) packedManualBook.className = 'packed-manual-book';
     if (isoBox3d) isoBox3d.className = 'iso-box-3d';
     if (isoBoxStage) {
@@ -1245,11 +1303,10 @@
       boxInspect.reset(BOX_POSE_PACK.rx, BOX_POSE_PACK.ry, BOX_POSE_PACK.scale, false);
     }
     if (packInspectHint) packInspectHint.classList.remove('is-visible');
-    if (isBookClosed) {
-      openBook();
-    } else {
-      renderSlide(currentIndex, 'none', false);
-    }
+    if (bookOpened) bookOpened.style.display = 'flex';
+    if (bookCoverClosed) bookCoverClosed.style.display = 'none';
+    isBookClosed = false;
+    renderSlide(currentIndex, 'none', false);
   }
 
   // ==========================================================================
@@ -1330,23 +1387,26 @@
     // 1. Pestañas (Tabs)
     const tabButtons = currentSlideCard.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
+      const activateTab = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const targetTabId = btn.getAttribute('data-tab');
         const tabsContainer = btn.closest('.tabs-container');
-        if (!tabsContainer) return;
+        if (!tabsContainer || !targetTabId) return;
 
         tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         tabsContainer.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
         btn.classList.add('active');
         const targetPane = tabsContainer.querySelector(`#${targetTabId}`);
-        if (targetPane) {
-          targetPane.classList.add('active');
-          if (targetTabId === 'tab-bench-chart') {
-            animateSpeedupBars();
-          }
+        if (!targetPane) return;
+        targetPane.classList.add('active');
+        if (targetTabId === 'tab-bench-chart') {
+          animateSpeedupBars();
         }
-      });
+      };
+      btn.addEventListener('pointerdown', (e) => e.stopPropagation());
+      btn.addEventListener('click', activateTab);
     });
 
     // 2. Diapositiva 03: Inspección de Arquitectura Dual
@@ -1485,11 +1545,6 @@
       });
     }
 
-    // 7. Diapositiva 09: Barras Speedup
-    if (slideId === 9) {
-      animateSpeedupBars();
-    }
-
     // 8. Diapositiva 10: Características de la App
     if (slideId === 10) {
       const featureItems = currentSlideCard.querySelectorAll('.feature-item');
@@ -1598,12 +1653,16 @@
 
   function animateSpeedupBars() {
     const fills = currentSlideCard.querySelectorAll('.bar-fill');
-    fills.forEach(fill => {
+    fills.forEach((fill) => {
+      fill.classList.remove('is-grown');
       fill.style.transform = 'scaleX(0)';
+    });
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setTimeout(() => {
-          fill.style.transform = 'scaleX(1)';
-        }, 40);
+        fills.forEach((fill) => {
+          fill.style.transform = '';
+          fill.classList.add('is-grown');
+        });
       });
     });
   }
@@ -1689,7 +1748,6 @@
   // Event Listeners de Controles UI
   if (btnOpenBook) btnOpenBook.addEventListener('click', openBook);
   if (bookCoverClosed) bookCoverClosed.addEventListener('click', openBook);
-  if (btnReopenBook) btnReopenBook.addEventListener('click', reopenManual);
   if (btnPackPresentation) btnPackPresentation.addEventListener('click', startPackagingRitual);
 
   btnNext.addEventListener('click', nextSlide);
@@ -1706,6 +1764,8 @@
   btnShortcuts.addEventListener('click', toggleShortcuts);
   btnCloseShortcuts.addEventListener('click', toggleShortcuts);
   btnTimer.addEventListener('click', toggleTimer);
+  if (btnMotion) btnMotion.addEventListener('click', toggleForceMotion);
+  syncMotionButton();
 
   // Atajos de Teclado
   window.addEventListener('keydown', (e) => {
@@ -1750,6 +1810,11 @@
       case 'T':
         e.preventDefault();
         toggleTimer();
+        break;
+      case 'm':
+      case 'M':
+        e.preventDefault();
+        toggleForceMotion();
         break;
       case 'Escape':
         speakerModal.classList.remove('active');

@@ -270,6 +270,41 @@ body {
   animation: timer-pulse 1.2s infinite alternate;
 }
 
+.motion-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-sheet);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background-color var(--duration-fast), color var(--duration-fast);
+  box-shadow: var(--shadow-paper-flat);
+}
+
+.motion-box:hover {
+  background: var(--bg-sheet-alt);
+  border-color: var(--border-paper-strong);
+}
+
+.motion-box.is-on {
+  border-color: var(--stamp-sage);
+  color: var(--stamp-sage);
+  background: var(--stamp-sage-bg);
+}
+
+.motion-box.is-off {
+  border-color: var(--stamp-amber);
+  color: var(--stamp-amber);
+  background: var(--stamp-amber-bg);
+}
+
 @keyframes timer-pulse {
   from { opacity: 1; }
   to { opacity: 0.7; }
@@ -1089,6 +1124,12 @@ body {
   align-items: center;
   justify-content: center;
   overflow: visible;
+  transition: perspective-origin 0.7s var(--ease-paper-turn);
+}
+
+.packaging-ritual-overlay.is-grading .packaging-scene,
+.packaging-ritual-overlay.is-stamping .packaging-scene {
+  perspective-origin: 50% 12%;
 }
 
 .pack-tools {
@@ -1104,32 +1145,63 @@ body {
   pointer-events: none;
 }
 
+.pack-tools-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.packaging-ritual-overlay.is-inspecting .pack-tools-actions {
+  pointer-events: auto;
+}
+
+.btn-reopen-hud,
 .btn-puntuar-hud {
   pointer-events: none;
   opacity: 0;
   margin: 0;
-  padding: 4px 12px;
-  border: none;
-  background: transparent;
+  padding: 8px 16px;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(15, 23, 42, 0.78);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #F4EDE4;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.3s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-puntuar-hud {
   font-family: 'Permanent Marker', cursive;
   font-size: 22px;
   letter-spacing: 0.04em;
-  color: #F4EDE4;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+  border: none;
+  background: transparent;
   transform: rotate(-4deg);
-  cursor: pointer;
-  transition: opacity 0.3s ease;
 }
 
+.packaging-ritual-overlay.is-inspecting .btn-reopen-hud:not([hidden]),
 .packaging-ritual-overlay.is-inspecting .btn-puntuar-hud:not([hidden]) {
   opacity: 1;
   pointer-events: auto;
 }
 
+.btn-reopen-hud:hover,
+.btn-reopen-hud:focus-visible,
 .btn-puntuar-hud:hover,
 .btn-puntuar-hud:focus-visible {
   color: #FFFFFF;
+  background: rgba(15, 23, 42, 0.92);
   outline: none;
+}
+
+.btn-puntuar-hud:hover,
+.btn-puntuar-hud:focus-visible {
+  background: transparent;
 }
 
 .pack-inspect-hint {
@@ -1534,6 +1606,11 @@ body {
 }
 
 .iso-box-3d.labeled .iso-lid {
+  pointer-events: none;
+}
+
+.iso-lid .btn-puntuar,
+.iso-lid .grade-seal {
   pointer-events: auto;
 }
 
@@ -1572,6 +1649,7 @@ body {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+
 
 .grade-seal {
   position: absolute;
@@ -1652,49 +1730,72 @@ body {
   }
 }
 
+.stamp-anchor {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--box-w);
+  height: var(--box-d);
+  margin-top: calc(var(--box-d) / -2);
+  transform: rotateX(90deg) translateZ(calc(var(--box-h) / 2 + 8px));
+  transform-style: preserve-3d;
+  pointer-events: none;
+  z-index: 14;
+}
+
 .stamp-press {
   position: absolute;
-  left: 38%;
-  top: 6%;
-  width: 92px;
-  height: 176px;
+  left: calc(34% + 74px);
+  top: calc(28% + 74px);
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
   pointer-events: none;
-  opacity: 0;
   transform-style: preserve-3d;
-  transform-origin: 50% 100%;
+  transform-origin: 50% 50% 0;
+  overflow: visible;
   z-index: 9;
 }
 
-.stamp-press.is-striking {
-  animation: stamp-strike 1.2s cubic-bezier(0.18, 0.9, 0.32, 1) forwards;
+.packaging-ritual-overlay.is-stamping .btn-puntuar {
+  opacity: 0;
 }
 
-.stamp-rig {
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 100%;
-  transform: rotateX(66deg) scale(1.32);
-  transform-style: preserve-3d;
+.stamp-press.is-striking {
+  animation: stamp-strike 1.35s cubic-bezier(0.18, 0.9, 0.32, 1) forwards;
+}
+
+.stamp-shadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 118px;
+  height: 118px;
+  margin: -59px 0 0 -59px;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 50%, rgba(28, 12, 6, 0.5), transparent 68%);
+  transform: translateZ(1px);
 }
 
 .stamp-3d {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: rotateX(-8deg) rotateZ(-8deg);
   transform-style: preserve-3d;
-  transform: rotateY(-32deg);
 }
 
-.stamp-knob,
-.stamp-shaft,
-.stamp-collar,
+.stamp-die,
 .stamp-block,
-.stamp-die {
-  position: relative;
-  flex-shrink: 0;
+.stamp-handle,
+.stamp-collar,
+.stamp-shaft,
+.stamp-knob {
+  position: absolute;
+  left: 0;
+  top: 0;
   transform-style: preserve-3d;
 }
 
@@ -1702,69 +1803,238 @@ body {
   position: absolute;
   left: 50%;
   top: 0;
-  height: 100%;
-  transform: translateX(-50%) rotateY(var(--r)) translateZ(var(--rad));
   box-sizing: border-box;
 }
 
-.stamp-knob {
-  width: 36px;
-  height: 26px;
-  --rad: 16px;
-  margin-bottom: 2px;
+.stamp-die {
+  width: 92px;
+  height: 92px;
+  margin: -46px 0 0 -46px;
+  transform: translateZ(8px);
 }
 
-.stamp-knob .stamp-slat {
-  width: 23px;
-  background: linear-gradient(90deg, #2A1408, #E8C48A 42%, #6B3F1F 78%, #1C0C06);
+.stamp-die-top,
+.stamp-die-bottom {
+  width: 92px;
+  height: 92px;
+  left: 0;
+  top: 0;
 }
 
-.stamp-cap {
-  position: absolute;
-  left: 50%;
-  top: -6px;
-  width: 36px;
-  height: 36px;
-  margin-left: -18px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #F3D7B0, #A16207 48%, #4A2A12 78%);
-  transform: rotateX(90deg) translateZ(4px);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.28);
+.stamp-die-top {
+  background:
+    radial-gradient(circle at 38% 32%, #E11D48, #9F1239 52%, #7F1D1D 86%);
+  transform: translateZ(8px);
 }
 
-.stamp-shaft {
-  width: 22px;
-  height: 58px;
-  --rad: 11px;
+.stamp-die-bottom {
+  background: #4C0519;
+  transform: rotateX(180deg) translateZ(8px);
 }
 
-.stamp-shaft .stamp-slat {
-  width: 12px;
-  background: linear-gradient(90deg, #1C0C06, #D4A574 40%, #5C3317 78%, #140804);
+.stamp-die-front,
+.stamp-die-back {
+  width: 92px;
+  height: 16px;
+  left: 0;
+  top: 38px;
+}
+
+.stamp-die-front {
+  background: linear-gradient(180deg, #F43F5E, #9F1239);
+  transform: rotateX(-90deg) translateZ(46px);
+}
+
+.stamp-die-back {
+  background: #7F1D1D;
+  transform: rotateX(90deg) translateZ(46px);
+}
+
+.stamp-die-left,
+.stamp-die-right {
+  width: 16px;
+  height: 92px;
+  left: 38px;
+  top: 0;
+}
+
+.stamp-die-right {
+  background: linear-gradient(90deg, #BE123C, #7F1D1D);
+  transform: rotateY(90deg) translateZ(46px);
+}
+
+.stamp-die-left {
+  background: linear-gradient(90deg, #4C0519, #881337);
+  transform: rotateY(-90deg) translateZ(46px);
+}
+
+.stamp-block {
+  width: 78px;
+  height: 78px;
+  margin: -39px 0 0 -39px;
+  transform: translateZ(36px);
+}
+
+.stamp-block-top,
+.stamp-block-bottom {
+  width: 78px;
+  height: 78px;
+  left: 0;
+  top: 0;
+}
+
+.stamp-block-top {
+  background:
+    linear-gradient(135deg, rgba(255, 236, 210, 0.34), transparent 46%),
+    repeating-linear-gradient(90deg, rgba(90, 48, 18, 0.18) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg, #E8C48A, #A16207 62%, #6B3F1F);
+  transform: translateZ(20px);
+}
+
+.stamp-block-bottom {
+  background: #3A1C0C;
+  transform: rotateX(180deg) translateZ(20px);
+}
+
+.stamp-block-front,
+.stamp-block-back {
+  width: 78px;
+  height: 40px;
+  left: 0;
+  top: 19px;
+}
+
+.stamp-block-left,
+.stamp-block-right {
+  width: 40px;
+  height: 78px;
+  left: 19px;
+  top: 0;
+}
+
+.stamp-block-front {
+  background:
+    repeating-linear-gradient(90deg, rgba(58, 28, 12, 0.22) 0 1px, transparent 1px 8px),
+    linear-gradient(180deg, #D4B48A, #8B5A2B 55%, #5C3317);
+  transform: rotateX(-90deg) translateZ(39px);
+}
+
+.stamp-block-back {
+  background: #4A2A12;
+  transform: rotateX(90deg) translateZ(39px);
+}
+
+.stamp-block-right {
+  background: linear-gradient(90deg, #A67C52, #4A2A12);
+  transform: rotateY(90deg) translateZ(39px);
+}
+
+.stamp-block-left {
+  background: linear-gradient(90deg, #2A1408, #6B3F1F);
+  transform: rotateY(-90deg) translateZ(39px);
+}
+
+.stamp-press-note {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 28px;
+  line-height: 1;
+  color: #1C0C06;
+  text-shadow: 0 1px 0 rgba(255, 236, 210, 0.4);
+}
+
+.stamp-die-num {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 18px;
+  line-height: 1;
+  color: #FEE2E2;
+}
+
+.stamp-handle {
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  transform: translateZ(58px) rotateX(90deg);
 }
 
 .stamp-collar {
-  width: 46px;
-  height: 16px;
-  --rad: 21px;
-  margin: 2px 0 3px;
+  width: 42px;
+  height: 18px;
+  left: 3px;
+  top: 0;
 }
 
 .stamp-collar .stamp-slat {
-  width: 30px;
-  background: linear-gradient(90deg, #5C4300, #F5D76E 40%, #B45309 72%, #3F2E00);
+  width: 12px;
+  height: 18px;
+  margin-left: -6px;
+  background: linear-gradient(90deg, #5C4300, #F5D76E 36%, #B45309 72%, #3F2E00);
+  transform: rotateY(var(--a)) translateZ(20px);
 }
 
 .stamp-collar-cap {
   position: absolute;
   left: 50%;
-  top: -8px;
-  width: 46px;
-  height: 46px;
-  margin-left: -23px;
+  top: 0;
+  width: 42px;
+  height: 42px;
+  margin: -21px 0 0 -21px;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, #F8E7B0, #D4A017 50%, #7A5208);
-  transform: rotateX(90deg) translateZ(2px);
+  transform: rotateX(90deg);
+}
+
+.stamp-shaft {
+  width: 28px;
+  height: 96px;
+  left: 10px;
+  top: 16px;
+}
+
+.stamp-shaft .stamp-slat {
+  width: 10px;
+  height: 96px;
+  margin-left: -5px;
+  background: linear-gradient(90deg, #1C0C06, #D4A574 36%, #5C3317 74%, #140804);
+  transform: rotateY(var(--a)) translateZ(13px);
+}
+
+.stamp-knob {
+  width: 48px;
+  height: 32px;
+  left: 0;
+  top: 108px;
+}
+
+.stamp-knob .stamp-slat {
+  width: 14px;
+  height: 32px;
+  margin-left: -7px;
+  background: linear-gradient(90deg, #2A1408, #E8C48A 40%, #6B3F1F 76%, #1C0C06);
+  transform: rotateY(var(--a)) translateZ(22px);
+}
+
+.stamp-cap,
+.stamp-knob-base {
+  position: absolute;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin-left: -24px;
+  border-radius: 50%;
+}
+
+.stamp-cap {
+  top: 32px;
+  margin-top: -24px;
+  background: radial-gradient(circle at 32% 28%, #F3D7B0, #A16207 48%, #4A2A12 78%);
+  transform: rotateX(-90deg);
+}
+
+.stamp-knob-base {
+  top: 0;
+  margin-top: -24px;
+  background: radial-gradient(circle at 60% 70%, #6B3F1F, #2A1408 70%);
+  transform: rotateX(90deg);
 }
 
 .stamp-face {
@@ -1773,156 +2043,27 @@ body {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-}
-
-.stamp-block {
-  width: 58px;
-  height: 32px;
-}
-
-.stamp-block-front,
-.stamp-block-back {
-  width: 58px;
-  height: 32px;
-  left: 0;
-  top: 0;
-}
-
-.stamp-block-front {
-  background: linear-gradient(180deg, #D4B48A, #8B5A2B 55%, #5C3317);
-  transform: translateZ(20px);
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
-}
-
-.stamp-block-back {
-  background: #4A2A12;
-  transform: rotateY(180deg) translateZ(20px);
-}
-
-.stamp-block-left,
-.stamp-block-right {
-  width: 40px;
-  height: 32px;
-  top: 0;
-  left: 9px;
-}
-
-.stamp-block-right {
-  background: linear-gradient(180deg, #A67C52, #4A2A12);
-  transform: rotateY(90deg) translateZ(29px);
-}
-
-.stamp-block-left {
-  background: linear-gradient(180deg, #6B3F1F, #2A1408);
-  transform: rotateY(-90deg) translateZ(29px);
-}
-
-.stamp-block-top,
-.stamp-block-bottom {
-  width: 58px;
-  height: 40px;
-  left: 0;
-  top: -4px;
-}
-
-.stamp-block-top {
-  background: linear-gradient(90deg, #C4A074, #6B3F1F);
-  transform: rotateX(90deg) translateZ(16px);
-}
-
-.stamp-block-bottom {
-  background: #3A1C0C;
-  transform: rotateX(-90deg) translateZ(16px);
-}
-
-.stamp-press-note {
-  font-family: 'Permanent Marker', cursive;
-  font-size: 22px;
-  line-height: 1;
-  color: #1C0C06;
-  text-shadow: 0 1px 0 rgba(255, 236, 210, 0.35);
-}
-
-.stamp-die {
-  width: 68px;
-  height: 16px;
-  margin-top: 2px;
-}
-
-.stamp-die-front,
-.stamp-die-back {
-  width: 68px;
-  height: 16px;
-  left: 0;
-  top: 0;
-}
-
-.stamp-die-front {
-  background: linear-gradient(180deg, #E11D48, #7F1D1D);
-  transform: translateZ(23px);
-}
-
-.stamp-die-back {
-  background: #4C0519;
-  transform: rotateY(180deg) translateZ(23px);
-}
-
-.stamp-die-left,
-.stamp-die-right {
-  width: 46px;
-  height: 16px;
-  top: 0;
-  left: 11px;
-}
-
-.stamp-die-right {
-  background: linear-gradient(180deg, #BE123C, #7F1D1D);
-  transform: rotateY(90deg) translateZ(34px);
-}
-
-.stamp-die-left {
-  background: #7F1D1D;
-  transform: rotateY(-90deg) translateZ(34px);
-}
-
-.stamp-die-bottom {
-  width: 68px;
-  height: 46px;
-  left: 0;
-  top: -15px;
-  background: #9F1239;
-  transform: rotateX(-90deg) translateZ(8px);
-}
-
-.stamp-die-num {
-  font-family: 'Permanent Marker', cursive;
-  font-size: 13px;
-  line-height: 1;
-  color: #FEE2E2;
+  backface-visibility: hidden;
 }
 
 @keyframes stamp-strike {
   0% {
-    opacity: 0;
-    transform: translateZ(150px) rotateZ(-14deg);
+    transform: translateZ(210px) rotateZ(-16deg);
   }
-  18% {
-    opacity: 1;
-    transform: translateZ(88px) rotateZ(-10deg);
+  28% {
+    transform: translateZ(86px) rotateZ(-10deg);
   }
   48% {
-    opacity: 1;
-    transform: translateZ(2px) rotateZ(-7deg) scaleY(0.9);
+    transform: translateZ(4px) rotateZ(-7deg);
   }
-  78% {
-    opacity: 1;
-    transform: translateZ(40px) rotateZ(-5deg);
+  68% {
+    transform: translateZ(64px) rotateZ(-4deg);
   }
   100% {
-    opacity: 0;
-    transform: translateZ(120px) rotateZ(-3deg);
+    transform: translateZ(190px) rotateZ(-1deg);
   }
 }
+
 
 .iso-label-hinge {
   position: absolute;
@@ -2853,6 +2994,9 @@ code {
   padding: 4px;
   gap: 4px;
   align-self: flex-start;
+  position: relative;
+  z-index: 26;
+  pointer-events: auto;
 }
 
 .tab-btn {
@@ -2865,6 +3009,9 @@ code {
   padding: 6px 14px;
   border-radius: var(--radius-xs);
   cursor: pointer;
+  position: relative;
+  z-index: 26;
+  pointer-events: auto;
   transition: background-color var(--duration-fast), color var(--duration-fast);
 }
 
@@ -2880,11 +3027,11 @@ code {
 
 .tab-pane {
   display: none;
-  height: 100%;
 }
 
 .tab-pane.active {
   display: block;
+  min-height: 260px;
 }
 
 .table-container {
@@ -3368,7 +3515,7 @@ tr:hover td {
 
 .speedup-bar-row {
   display: grid;
-  grid-template-columns: 220px 1fr 110px;
+  grid-template-columns: minmax(0, 220px) minmax(72px, 1fr) minmax(72px, 110px);
   align-items: center;
   gap: 14px;
 }
@@ -3403,6 +3550,10 @@ tr:hover td {
   transform-origin: left center;
   transform: scaleX(0);
   transition: transform var(--duration-smooth) var(--ease-paper-turn);
+}
+
+.bar-fill.is-grown {
+  transform: scaleX(1);
 }
 
 .fill-baseline { background: var(--stamp-crimson); }
@@ -3752,36 +3903,36 @@ kbd {
   .iso-box-stage { --inspect-scale: 0.72; }
   .iso-shipping-label { width: 100%; }
   .grade-seal { width: 120px; height: 120px; }
-  .stamp-rig { transform: rotateX(66deg) scale(0.88); }
+  .stamp-press { left: calc(34% + 60px); top: calc(28% + 60px); }
   .btn-puntuar { font-size: 26px; }
   .pack-inspect-hint { white-space: normal; max-width: 90%; text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .book-cover-closed,
-  .book-cover-closed:hover,
-  .book-opened,
-  .iso-box-stage,
-  .iso-flap,
-  .iso-tape-strip,
-  .iso-shipping-label,
-  .iso-label-hinge,
-  .grade-seal,
-  .stamp-press,
-  .packed-manual-book {
+  html:not(.force-motion) .book-cover-closed,
+  html:not(.force-motion) .book-cover-closed:hover,
+  html:not(.force-motion) .book-opened,
+  html:not(.force-motion) .iso-box-stage,
+  html:not(.force-motion) .iso-flap,
+  html:not(.force-motion) .iso-tape-strip,
+  html:not(.force-motion) .iso-shipping-label,
+  html:not(.force-motion) .iso-label-hinge,
+  html:not(.force-motion) .grade-seal,
+  html:not(.force-motion) .stamp-press,
+  html:not(.force-motion) .packed-manual-book {
     animation: none !important;
     transition: opacity 0.2s ease, transform 0.25s ease !important;
   }
 
-  .book-cover-closed:hover {
+  html:not(.force-motion) .book-cover-closed:hover {
     transform: none;
   }
 
-  .book-turning-leaf {
+  html:not(.force-motion) .book-turning-leaf {
     display: none !important;
   }
 
-  .packaging-ritual-overlay {
+  html:not(.force-motion) .packaging-ritual-overlay {
     animation: none;
   }
 }

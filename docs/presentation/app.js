@@ -1383,30 +1383,34 @@
   // ==========================================================================
   // COMPORTAMIENTOS INTERACTIVOS DENTRO DE LAS DIAPOSITIVAS
   // ==========================================================================
+  function activateTabButton(btn) {
+    if (!btn) return;
+    const targetTabId = btn.getAttribute('data-tab');
+    const tabsContainer = btn.closest('.tabs-container');
+    if (!tabsContainer || !targetTabId) return;
+
+    tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    tabsContainer.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+    btn.classList.add('active');
+    const targetPane = tabsContainer.querySelector(`#${targetTabId}`);
+    if (targetPane) {
+      targetPane.classList.add('active');
+    }
+    if (targetTabId === 'tab-bench-chart') {
+      animateSpeedupBars();
+    }
+  }
+
   function initSlideInteractiveBehaviors(slideId) {
     // 1. Pestañas (Tabs)
     const tabButtons = currentSlideCard.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
-      const activateTab = (e) => {
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const targetTabId = btn.getAttribute('data-tab');
-        const tabsContainer = btn.closest('.tabs-container');
-        if (!tabsContainer || !targetTabId) return;
-
-        tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        tabsContainer.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-        btn.classList.add('active');
-        const targetPane = tabsContainer.querySelector(`#${targetTabId}`);
-        if (!targetPane) return;
-        targetPane.classList.add('active');
-        if (targetTabId === 'tab-bench-chart') {
-          animateSpeedupBars();
-        }
-      };
-      btn.addEventListener('pointerdown', (e) => e.stopPropagation());
-      btn.addEventListener('click', activateTab);
+        activateTabButton(btn);
+      });
     });
 
     // 2. Diapositiva 03: Inspección de Arquitectura Dual
@@ -1766,6 +1770,13 @@
   btnTimer.addEventListener('click', toggleTimer);
   if (btnMotion) btnMotion.addEventListener('click', toggleForceMotion);
   syncMotionButton();
+
+  // Delegación global de pestañas (Tabs)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    activateTabButton(btn);
+  });
 
   // Atajos de Teclado
   window.addEventListener('keydown', (e) => {

@@ -389,6 +389,7 @@ body {
   overflow: visible;
   transform-style: preserve-3d;
   perspective: 2200px;
+  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -406,6 +407,7 @@ body {
   transform-origin: left center;
   transform-style: preserve-3d;
   transition: transform var(--duration-normal) var(--ease-paper-turn), box-shadow var(--duration-normal);
+  pointer-events: auto;
 }
 
 .cover-front {
@@ -638,9 +640,10 @@ body {
   align-items: stretch;
   justify-content: stretch;
   transform-style: preserve-3d;
-  transform: rotateX(1.8deg);
+  transform: translateZ(12px) rotateX(1.8deg);
   filter: drop-shadow(0 22px 40px rgba(15, 23, 42, 0.18));
   z-index: 10;
+  pointer-events: auto;
 }
 
 .book-opened.revealing {
@@ -649,15 +652,15 @@ body {
 
 @keyframes notebook-reveal {
   0% {
-    transform: rotateX(1.8deg);
+    transform: translateZ(12px) rotateX(1.8deg);
     filter: brightness(0.82);
   }
   45% {
-    transform: rotateX(1.8deg);
+    transform: translateZ(12px) rotateX(1.8deg);
     filter: brightness(0.94);
   }
   100% {
-    transform: rotateX(1.8deg);
+    transform: translateZ(12px) rotateX(1.8deg);
     filter: drop-shadow(0 22px 40px rgba(15, 23, 42, 0.18));
   }
 }
@@ -1028,15 +1031,15 @@ body {
 /* Asas y Pistas Táctiles de Arrastre */
 .page-drag-handle {
   position: absolute;
-  top: 28px;
-  bottom: 28px;
-  width: 52px;
+  bottom: 0;
+  height: 76px;
+  width: 60px;
   z-index: 20;
   cursor: grab;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 18px;
+  padding-bottom: 16px;
 }
 
 .page-drag-handle:active {
@@ -2995,7 +2998,7 @@ code {
   gap: 4px;
   align-self: flex-start;
   position: relative;
-  z-index: 26;
+  z-index: 30;
   pointer-events: auto;
 }
 
@@ -3010,7 +3013,7 @@ code {
   border-radius: var(--radius-xs);
   cursor: pointer;
   position: relative;
-  z-index: 26;
+  z-index: 30;
   pointer-events: auto;
   transition: background-color var(--duration-fast), color var(--duration-fast);
 }

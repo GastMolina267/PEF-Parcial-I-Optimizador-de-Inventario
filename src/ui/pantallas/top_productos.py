@@ -14,7 +14,6 @@ from src.ui.tema import (
     COLOR_TARJETA,
     COLOR_TEXTO_MUTED,
     COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
     actualizar_control,
     alineacion_center,
     borde_all,

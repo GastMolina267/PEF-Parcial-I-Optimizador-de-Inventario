@@ -16,7 +16,6 @@ from src.ui.tema import (
     COLOR_NAV_HOVER,
     COLOR_NAV_MUTED,
     COLOR_NAV_TEXTO,
-    COLOR_PRIMARIO,
     FAMILIA_DATOS,
     actualizar_control,
     borde_all,

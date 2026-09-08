@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "optimizador-inventario-pef"
+version = "1.0.0"
+description = "Optimizador de Inventario y Preparación de Pedidos - Programación Eficiente UBP (Opción 6)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Equipo de Desarrollo - Opción 6" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "flet>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "line_profiler>=4.1.0",
+    "memory_profiler>=0.61.0",
+    "scalene>=1.5.0",
+    "pyinstaller>=6.4.0",
+    "build>=1.1.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+optimizador-inventario = "src.ui.app:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "automations*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.md", "*.html", "*.css", "*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "benchmarks/*",
+    "automations/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"main.py" = ["E402"]

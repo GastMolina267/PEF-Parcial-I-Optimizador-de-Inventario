@@ -1,32 +1,50 @@
-"""Definición del sistema de diseño, paleta de colores y estilos accesibles para Flet."""
+"""Sistema de diseño Cloudscape / AWS Console.
+
+Navegación oscura, contenido claro, acción naranja. Dualidad Baseline | Optimizado.
+"""
 
 from __future__ import annotations
 import flet as ft
 
-# Paleta de colores Dark Obsidian & Electric Cyan (Ultra contraste, estética moderna SaaS)
-COLOR_FONDO_APP = "#090D16"         # Fondo general obsidian profundo
-COLOR_SUPERFICIE = "#111A2E"        # Contenedores principales y rails (Dark Sapphire)
-COLOR_TARJETA = "#182238"           # Cards y paneles elevados con contraste neto
-COLOR_TARJETA_HOVER = "#222F4D"     # Hover sobre tarjetas
-COLOR_BORDE = "#2D3A58"             # Bordes nítidos y definidos
-COLOR_BORDE_ENFOQUE = "#38BDF8"     # Foco activo (Electric Cyan)
+# Cromo de consola (top nav + side nav)
+COLOR_NAV = "#161D26"
+COLOR_NAV_HOVER = "#232F3E"
+COLOR_NAV_TEXTO = "#FBFBFB"
+COLOR_NAV_MUTED = "#B6BEC9"
+COLOR_NAV_BORDE = "#2A3542"
 
-COLOR_TEXTO_PRIMARIO = "#FFFFFF"    # Blanco puro brillante (Máxima visibilidad)
-COLOR_TEXTO_SECUNDARIO = "#E2E8F0"  # Plata Slate 200 de alta legibilidad
-COLOR_TEXTO_MUTED = "#94A3B8"       # Slate 400 nítido (nunca gris oscuro borroso)
+# Contenido (layout main + containers)
+COLOR_FONDO_APP = "#F2F3F3"
+COLOR_SUPERFICIE = "#F2F3F3"
+COLOR_TARJETA = "#FFFFFF"
+COLOR_TARJETA_HOVER = "#F9F9FA"
+COLOR_BORDE = "#E9EBED"
+COLOR_BORDE_ENFOQUE = "#0972D3"
 
-COLOR_PRIMARIO = "#0284C7"          # Sky 600 (Acciones principales)
-COLOR_PRIMARIO_VARIANTE = "#0369A1" # Sky 700
-COLOR_SECUNDARIO = "#818CF8"        # Indigo 400 (Acentos analíticos modernos)
-COLOR_SECUNDARIO_VARIANTE = "#6366F1"
+COLOR_TEXTO_PRIMARIO = "#0F141A"
+COLOR_TEXTO_SECUNDARIO = "#414D5C"
+COLOR_TEXTO_MUTED = "#5F6B7A"
 
-# Colores de estado accesibles (Icono + Color + Texto de alto contraste)
-COLOR_EXITO = "#34D399"             # Esmeralda 400 brillante
-COLOR_FONDO_EXITO = "#064E3B"       # Fondo esmeralda profundo
-COLOR_ADVERTENCIA = "#FBBF24"       # Ámbar 400 luminoso
-COLOR_FONDO_ADVERTENCIA = "#451A03" # Fondo ámbar oscuro
-COLOR_PELIGRO = "#F87171"           # Carmesí 400 de alta visibilidad
-COLOR_FONDO_PELIGRO = "#450A0A"     # Fondo carmesí oscuro
+# Naranja de consola para la acción; azul para foco y vínculos
+COLOR_PRIMARIO = "#EC7211"
+COLOR_PRIMARIO_VARIANTE = "#EB5F07"
+COLOR_SECUNDARIO = "#0972D3"
+COLOR_SECUNDARIO_VARIANTE = "#033160"
+COLOR_MARCA = "#FF9900"
+
+COLOR_EXITO = "#037F0C"
+COLOR_FONDO_EXITO = "#F2F8F3"
+COLOR_ADVERTENCIA = "#8D6605"
+COLOR_FONDO_ADVERTENCIA = "#FFFCE9"
+COLOR_PELIGRO = "#D91515"
+COLOR_FONDO_PELIGRO = "#FDF3F3"
+
+FAMILIA_DATOS = "Consolas"
+RADIO = 8
+TAM_TITULO = 20
+TAM_CUERPO = 13
+TAM_ETIQUETA = 12
+TAM_DATO = 22
 
 
 
@@ -78,6 +96,90 @@ def actualizar_control(control) -> None:
         pass
 
 
+def estilo_boton_primario() -> ft.ButtonStyle:
+    """Botón de acción principal."""
+    return ft.ButtonStyle(
+        bgcolor=COLOR_PRIMARIO,
+        color="#FFFFFF",
+        padding=padding_symmetric(horizontal=16, vertical=8),
+        shape=ft.RoundedRectangleBorder(radius=RADIO),
+    )
+
+
+def crear_encabezado(titulo: str, subtitulo: str, extra=None) -> ft.Row:
+    """Título de pantalla + acción. Sin divisor extra."""
+    controles = [
+        ft.Column(
+            controls=[
+                ft.Text(titulo, size=TAM_TITULO, weight=ft.FontWeight.W_600, color=COLOR_TEXTO_PRIMARIO),
+                ft.Text(subtitulo, size=TAM_CUERPO, color=COLOR_TEXTO_MUTED),
+            ],
+            spacing=2,
+            tight=True,
+        ),
+    ]
+    if extra is not None:
+        controles.append(extra)
+    return ft.Row(
+        controls=controles,
+        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=12,
+    )
+
+
+def crear_barra_herramientas(controles: list, wrap: bool = True) -> ft.Container:
+    """Barra de filtros estilo consola, en un contenedor blanco."""
+    return ft.Container(
+        content=ft.Row(
+            controls=controles,
+            spacing=8,
+            wrap=wrap,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        padding=padding_symmetric(horizontal=12, vertical=8),
+        bgcolor=COLOR_TARJETA,
+        border=borde_all(1, COLOR_BORDE),
+        border_radius=RADIO,
+    )
+
+
+def envolver_lista(lista: ft.ListView, encabezado: ft.Control | None = None) -> ft.Container:
+    """Tabla scrolleable con altura acotada. Evita que la lista colapse a 0."""
+    lista.expand = True
+    controles = [encabezado, lista] if encabezado is not None else [lista]
+    return ft.Container(
+        content=ft.Column(controls=controles, spacing=0, expand=True),
+        expand=True,
+        bgcolor=COLOR_TARJETA,
+        border=borde_all(1, COLOR_BORDE),
+        border_radius=RADIO,
+    )
+
+
+def crear_titulo_seccion(texto: str) -> ft.Text:
+    """Etiqueta de lista o bloque."""
+    return ft.Text(texto, size=TAM_ETIQUETA, weight=ft.FontWeight.W_600, color=COLOR_TEXTO_MUTED)
+
+
+def envolver_metricas(fila: ft.Row) -> ft.Container:
+    """Une las celdas KPI en una sola franja."""
+    fila.spacing = 0
+    return ft.Container(
+        content=fila,
+        bgcolor=COLOR_TARJETA,
+        border=borde_all(1, COLOR_BORDE),
+        border_radius=RADIO,
+    )
+
+
+def formatear_tiempo_ms(tiempo_ms: float) -> str:
+    """Formatea un tiempo de pared siempre en milisegundos (ms)."""
+    if tiempo_ms < 1.0:
+        return f"{tiempo_ms:.3f} ms"
+    return f"{tiempo_ms:.2f} ms"
+
+
 def crear_dropdown(
     label: str,
     options: list[ft.dropdown.Option],
@@ -92,8 +194,10 @@ def crear_dropdown(
         "options": options,
         "value": value,
         "border_color": COLOR_BORDE,
-        "focused_border_color": COLOR_PRIMARIO,
+        "focused_border_color": COLOR_BORDE_ENFOQUE,
         "color": COLOR_TEXTO_PRIMARIO,
+        "bgcolor": COLOR_TARJETA,
+        "border_radius": RADIO,
         **kwargs,
     }
     if width is not None:
@@ -136,9 +240,9 @@ def crear_badge_estado(estado: str) -> ft.Container:
             tight=True,
             alignment=ft.MainAxisAlignment.CENTER,
         ),
-        padding=padding_symmetric(horizontal=8, vertical=4),
+        padding=padding_symmetric(horizontal=8, vertical=3),
         bgcolor=color_fondo,
-        border_radius=12,
+        border_radius=RADIO,
         border=borde_all(1, color_texto),
     )
 
@@ -150,27 +254,21 @@ def crear_tarjeta_kpi(
     icono: str = ft.Icons.INFO_OUTLINE,
     color_icono: str = COLOR_PRIMARIO,
 ) -> ft.Container:
-    """Construye una tarjeta métrica estandarizada con jerarquía tipográfica clara y diseño compacto."""
+    """Celda de métrica: etiqueta, valor, nota."""
     controles = [
-        ft.Row(
-            controls=[
-                ft.Icon(icono, size=15, color=color_icono),
-                ft.Text(
-                    value=titulo,
-                    size=11,
-                    weight=ft.FontWeight.W_600,
-                    color=COLOR_TEXTO_SECUNDARIO,
-                    no_wrap=True,
-                ),
-            ],
-            spacing=5,
-            tight=True,
+        ft.Text(
+            value=titulo,
+            size=TAM_ETIQUETA,
+            weight=ft.FontWeight.W_500,
+            color=COLOR_TEXTO_MUTED,
+            no_wrap=True,
         ),
         ft.Text(
             value=valor,
-            size=18,
-            weight=ft.FontWeight.BOLD,
+            size=TAM_DATO,
+            weight=ft.FontWeight.W_700,
             color=COLOR_TEXTO_PRIMARIO,
+            font_family=FAMILIA_DATOS,
             no_wrap=True,
         ),
     ]
@@ -178,7 +276,7 @@ def crear_tarjeta_kpi(
         controles.append(
             ft.Text(
                 value=subtitulo,
-                size=10,
+                size=TAM_ETIQUETA,
                 color=COLOR_TEXTO_MUTED,
                 no_wrap=True,
             )
@@ -188,48 +286,47 @@ def crear_tarjeta_kpi(
         content=ft.Column(controls=controles, spacing=2, tight=True),
         padding=padding_symmetric(horizontal=12, vertical=8),
         bgcolor=COLOR_TARJETA,
-        border_radius=8,
-        border=borde_all(1, COLOR_BORDE),
+        border_radius=0,
+        border=borde_only(right=ft.border.BorderSide(1, COLOR_BORDE)),
         expand=True,
     )
 
 
 
 def crear_badge_tiempo(tiempo_ms: float, speedup: float | None = None) -> ft.Container:
-    """Construye un badge visual llamativo para tiempos de ejecución con formato inteligente."""
-    if tiempo_ms < 0.1:
-        tiempo_texto = f"{tiempo_ms * 1000.0:.1f} µs"
-    elif tiempo_ms < 10.0:
-        tiempo_texto = f"{tiempo_ms:.3f} ms"
-    else:
-        tiempo_texto = f"{tiempo_ms:.2f} ms"
-
+    """Chip de duración como en el panel Performance. Sin emoji."""
+    tiempo_texto = formatear_tiempo_ms(tiempo_ms)
     color_tiempo = COLOR_EXITO if tiempo_ms < 1.0 else (COLOR_ADVERTENCIA if tiempo_ms < 20.0 else COLOR_PRIMARIO)
 
     controles = [
-        ft.Icon(ft.Icons.BOLT_ROUNDED if tiempo_ms < 5.0 else ft.Icons.TIMER_OUTLINED, size=15, color=color_tiempo),
-        ft.Text(value=tiempo_texto, size=12, weight=ft.FontWeight.BOLD, color=color_tiempo),
+        ft.Text(
+            value=tiempo_texto,
+            size=13,
+            weight=ft.FontWeight.W_700,
+            color=color_tiempo,
+            font_family=FAMILIA_DATOS,
+        ),
     ]
 
     if speedup is not None and speedup > 0:
-        texto_speedup = f"🚀 {speedup:.1f}x" if speedup >= 1.0 else f"🐢 {speedup:.2f}x"
+        texto_speedup = f"{speedup:.1f}x" if speedup >= 1.0 else f"{speedup:.2f}x"
         color_speedup = COLOR_EXITO if speedup >= 1.0 else COLOR_PELIGRO
         controles.extend([
-            ft.Text("|", size=11, color=COLOR_TEXTO_MUTED),
-            ft.Text(texto_speedup, size=11, weight=ft.FontWeight.BOLD, color=color_speedup),
+            ft.Text("·", size=12, color=COLOR_TEXTO_MUTED),
+            ft.Text(texto_speedup, size=13, weight=ft.FontWeight.W_700, color=color_speedup, font_family=FAMILIA_DATOS),
         ])
 
     return ft.Container(
         content=ft.Row(
             controls=controles,
-            spacing=5,
+            spacing=6,
             tight=True,
             alignment=ft.MainAxisAlignment.CENTER,
         ),
-        padding=padding_symmetric(horizontal=8, vertical=4),
-        bgcolor=COLOR_SUPERFICIE,
-        border_radius=12,
-        border=borde_all(1, color_tiempo),
+        padding=padding_symmetric(horizontal=8, vertical=3),
+        bgcolor=COLOR_TARJETA,
+        border_radius=RADIO,
+        border=borde_all(1, COLOR_BORDE),
     )
 
 
@@ -240,46 +337,36 @@ def crear_banner_explicativo(
     complejidad_opt: str,
     por_que_importa: str,
 ) -> ft.Container:
-    """Crea una tarjeta didáctica moderna para explicar el trasfondo teórico de cada pantalla de forma compacta."""
+    """Panel denso: Baseline y Optimizado apilados. Sin expand (evita el bloque gris)."""
     chip_base = ft.Container(
         content=ft.Row(
             controls=[
-                ft.Icon(ft.Icons.STOP_CIRCLE_ROUNDED, size=12, color=COLOR_ADVERTENCIA),
-                ft.Text(f"Baseline: {complejidad_base}", size=10, weight=ft.FontWeight.W_600, color="#FDE68A"),
+                ft.Text("Baseline", size=TAM_ETIQUETA, weight=ft.FontWeight.W_700, color=COLOR_ADVERTENCIA),
+                ft.Text(complejidad_base, size=TAM_CUERPO, weight=ft.FontWeight.W_600, color=COLOR_TEXTO_PRIMARIO),
             ],
-            spacing=3,
+            spacing=8,
             tight=True,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        padding=padding_symmetric(horizontal=8, vertical=2),
+        padding=padding_symmetric(horizontal=8, vertical=6),
         bgcolor=COLOR_FONDO_ADVERTENCIA,
-        border_radius=6,
-        border=borde_all(1, "#D97706"),
+        border=borde_all(1, COLOR_ADVERTENCIA),
+        border_radius=RADIO,
     )
-
     chip_opt = ft.Container(
         content=ft.Row(
             controls=[
-                ft.Icon(ft.Icons.CHECK_CIRCLE_ROUNDED, size=12, color=COLOR_EXITO),
-                ft.Text(f"Optimizado: {complejidad_opt}", size=10, weight=ft.FontWeight.W_600, color="#A7F3D0"),
+                ft.Text("Optimizado", size=TAM_ETIQUETA, weight=ft.FontWeight.W_700, color=COLOR_EXITO),
+                ft.Text(complejidad_opt, size=TAM_CUERPO, weight=ft.FontWeight.W_600, color=COLOR_TEXTO_PRIMARIO),
             ],
-            spacing=3,
+            spacing=8,
             tight=True,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        padding=padding_symmetric(horizontal=8, vertical=2),
+        padding=padding_symmetric(horizontal=8, vertical=6),
         bgcolor=COLOR_FONDO_EXITO,
-        border_radius=6,
-        border=borde_all(1, "#059669"),
-    )
-
-    fila_chips = ft.Row(
-        controls=[
-            chip_base,
-            ft.Icon(ft.Icons.ARROW_FORWARD_ROUNDED, size=12, color=COLOR_TEXTO_MUTED),
-            chip_opt,
-        ],
-        spacing=6,
-        wrap=True,
-        tight=True,
+        border=borde_all(1, COLOR_EXITO),
+        border_radius=RADIO,
     )
 
     return ft.Container(
@@ -287,49 +374,62 @@ def crear_banner_explicativo(
             controls=[
                 ft.Row(
                     controls=[
-                        ft.Icon(ft.Icons.SCHOOL_ROUNDED, size=16, color=COLOR_PRIMARIO),
+                        ft.Icon(ft.Icons.INFO_OUTLINE, size=16, color=COLOR_SECUNDARIO),
                         ft.Text(
                             value=f"Fundamento Algorítmico: {titulo}",
-                            size=12,
-                            weight=ft.FontWeight.BOLD,
+                            size=TAM_CUERPO,
+                            weight=ft.FontWeight.W_600,
                             color=COLOR_TEXTO_PRIMARIO,
-                            expand=True,
                         ),
                     ],
-                    spacing=6,
+                    spacing=8,
+                    tight=True,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    tight=True,
                 ),
-                fila_chips,
+                chip_base,
+                chip_opt,
+                ft.Text(value=descripcion, size=TAM_CUERPO, color=COLOR_TEXTO_SECUNDARIO),
                 ft.Text(
-                    value=descripcion,
-                    size=11,
-                    color=COLOR_TEXTO_SECUNDARIO,
-                    weight=ft.FontWeight.W_400,
-                ),
-                ft.Row(
-                    controls=[
-                        ft.Icon(ft.Icons.LIGHTBULB_ROUNDED, size=13, color=COLOR_SECUNDARIO),
-                        ft.Text(
-                            value=f"Relevancia oral: {por_que_importa}",
-                            size=10.5,
-                            color=COLOR_TEXTO_MUTED,
-                            weight=ft.FontWeight.W_500,
-                            expand=True,
-                        ),
-                    ],
-                    spacing=4,
-                    vertical_alignment=ft.CrossAxisAlignment.START,
-                    tight=True,
+                    value=f"Relevancia oral: {por_que_importa}",
+                    size=TAM_ETIQUETA,
+                    color=COLOR_TEXTO_MUTED,
+                    weight=ft.FontWeight.W_500,
                 ),
             ],
-            spacing=4,
+            spacing=6,
             tight=True,
         ),
-        padding=padding_symmetric(horizontal=12, vertical=8),
+        padding=padding_symmetric(horizontal=14, vertical=12),
         bgcolor=COLOR_TARJETA,
-        border_radius=8,
+        border_radius=RADIO,
         border=borde_all(1, COLOR_BORDE),
+    )
+
+
+def crear_columna_corrida(titulo: str, tiempo_ms: float, es_baseline: bool) -> ft.Container:
+    """Una columna de la comparativa Lighthouse: Baseline o Optimizado."""
+    color = COLOR_ADVERTENCIA if es_baseline else COLOR_EXITO
+    fondo = COLOR_FONDO_ADVERTENCIA if es_baseline else COLOR_FONDO_EXITO
+    return ft.Container(
+        content=ft.Column(
+            controls=[
+                ft.Text(titulo, size=TAM_ETIQUETA, weight=ft.FontWeight.W_700, color=color),
+                ft.Text(
+                    formatear_tiempo_ms(tiempo_ms),
+                    size=TAM_DATO,
+                    weight=ft.FontWeight.W_700,
+                    color=COLOR_TEXTO_PRIMARIO,
+                    font_family=FAMILIA_DATOS,
+                ),
+            ],
+            spacing=2,
+            tight=True,
+        ),
+        expand=True,
+        padding=padding_symmetric(horizontal=12, vertical=8),
+        bgcolor=fondo,
+        border=borde_all(1, color),
+        border_radius=RADIO,
     )
 
 
@@ -398,7 +498,7 @@ def crear_dialogo_explicativo_modos(page: ft.Page) -> ft.AlertDialog:
         rows=filas_tabla,
         heading_row_color=COLOR_SUPERFICIE,
         border=borde_all(1, COLOR_BORDE),
-        border_radius=8,
+        border_radius=RADIO,
     )
 
     def cerrar_dialogo(_):
@@ -441,7 +541,7 @@ def crear_dialogo_explicativo_modos(page: ft.Page) -> ft.AlertDialog:
         actions=[
             ft.FilledButton(
                 "Entendido",
-                style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
+                style=estilo_boton_primario(),
                 on_click=cerrar_dialogo,
             )
         ],

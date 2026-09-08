@@ -275,7 +275,7 @@ Esta sección la regenera la **Automatización 1** en cada push. El análisis fo
 <!-- No editar a mano: se regenera con `python -m automations.ejecutar --complejidad`. -->
 <!-- El comentario del grupo (secciones 1-8) permanece intacto por encima de este bloque. -->
 
-**Commit analizado:** `32df80c` · **Generado:** 2026-09-07 17:39 UTC
+**Commit analizado:** `ecbe63a` · **Generado:** 2026-09-08 01:45 UTC
 
 Criterio: se recorrió el AST de cada función fundamental. Las cotas salen de
 bucles, accesos hash, recursión, `heapq`, memoización y `ProcessPoolExecutor`
@@ -295,10 +295,10 @@ observados en el cuerpo. No se analizan UI Flet, tests ni wrappers.
 | Combinaciones sustitutas (baseline) | `BuscadorAlternativas._resolver_recursivo_puro` (L170–209) | Ω(N) | Θ(2^N) | O(2^N) | O(N) (pila de llamadas) | bucles×1, recursión |
 | Combinaciones sustitutas (optimizado) | `BuscadorAlternativas._resolver_dp_memo` (L211–256) | Ω(1) (hit de memo) | Θ(N · P) | O(N · P) | O(N · P) (tabla de estados) | bucles×1, hash, recursión, memo |
 | Preparación de pedidos (secuencial) | `procesar_pedidos_secuencial` (L19–121) | Ω(P · L) | Θ(P · L · T_búsqueda) | O(P · L · T_búsqueda) | O(P · L) | bucles×2, buscar_por_id |
-| Preparación de pedidos (concurrente) | `procesar_pedidos_concurrente` (L100–181) | O(P · L) | O((P · L)/C + C_IPC) | O(P · L + C_IPC) | O(P · L + C · chunk) | bucles×2, hash, sorted, ProcessPool |
+| Preparación de pedidos (concurrente) | `procesar_pedidos_concurrente` (L118–216) | O(P · L) | O((P · L)/C + C_IPC) | O(P · L + C_IPC) | O(P · L + C · chunk) | bucles×2, hash, sorted, ProcessPool |
 | Consulta de caché LRU | `CacheLRU.obtener` (L61–68) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
 | Escritura de caché LRU | `CacheLRU.guardar` (L70–78) | Ω(1) | Θ(1) | O(n) (colisión patológica) | O(1) aux. | hash |
-| Invalidación reactiva por stock | `GestorCacheConsultas.invalidar_por_mutacion_stock` (L131–137) | Ω(1) | Θ(1) | O(1) | O(1) | cuerpo trivial |
+| Invalidación reactiva por stock | `GestorCacheConsultas.invalidar_por_mutacion_stock` (L136–142) | Ω(1) | Θ(1) | O(1) | O(1) | cuerpo trivial |
 
 ### Derivación por función (automática)
 
@@ -388,7 +388,7 @@ observados en el cuerpo. No se analizan UI Flet, tests ni wrappers.
 
 #### `procesar_pedidos_concurrente`
 
-- **Archivo:** `src/pedidos/procesador_concurrente.py` líneas 100–181
+- **Archivo:** `src/pedidos/procesador_concurrente.py` líneas 118–216
 - **Técnica:** ProcessPoolExecutor + snapshot de stock
 - **Cotas:** mejor O(P · L) · promedio O((P · L)/C + C_IPC) · peor O(P · L + C_IPC)
 - **Justificación (del cuerpo, no inventada):** El cuerpo instancia `ProcessPoolExecutor` y parte el lote en fragmentos. El trabajo útil por pedido es lineal en sus líneas; el término `C_IPC` aparece porque cada worker recibe un snapshot serializado del stock. Con pocos pedidos el overhead de creación de procesos domina; con muchos el costo se reparte entre `C` núcleos.
@@ -409,7 +409,7 @@ observados en el cuerpo. No se analizan UI Flet, tests ni wrappers.
 
 #### `GestorCacheConsultas.invalidar_por_mutacion_stock`
 
-- **Archivo:** `src/cache/cache_consultas.py` líneas 131–137
+- **Archivo:** `src/cache/cache_consultas.py` líneas 136–142
 - **Técnica:** Purga de búsquedas y categorías
 - **Cotas:** mejor Ω(1) · promedio Θ(1) · peor O(1)
 - **Justificación (del cuerpo, no inventada):** El cuerpo no recorre colecciones del dominio ni dispara recursión: son asignaciones, purgas de caché o accesos puntuales.

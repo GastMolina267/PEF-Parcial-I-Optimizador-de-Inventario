@@ -102,7 +102,7 @@ class GestorCacheConsultas:
 
     @property
     def metricas(self) -> MetricasCache:
-        """Métricas operativas de la partición de búsqueda de texto."""
+        """Métricas de búsquedas por texto. Es la partición que usa Catálogo."""
         return self._cache_busquedas.metricas
 
     # --- Búsquedas por nombre ---

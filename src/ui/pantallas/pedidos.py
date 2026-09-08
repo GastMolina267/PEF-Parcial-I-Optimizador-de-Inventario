@@ -6,6 +6,7 @@ from src.motor.motor_inventario import MotorInventario
 from src.ui.tema import (
     COLOR_BORDE,
     COLOR_EXITO,
+    COLOR_FONDO_APP,
     COLOR_FONDO_ADVERTENCIA,
     COLOR_FONDO_EXITO,
     COLOR_FONDO_PELIGRO,
@@ -20,10 +21,16 @@ from src.ui.tema import (
     borde_all,
     padding_symmetric,
     crear_badge_estado,
-    crear_tarjeta_kpi,
     crear_banner_explicativo,
-    crear_badge_tiempo,
+    crear_barra_herramientas,
     crear_dropdown,
+    crear_encabezado,
+    crear_tarjeta_kpi,
+    crear_titulo_seccion,
+    envolver_lista,
+    envolver_metricas,
+    estilo_boton_primario,
+    formatear_tiempo_ms,
 )
 
 
@@ -36,7 +43,8 @@ class PantallaPedidos(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = padding_symmetric(horizontal=16, vertical=10)
+        self.bgcolor = COLOR_FONDO_APP
+        self.padding = padding_symmetric(horizontal=16, vertical=12)
         self.pedidos_actuales = []
 
         self.resultados_ultimo_proceso = None
@@ -44,8 +52,8 @@ class PantallaPedidos(ft.Container):
 
         # Controles
         self.switch_concurrente = ft.Switch(
-            label="Procesamiento Concurrente (ProcessPoolExecutor)",
-            value=self.motor.es_optimizado,
+            label="ProcessPoolExecutor (mide el costo IPC)",
+            value=False,
             active_color=COLOR_SECUNDARIO,
         )
 
@@ -58,7 +66,7 @@ class PantallaPedidos(ft.Container):
         self.btn_procesar = ft.FilledButton(
             "Procesar Lote de Pedidos",
             icon=ft.Icons.PLAY_CIRCLE_FILLED_ROUNDED,
-            style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
+            style=estilo_boton_primario(),
             on_click=lambda _: self._ejecutar_procesamiento(),
         )
 
@@ -83,9 +91,9 @@ class PantallaPedidos(ft.Container):
         )
 
         # Fila de KPIs
-        self.fila_kpis = ft.Row(spacing=12)
+        self.fila_kpis = ft.Row(spacing=0)
         # Lista scrolleable de resultados
-        self.col_pedidos = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
+        self.col_pedidos = ft.ListView(spacing=4, expand=True, padding=8)
 
         self._construir_interfaz()
         self._actualizar_kpis_iniciales()
@@ -93,22 +101,11 @@ class PantallaPedidos(ft.Container):
     def _construir_interfaz(self) -> None:
         self.content = ft.Column(
             controls=[
-                ft.Row(
-                    controls=[
-                        ft.Column(
-                            controls=[
-                                ft.Text("Preparación de Pedidos en Lote", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Evaluación de disponibilidad: Mono-hilo secuencial vs. ProcessPoolExecutor (CPU-bound)", size=12, color=COLOR_TEXTO_SECUNDARIO),
-                            ],
-                            spacing=1,
-                        ),
-                        ft.Container(expand=True),
-                        self.btn_procesar,
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                crear_encabezado(
+                    "Preparación de Pedidos en Lote",
+                    "Evaluación de disponibilidad: Mono-hilo secuencial vs. ProcessPoolExecutor (CPU-bound)",
+                    self.btn_procesar,
                 ),
-                ft.Divider(height=6, color=COLOR_BORDE),
-                # Banner explicativo didáctico
                 crear_banner_explicativo(
                     titulo="Preparación de Pedidos y Evaluación Concurrente",
                     descripcion="Evaluación de satisfacción de demanda: verificación mono-hilo secuencial frente a ProcessPoolExecutor con chunking para evadir el GIL.",
@@ -116,30 +113,17 @@ class PantallaPedidos(ft.Container):
                     complejidad_opt="Paralelo O((P·L)/C + IPC)",
                     por_que_importa="Permite evidenciar el punto de equilibrio (break-even): en lotes masivos supera el GIL, mientras que en lotes pequeños el costo de IPC domina.",
                 ),
-                # Panel de configuración y ordenamiento
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            self.switch_concurrente,
-                            ft.VerticalDivider(width=1, color=COLOR_BORDE),
-                            self.check_descontar_stock,
-                            ft.VerticalDivider(width=1, color=COLOR_BORDE),
-                            self.dropdown_orden,
-                            self.btn_sentido_orden,
-                        ],
-                        spacing=10,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=padding_symmetric(horizontal=10, vertical=5),
-                    bgcolor=COLOR_TARJETA,
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
-                ),
-                self.fila_kpis,
-                ft.Text("Listado de Pedidos (Clic en cada pedido para desplegar líneas y stock disponible)", size=13, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                self.col_pedidos,
+                crear_barra_herramientas([
+                    self.switch_concurrente,
+                    self.check_descontar_stock,
+                    self.dropdown_orden,
+                    self.btn_sentido_orden,
+                ]),
+                envolver_metricas(self.fila_kpis),
+                crear_titulo_seccion("Listado de Pedidos (Clic en cada pedido para desplegar líneas y stock disponible)"),
+                envolver_lista(self.col_pedidos),
             ],
-            spacing=6,
+            spacing=10,
             expand=True,
         )
 
@@ -150,8 +134,7 @@ class PantallaPedidos(ft.Container):
         self._actualizar_kpis_iniciales()
 
     def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
-        """Sincroniza el switch de concurrencia cuando cambia la estrategia global."""
-        self.switch_concurrente.value = (nueva_estrategia == "optimizado")
+        """Optimizado acelera con catálogo hash O(1). ProcessPool es opt-in (IPC)."""
         actualizar_control(self.switch_concurrente)
 
     def _alternar_sentido_orden(self):
@@ -206,20 +189,20 @@ class PantallaPedidos(ft.Container):
         items = []
         max_mostrar = 100
         for ped in self.pedidos_actuales[:max_mostrar]:
-            total_unidades = sum(l.cantidad for l in ped.lineas)
+            total_unidades = sum(linea.cantidad for linea in ped.lineas)
 
             # Construir desglose de líneas desplegables
             filas_lineas = []
             precio_total_estimado = 0.0
-            for l in ped.lineas:
-                prod = self.motor.buscar_por_id(l.id_producto)
-                nombre_p = prod.nombre if prod else f"Producto #{l.id_producto}"
+            for linea in ped.lineas:
+                prod = self.motor.buscar_por_id(linea.id_producto)
+                nombre_p = prod.nombre if prod else f"Producto #{linea.id_producto}"
                 stock_p = prod.stock if prod else 0
                 precio_p = prod.precio if prod else 0.0
-                subtotal = precio_p * l.cantidad
+                subtotal = precio_p * linea.cantidad
                 precio_total_estimado += subtotal
 
-                if stock_p >= l.cantidad:
+                if stock_p >= linea.cantidad:
                     badge_linea = ft.Container(
                         content=ft.Text(f"Cubierta (Stock: {stock_p})", size=11, color=COLOR_EXITO, weight=ft.FontWeight.BOLD),
                         bgcolor=COLOR_FONDO_EXITO,
@@ -228,7 +211,7 @@ class PantallaPedidos(ft.Container):
                     )
                 elif stock_p > 0:
                     badge_linea = ft.Container(
-                        content=ft.Text(f"Parcial (Stock: {stock_p} / Falta: {l.cantidad - stock_p})", size=11, color="#F59E0B", weight=ft.FontWeight.BOLD),
+                        content=ft.Text(f"Parcial (Stock: {stock_p} / Falta: {linea.cantidad - stock_p})", size=11, color="#F59E0B", weight=ft.FontWeight.BOLD),
                         bgcolor=COLOR_FONDO_ADVERTENCIA,
                         padding=padding_symmetric(horizontal=8, vertical=3),
                         border_radius=6,
@@ -245,9 +228,9 @@ class PantallaPedidos(ft.Container):
                     ft.Container(
                         content=ft.Row(
                             controls=[
-                                ft.Text(f"#{l.id_producto}", size=12, color=COLOR_PRIMARIO, weight=ft.FontWeight.BOLD, width=50),
+                                ft.Text(f"#{linea.id_producto}", size=12, color=COLOR_PRIMARIO, weight=ft.FontWeight.BOLD, width=50),
                                 ft.Text(nombre_p, size=13, color=COLOR_TEXTO_PRIMARIO, expand=True),
-                                ft.Text(f"Pedido: {l.cantidad} Unidades", size=12, color=COLOR_TEXTO_SECUNDARIO, width=140),
+                                ft.Text(f"Pedido: {linea.cantidad} Unidades", size=12, color=COLOR_TEXTO_SECUNDARIO, width=140),
                                 ft.Text(f"${subtotal:,.2f}", size=12, color=COLOR_TEXTO_PRIMARIO, weight=ft.FontWeight.W_600, width=90),
                                 badge_linea,
                             ],
@@ -256,6 +239,7 @@ class PantallaPedidos(ft.Container):
                         padding=padding_symmetric(horizontal=8, vertical=4),
                     )
                 )
+
 
             desglose = ft.Container(
                 content=ft.Column(
@@ -377,7 +361,7 @@ class PantallaPedidos(ft.Container):
 
             # Actualizar KPIs con badge de tiempo
             self.fila_kpis.controls = [
-                crear_tarjeta_kpi("Total Procesados", f"{resumen.pedidos_procesados:,}", f"Tiempo: {resumen.tiempo_ejecucion_ms:.2f} ms", ft.Icons.RECEIPT_LONG, COLOR_PRIMARIO),
+                crear_tarjeta_kpi("Total Procesados", f"{resumen.pedidos_procesados:,}", f"Tiempo: {formatear_tiempo_ms(resumen.tiempo_ejecucion_ms)}", ft.Icons.RECEIPT_LONG, COLOR_PRIMARIO),
                 crear_tarjeta_kpi("Cubiertos", f"{resumen.pedidos_cubiertos:,}", f"{resumen.porcentaje_cobertura:.1f}% del lote", ft.Icons.CHECK_CIRCLE, COLOR_EXITO),
                 crear_tarjeta_kpi("Parciales", f"{resumen.pedidos_parciales:,}", "Faltante parcial", ft.Icons.WARNING, "#F59E0B"),
                 crear_tarjeta_kpi("Imposibles", f"{resumen.pedidos_imposibles:,}", "Faltante total", ft.Icons.CANCEL, COLOR_PELIGRO),
@@ -386,7 +370,12 @@ class PantallaPedidos(ft.Container):
             self.resultados_ultimo_proceso = list(resumen.resultados)
             self._aplicar_ordenamiento()
 
-            modo_txt = "Concurrente (ProcessPoolExecutor)" if es_conc else "Secuencial"
+            if es_conc:
+                modo_txt = "Concurrente (ProcessPoolExecutor + IPC)"
+            elif self.motor.es_optimizado:
+                modo_txt = "Secuencial con hash O(1)"
+            else:
+                modo_txt = "Secuencial con lista O(n)"
             self.on_actualizar_panel(
                 dataset="activo",
                 n_productos=len(self.motor.catalogo),
@@ -396,13 +385,8 @@ class PantallaPedidos(ft.Container):
                 resultado_negocio=f"Lote ({modo_txt}): {resumen.pedidos_cubiertos} cubiertos, {resumen.pedidos_parciales} parciales",
             )
             actualizar_control(self)
-            self.notificar(f"Lote de pedidos procesado ({modo_txt}) en {resumen.tiempo_ejecucion_ms:.2f} ms.", ft.Icons.CHECK)
+            self.notificar(f"Lote de pedidos procesado ({modo_txt}) en {formatear_tiempo_ms(resumen.tiempo_ejecucion_ms)}.", ft.Icons.CHECK)
         except Exception as err:
             self.notificar(f"Error al procesar pedidos: {err}", ft.Icons.ERROR)
 
-    def al_cambiar_estrategia_global(self, nueva_estrategia: str) -> None:
-        """Sincroniza el switch de procesamiento concurrente con la estrategia global."""
-        es_opt = (nueva_estrategia == "optimizado")
-        self.switch_concurrente.value = es_opt
-        actualizar_control(self.switch_concurrente)
 

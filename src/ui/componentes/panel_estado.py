@@ -1,31 +1,26 @@
-"""Componente de panel de estado persistente e informativo.
+"""Barra superior estilo AWS Console (top navigation).
 
-Muestra en tiempo real en la parte superior de la aplicación:
-- Dataset actualmente cargado.
-- N productos y N pedidos del escenario.
-- Estrategia activa (Baseline vs Optimizado) con toggle rápido.
-- Tiempo y memoria estimada de la última corrida.
-- Resumen del resultado de negocio.
+Muestra dataset, conmutador Baseline | Optimizado, tiempo líder y resultado.
 """
 
 from __future__ import annotations
 import flet as ft
 from src.ui.tema import (
-    COLOR_BORDE,
-    COLOR_BORDE_ENFOQUE,
+    COLOR_ADVERTENCIA,
     COLOR_EXITO,
-    COLOR_PRIMARIO,
-
-    COLOR_SECUNDARIO,
-    COLOR_SUPERFICIE,
-    COLOR_TARJETA,
-    COLOR_TEXTO_MUTED,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
-    borde_all,
-    borde_only,
-    padding_symmetric,
+    COLOR_FONDO_ADVERTENCIA,
+    COLOR_FONDO_EXITO,
+    COLOR_MARCA,
+    COLOR_NAV,
+    COLOR_NAV_BORDE,
+    COLOR_NAV_HOVER,
+    COLOR_NAV_MUTED,
+    COLOR_NAV_TEXTO,
+    FAMILIA_DATOS,
     actualizar_control,
+    borde_all,
+    formatear_tiempo_ms,
+    padding_symmetric,
 )
 
 
@@ -37,96 +32,101 @@ class PanelEstado(ft.Container):
         self.on_cambiar_estrategia = on_cambiar_estrategia
         self.on_mostrar_ayuda_modos = on_mostrar_ayuda_modos
         self.dataset_nombre = "demo_oral.json"
+        self._estrategia = "baseline"
 
         self.txt_dataset = ft.Text(
             value="demo_oral.json",
             size=13,
-            weight=ft.FontWeight.BOLD,
-            color=COLOR_TEXTO_PRIMARIO,
+            weight=ft.FontWeight.W_600,
+            color=COLOR_NAV_TEXTO,
         )
         self.txt_volumen = ft.Text(
-            value="30 prods | 8 pedidos",
+            value="30 prods · 8 pedidos",
             size=12,
-            color=COLOR_TEXTO_SECUNDARIO,
+            color=COLOR_NAV_MUTED,
         )
-        self.txt_ultima_corrida = ft.Text(
-            value="Última corrida: -- ms | -- MB",
+        self.txt_tiempo = ft.Text(
+            value="-- ms",
+            size=22,
+            weight=ft.FontWeight.W_700,
+            color=COLOR_NAV_TEXTO,
+            font_family=FAMILIA_DATOS,
+        )
+        self.txt_memoria = ft.Text(
+            value="-- MB",
             size=12,
-            color=COLOR_TEXTO_MUTED,
+            color=COLOR_NAV_MUTED,
+            font_family=FAMILIA_DATOS,
         )
         self.txt_resultado_negocio = ft.Text(
             value="Listo para operar",
             size=12,
             weight=ft.FontWeight.W_500,
-            color=COLOR_EXITO,
+            color=COLOR_NAV_MUTED,
         )
 
-        self.switch_estrategia = ft.Switch(
-            label="Modo Baseline (O(n))",
-            value=False,
-            active_color=COLOR_EXITO,
-            on_change=self._al_cambiar_switch,
-        )
+        self.btn_baseline = ft.Container()
+        self.btn_optimizado = ft.Container()
+        self._pintar_conmutador()
 
         self.btn_info_modos = ft.IconButton(
-            icon=ft.Icons.HELP_OUTLINE_ROUNDED,
-            icon_color=COLOR_BORDE_ENFOQUE,
-            icon_size=21,
+            icon=ft.Icons.HELP_OUTLINE,
+            icon_color=COLOR_MARCA,
+            icon_size=18,
             tooltip="¿Qué cambia entre Modo Optimizado O(1) y Modo Baseline? Clic para ver comparativa",
             on_click=lambda _: self._abrir_ayuda_modos(),
         )
 
+        self.padding = padding_symmetric(horizontal=16, vertical=8)
+        self.bgcolor = COLOR_NAV
+        self.border = None
+        self.height = 56
 
-        self.padding = padding_symmetric(horizontal=16, vertical=10)
-        self.bgcolor = COLOR_SUPERFICIE
-        self.border = borde_only(bottom=ft.border.BorderSide(1, COLOR_BORDE))
+        marca = ft.Row(
+            controls=[
+                ft.Container(width=10, height=10, bgcolor=COLOR_MARCA, border_radius=2),
+                ft.Text(
+                    "Optimizador",
+                    size=15,
+                    weight=ft.FontWeight.W_700,
+                    color=COLOR_NAV_TEXTO,
+                ),
+            ],
+            spacing=8,
+            tight=True,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        )
 
         self.content = ft.Row(
             controls=[
-                # Columna 1: Dataset y tamaño
-                ft.Row(
-                    controls=[
-                        ft.Icon(ft.Icons.STORAGE_ROUNDED, size=20, color=COLOR_PRIMARIO),
-                        ft.Column(
-                            controls=[self.txt_dataset, self.txt_volumen],
-                            spacing=1,
-                            tight=True,
-                        ),
-                    ],
-                    spacing=8,
+                marca,
+                ft.VerticalDivider(width=1, color=COLOR_NAV_BORDE),
+                ft.Column(
+                    controls=[self.txt_dataset, self.txt_volumen],
+                    spacing=1,
+                    tight=True,
                 ),
-                ft.VerticalDivider(width=1, color=COLOR_BORDE),
-                # Columna 2: Métricas de última corrida
+                ft.VerticalDivider(width=1, color=COLOR_NAV_BORDE),
                 ft.Row(
-                    controls=[
-                        ft.Icon(ft.Icons.SPEED_ROUNDED, size=20, color=COLOR_SECUNDARIO),
-                        ft.Column(
-                            controls=[self.txt_ultima_corrida, self.txt_resultado_negocio],
-                            spacing=1,
-                            tight=True,
-                        ),
-                    ],
-                    spacing=8,
+                    controls=[self.btn_baseline, self.btn_optimizado, self.btn_info_modos],
+                    spacing=4,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                # Espaciador central
                 ft.Container(expand=True),
-                # Columna 3: Control de estrategia con botón explicativo
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            self.switch_estrategia,
-                            self.btn_info_modos,
-                        ],
-                        spacing=4,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    bgcolor=COLOR_TARJETA,
-                    padding=padding_symmetric(horizontal=10, vertical=3),
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
+                ft.Column(
+                    controls=[
+                        self.txt_tiempo,
+                        ft.Row(
+                            controls=[self.txt_memoria, self.txt_resultado_negocio],
+                            spacing=10,
+                            tight=True,
+                        ),
+                    ],
+                    spacing=1,
+                    tight=True,
+                    horizontal_alignment=ft.CrossAxisAlignment.END,
                 ),
             ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
@@ -134,13 +134,55 @@ class PanelEstado(ft.Container):
         if self.on_mostrar_ayuda_modos:
             self.on_mostrar_ayuda_modos()
 
-    def _al_cambiar_switch(self, e):
-        nueva = "optimizado" if self.switch_estrategia.value else "baseline"
-        self.switch_estrategia.label = (
-            "Modo Optimizado (O(1))" if self.switch_estrategia.value else "Modo Baseline (O(n))"
+    def _pintar_conmutador(self) -> None:
+        es_opt = self._estrategia == "optimizado"
+        self.btn_baseline = self._boton_modo(
+            "Baseline  O(n)",
+            activo=not es_opt,
+            color=COLOR_ADVERTENCIA,
+            fondo=COLOR_FONDO_ADVERTENCIA,
+            al_clic=lambda _: self._elegir("baseline"),
         )
-        actualizar_control(self.switch_estrategia)
+        self.btn_optimizado = self._boton_modo(
+            "Optimizado  O(1)",
+            activo=es_opt,
+            color=COLOR_EXITO,
+            fondo=COLOR_FONDO_EXITO,
+            al_clic=lambda _: self._elegir("optimizado"),
+        )
+
+    def _boton_modo(self, texto: str, activo: bool, color: str, fondo: str, al_clic) -> ft.Container:
+        return ft.Container(
+            content=ft.Text(
+                texto,
+                size=13,
+                weight=ft.FontWeight.W_700,
+                color=color if activo else COLOR_NAV_MUTED,
+            ),
+            padding=padding_symmetric(horizontal=12, vertical=6),
+            bgcolor=fondo if activo else COLOR_NAV_HOVER,
+            border=borde_all(1, color if activo else COLOR_NAV_BORDE),
+            border_radius=8,
+            on_click=al_clic,
+        )
+
+    def _elegir(self, nueva: str) -> None:
+        if nueva == self._estrategia:
+            return
+        self._estrategia = nueva
+        self._reconstruir_conmutador()
         self.on_cambiar_estrategia(nueva)
+
+    def _reconstruir_conmutador(self) -> None:
+        self._pintar_conmutador()
+        fila = self.content
+        if isinstance(fila, ft.Row) and len(fila.controls) >= 5:
+            fila.controls[4] = ft.Row(
+                controls=[self.btn_baseline, self.btn_optimizado, self.btn_info_modos],
+                spacing=4,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            )
+        actualizar_control(self)
 
     def actualizar_estado(
         self,
@@ -155,19 +197,15 @@ class PanelEstado(ft.Container):
         """Actualiza la información visible en el panel."""
         self.dataset_nombre = dataset
         self.txt_dataset.value = dataset
-        self.txt_volumen.value = f"{n_productos:,} prods | {n_pedidos:,} pedidos"
-        self.switch_estrategia.value = (estrategia == "optimizado")
-        self.switch_estrategia.label = (
-            "Modo Optimizado (O(1))" if self.switch_estrategia.value else "Modo Baseline (O(n))"
-        )
+        self.txt_volumen.value = f"{n_productos:,} prods · {n_pedidos:,} pedidos"
+
+        if estrategia in ("baseline", "optimizado") and estrategia != self._estrategia:
+            self._estrategia = estrategia
+            self._reconstruir_conmutador()
 
         if tiempo_ms is not None:
-            mem_str = f"{memoria_mb:.2f} MB" if memoria_mb is not None else "-- MB"
-            if tiempo_ms < 0.1:
-                t_fmt = f"{tiempo_ms * 1000.0:.1f} µs"
-            else:
-                t_fmt = f"{tiempo_ms:.2f} ms"
-            self.txt_ultima_corrida.value = f"Última corrida: {t_fmt} | {mem_str}"
+            self.txt_tiempo.value = formatear_tiempo_ms(tiempo_ms)
+            self.txt_memoria.value = f"{memoria_mb:.2f} MB" if memoria_mb is not None else "-- MB"
 
         if resultado_negocio is not None:
             self.txt_resultado_negocio.value = resultado_negocio

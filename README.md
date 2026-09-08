@@ -373,3 +373,46 @@ El proyecto se construye de manera incremental y modular siguiendo las etapas es
 - [x] **Etapa 4 — Interfaz gráfica Flet:** Aplicación de escritorio con arquitectura por componentes, métricas integradas y tema accesible.
 - [x] **Etapa 5 — Medición, análisis y tests:** Suite de scripts de perfilado, generación de la tabla comparativa y pruebas automatizadas de equivalencia.
 - [x] **Etapa 6 — Automatizaciones Origin:** Núcleo AST + lecturas de `docs/mediciones/`, skills/prompts Origin y refresco de complejidad / propuestas en cada push.
+- [x] **Etapa 7 — CI/CD y Empaquetado:** Pipelines automatizados de verificación y compilación en GitHub Actions (`verify.yml` y `compile.yml`), punto de entrada canónico `main.py`, estándar `pyproject.toml` y script de empaquetado `scripts/compile.py`.
+
+---
+
+## 14. Integración y Despliegue Continuo (CI/CD) & Compilación
+
+El proyecto cuenta con dos pipelines de integración y entrega continua configurados en GitHub Actions dentro de `.github/workflows/`:
+
+### 1. Pipeline de Verificación (`.github/workflows/verify.yml`)
+Garantiza la calidad de código e integridad del sistema en cada `push` o `pull_request` sobre las ramas principales:
+* **Compilación de Sintaxis y Linting:** Verifica que el 100% de los módulos Python compilen a bytecode sin errores de sintaxis (`compileall`) y analiza el código con `ruff`.
+* **Matriz de Pruebas Multiplataforma:** Ejecuta la suite completa de **78 pruebas automatizadas** en entornos **Linux** (`ubuntu-latest`) y **Windows** (`windows-latest`) sobre **Python 3.10, 3.11 y 3.12**.
+* **Reporte de Cobertura:** Genera métricas de cobertura de código con `pytest-cov` y almacena el artefacto `coverage.xml`.
+* **Integridad de Datos y AST:** Valida la consistencia de los datasets JSON en `data/datasets/`, ejecuta el motor de análisis de complejidad algorítmica AST (`python -m automations.ejecutar`) y confirma la validez de la presentación oral sin delimitadores residuales.
+
+### 2. Pipeline de Compilación y Empaquetado (`.github/workflows/compile.yml`)
+Compila y distribuye la aplicación de escritorio de forma automatizada ante nuevas versiones o mediante ejecución manual (`workflow_dispatch`):
+* **Binarios Standalone Nativos:** Utiliza PyInstaller para construir ejecutables independientes con todos los recursos embebidos (`data/`, `docs/presentation/`):
+  * **Windows:** Genera `OptimizadorInventario-windows-x64.zip` con el ejecutable `.exe` empaquetado.
+  * **Linux:** Genera `OptimizadorInventario-linux-x64.tar.gz` listo para ejecución en entornos Unix.
+* **Paquetes Python Estándar:** Construye distribuciones instalables vía `pip` en formatos Wheel (`.whl`) y Source (`.tar.gz`) bajo especificación PEP 517/621 (`pyproject.toml`).
+* **GitHub Releases Automáticas:** Al crear una etiqueta `v*` (ej: `git tag v1.0.0 && git push origin v1.0.0`), crea automáticamente la release en GitHub con los ejecutables y paquetes adjuntos.
+
+### 3. Compilación y Ejecución Local
+
+Para compilar la aplicación en su propia máquina sin depender de GitHub Actions:
+
+```bash
+# 1. Instalar dependencias de desarrollo y compilación
+pip install -r requirements-dev.txt
+
+# 2. Compilar en modo directorio (recomendado para Flet)
+python scripts/compile.py
+
+# 3. Compilar en modo ejecutable único (onefile)
+python scripts/compile.py --mode onefile
+
+# 4. Validar el comando sin realizar cambios (dry-run)
+python scripts/compile.py --dry-run
+```
+
+El binario compilado resultante se generará en la carpeta `dist/OptimizadorInventario/`.
+

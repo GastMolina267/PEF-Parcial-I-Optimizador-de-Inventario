@@ -8,6 +8,7 @@ Y sirve como punto de anclaje canónico para compiladores y empaquetadores como 
 
 from __future__ import annotations
 
+import multiprocessing
 import sys
 from pathlib import Path
 
@@ -36,4 +37,7 @@ def run() -> None:
 
 
 if __name__ == "__main__":
+    # Obligatorio en el .exe: sin esto, ProcessPoolExecutor relanza el GUI
+    # (Windows spawn + PyInstaller). Comparativa y Pedidos abrían N ventanas.
+    multiprocessing.freeze_support()
     run()

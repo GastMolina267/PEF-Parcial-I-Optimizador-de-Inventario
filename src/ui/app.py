@@ -12,6 +12,7 @@ y las 7 pantallas del sistema:
 """
 
 from __future__ import annotations
+import multiprocessing
 from pathlib import Path
 import flet as ft
 
@@ -279,6 +280,7 @@ def main(page: ft.Page) -> None:
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     if hasattr(ft, "run") and callable(ft.run):
         ft.run(main)
     elif hasattr(ft, "app") and callable(ft.app):

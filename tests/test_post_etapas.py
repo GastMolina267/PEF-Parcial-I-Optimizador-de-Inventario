@@ -228,3 +228,14 @@ class TestOrdenamientoYDesplieguePantallas:
         assert "Baseline" in chip_base.content.controls[0].value
         assert "Optimizado" in chip_opt.content.controls[0].value
 
+
+def test_puntos_de_entrada_llaman_freeze_support():
+    """El .exe de PyInstaller debe llamar freeze_support o ProcessPool abre N ventanas."""
+    main_txt = (BASE_DIR / "main.py").read_text(encoding="utf-8")
+    app_txt = (BASE_DIR / "src" / "ui" / "app.py").read_text(encoding="utf-8")
+    assert "freeze_support()" in main_txt
+    assert "freeze_support()" in app_txt
+    bloque_main = main_txt.split('if __name__ == "__main__":', 1)[1]
+    assert "freeze_support()" in bloque_main
+    assert bloque_main.index("freeze_support()") < bloque_main.index("run()")
+

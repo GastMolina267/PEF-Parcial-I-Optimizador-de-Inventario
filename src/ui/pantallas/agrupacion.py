@@ -17,9 +17,17 @@ from src.ui.tema import (
     actualizar_control,
     borde_all,
     padding_symmetric,
-    crear_tarjeta_kpi,
     crear_banner_explicativo,
+    crear_barra_herramientas,
     crear_dropdown,
+    crear_encabezado,
+    crear_tarjeta_kpi,
+    crear_titulo_seccion,
+    COLOR_FONDO_APP,
+    envolver_lista,
+    envolver_metricas,
+    estilo_boton_primario,
+    formatear_tiempo_ms,
 )
 
 
@@ -32,7 +40,8 @@ class PantallaAgrupacion(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = padding_symmetric(horizontal=16, vertical=10)
+        self.bgcolor = COLOR_FONDO_APP
+        self.padding = padding_symmetric(horizontal=16, vertical=12)
 
         self.items_consolidados_actuales = []
         self.orden_ascendente = False
@@ -40,7 +49,7 @@ class PantallaAgrupacion(ft.Container):
         self.btn_agrupar = ft.FilledButton(
             "Consolidar",
             icon=ft.Icons.ALL_INBOX_ROUNDED,
-            style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
+            style=estilo_boton_primario(),
             on_click=lambda _: self._ejecutar_agrupacion(),
         )
 
@@ -65,8 +74,8 @@ class PantallaAgrupacion(ft.Container):
             on_click=lambda _: self._alternar_sentido_orden(),
         )
 
-        self.fila_kpis = ft.Row(spacing=8)
-        self.col_items_picking = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
+        self.fila_kpis = ft.Row(spacing=0)
+        self.col_items_picking = ft.ListView(spacing=0, expand=True, padding=0)
 
         self._construir_interfaz()
         self._ejecutar_agrupacion()
@@ -74,22 +83,11 @@ class PantallaAgrupacion(ft.Container):
     def _construir_interfaz(self) -> None:
         self.content = ft.Column(
             controls=[
-                ft.Row(
-                    controls=[
-                        ft.Column(
-                            controls=[
-                                ft.Text("Batch Picking Consolidado", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Fusión de demandas en una sola pasada O(L) mediante acumulación en tablas Hash", size=12, color=COLOR_TEXTO_SECUNDARIO),
-                            ],
-                            spacing=1,
-                        ),
-                        ft.Container(expand=True),
-                        self.btn_agrupar,
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                crear_encabezado(
+                    "Batch Picking Consolidado",
+                    "Fusión de demandas en una sola pasada O(L) mediante acumulación en tablas Hash",
+                    self.btn_agrupar,
                 ),
-                ft.Divider(height=6, color=COLOR_BORDE),
-                # Banner explicativo didáctico
                 crear_banner_explicativo(
                     titulo="Batch Picking Consolidado en Almacén",
                     descripcion="Consolida las demandas de todos los pedidos en una única lista de recolección para que el operario visite cada posición una sola vez.",
@@ -97,27 +95,15 @@ class PantallaAgrupacion(ft.Container):
                     complejidad_opt="Agrupación Hash O(L)",
                     por_que_importa="En depósitos con miles de pedidos, elimina búsquedas cuadráticas repetidas y reduce la distancia física recorrida en almacén.",
                 ),
-                # Barra de herramientas de ordenamiento compacta
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            ft.Icon(ft.Icons.SORT_ROUNDED, size=18, color=COLOR_PRIMARIO),
-                            self.dropdown_orden,
-                            self.btn_sentido_orden,
-                        ],
-                        spacing=8,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=padding_symmetric(horizontal=10, vertical=5),
-                    bgcolor=COLOR_TARJETA,
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
-                ),
-                self.fila_kpis,
-                ft.Text("Lista Consolidada de Artículos a Recolectar en Almacén", size=13, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                self.col_items_picking,
+                crear_barra_herramientas([
+                    self.dropdown_orden,
+                    self.btn_sentido_orden,
+                ]),
+                envolver_metricas(self.fila_kpis),
+                crear_titulo_seccion("Lista Consolidada de Artículos a Recolectar en Almacén"),
+                envolver_lista(self.col_items_picking),
             ],
-            spacing=6,
+            spacing=10,
             expand=True,
         )
 
@@ -166,7 +152,7 @@ class PantallaAgrupacion(ft.Container):
             crear_tarjeta_kpi("Pedidos Consolidados", f"{lote.total_pedidos:,}", "Órdenes agrupadas", ft.Icons.LOCAL_SHIPPING, COLOR_PRIMARIO),
             crear_tarjeta_kpi("Productos Únicos", f"{lote.total_productos_distintos:,}", "Posiciones a visitar", ft.Icons.CATEGORY, COLOR_SECUNDARIO),
             crear_tarjeta_kpi("Unidades Totales", f"{lote.total_unidades:,}", "Cantidad agregada", ft.Icons.INVENTORY_2, COLOR_EXITO),
-            crear_tarjeta_kpi("Tiempo de Consolidación", f"{duracion_ms:.2f} ms", "Cómputo en una pasada O(L)", ft.Icons.SPEED, COLOR_PRIMARIO),
+            crear_tarjeta_kpi("Tiempo de Consolidación", formatear_tiempo_ms(duracion_ms), "Cómputo en una pasada O(L)", ft.Icons.SPEED, COLOR_PRIMARIO),
         ]
 
         self.items_consolidados_actuales = list(lote.items)

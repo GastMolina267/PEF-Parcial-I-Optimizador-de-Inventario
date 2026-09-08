@@ -19,6 +19,7 @@ from src.ui.tema import (
     crear_banner_explicativo,
     crear_dialogo_explicativo_modos,
     crear_dropdown,
+    formatear_tiempo_ms,
 )
 from src.ui.pantallas.catalogo import PantallaCatalogo
 from src.ui.pantallas.pedidos import PantallaPedidos
@@ -41,11 +42,16 @@ def motor_activo() -> MotorInventario:
 
 class TestComponentesTemaPostEtapas:
     def test_badge_tiempo_formatos(self):
-        b_micro = crear_badge_tiempo(0.042)
-        assert isinstance(b_micro, ft.Container)
+        b_fraccion_ms = crear_badge_tiempo(0.042)
+        assert isinstance(b_fraccion_ms, ft.Container)
 
         b_mili = crear_badge_tiempo(12.5, speedup=24.5)
         assert isinstance(b_mili, ft.Container)
+
+    def test_formatear_tiempo_siempre_en_ms(self):
+        assert formatear_tiempo_ms(0.042).endswith(" ms")
+        assert "µs" not in formatear_tiempo_ms(0.042)
+        assert formatear_tiempo_ms(12.5) == "12.50 ms"
 
     def test_banner_explicativo(self):
         banner = crear_banner_explicativo(
@@ -91,7 +97,7 @@ class TestOrdenamientoYDesplieguePantallas:
         # Verificar que los widgets usen 'Unidades en Stock'
         row = pantalla.col_productos.controls[0].content
         stock_badge = row.controls[3]
-        texto_badge = stock_badge.content.controls[1].value
+        texto_badge = stock_badge.content.value
         assert "Unidades en Stock" in texto_badge or "SIN STOCK" in texto_badge
 
     def test_pedidos_expansion_tile_y_ordenamiento(self, motor_activo: MotorInventario):
@@ -161,6 +167,35 @@ class TestOrdenamientoYDesplieguePantallas:
         assert res.total_combinaciones > 0
         assert res.tiempo_ejecucion_ms < 50.0
 
+    def test_catalogo_busqueda_por_id_y_boton_buscar(self, motor_activo: MotorInventario):
+        pantalla = PantallaCatalogo(motor_activo, lambda **kw: None, lambda *a, **kw: None)
+        pantalla.input_id.value = "1"
+        pantalla.input_busqueda.value = ""
+        pantalla._ejecutar_consulta()
+        assert len(pantalla.productos_actuales) == 1
+        assert pantalla.productos_actuales[0].id == 1
+
+        pantalla.input_id.value = " 2 "
+        pantalla._ejecutar_busqueda_id()
+        assert len(pantalla.productos_actuales) == 1
+        assert pantalla.productos_actuales[0].id == 2
+
+    def test_catalogo_optimizado_lee_hits_sin_explotar(self, motor_activo: MotorInventario):
+        motor_activo.cambiar_estrategia("optimizado")
+        pantalla = PantallaCatalogo(motor_activo, lambda **kw: None, lambda *a, **kw: None)
+        pantalla.input_busqueda.value = "taladro"
+        pantalla.input_id.value = ""
+        pantalla._ejecutar_consulta()
+        pantalla._ejecutar_consulta()
+        assert pantalla._hits_cache_busquedas() >= 1
+        assert "HIT" in pantalla.txt_estado_cache.value
+
+    def test_pedidos_optimizado_no_activa_processpool(self, motor_activo: MotorInventario):
+        pantalla = PantallaPedidos(motor_activo, lambda **kw: None, lambda *a, **kw: None)
+        assert pantalla.switch_concurrente.value is False
+        pantalla.al_cambiar_estrategia_global("optimizado")
+        assert pantalla.switch_concurrente.value is False
+
     def test_catalogo_badge_estrategia_sincronizacion(self, motor_activo: MotorInventario):
         """Verifica que el catálogo no duplique el switch y sincronice su badge informativo."""
         pantalla = PantallaCatalogo(motor_activo, lambda **kw: None, lambda *a, **kw: None)
@@ -174,7 +209,7 @@ class TestOrdenamientoYDesplieguePantallas:
         assert "Lineal O(n)" in pantalla.badge_estrategia.content.controls[1].value
 
     def test_banner_no_clipping_wrap(self):
-        """Verifica que el banner explicativo implemente wrap y expansión para evitar clipping."""
+        """Verifica que el banner no use expand: eso abre un bloque gris en Flet."""
         banner = crear_banner_explicativo(
             titulo="Operación Crítica",
             descripcion="Descripción técnica amplia",
@@ -184,8 +219,12 @@ class TestOrdenamientoYDesplieguePantallas:
         )
         col = banner.content
         assert isinstance(col, ft.Column)
-        # Fila chips debe tener wrap=True
-        fila_chips = col.controls[1]
-        assert isinstance(fila_chips, ft.Row)
-        assert fila_chips.wrap is True
+        chip_base = col.controls[1]
+        chip_opt = col.controls[2]
+        assert isinstance(chip_base, ft.Container)
+        assert isinstance(chip_opt, ft.Container)
+        assert not chip_base.expand
+        assert not chip_opt.expand
+        assert "Baseline" in chip_base.content.controls[0].value
+        assert "Optimizado" in chip_opt.content.controls[0].value
 

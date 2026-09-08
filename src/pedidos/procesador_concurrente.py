@@ -20,9 +20,11 @@ Justificación técnica académica:
 """
 
 from __future__ import annotations
+import atexit
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from typing import Sequence
 from src.modelos.pedido import (
     EstadoPedido,
@@ -31,6 +33,22 @@ from src.modelos.pedido import (
     ResultadoPedido,
     ResumenProcesamiento,
 )
+
+_executor: ProcessPoolExecutor | None = None
+_executor_workers: int | None = None
+
+
+def _cerrar_executor() -> None:
+    """Cierra el pool persistente sin bloquear la salida del proceso."""
+    global _executor, _executor_workers
+    if _executor is None:
+        return
+    _executor.shutdown(wait=False, cancel_futures=True)
+    _executor = None
+    _executor_workers = None
+
+
+atexit.register(_cerrar_executor)
 
 
 def _evaluar_fragmento_pedidos(
@@ -113,6 +131,7 @@ def procesar_pedidos_concurrente(
         descontar_stock: Si True, muta el stock en el catálogo una vez finalizado el cálculo paralelo.
         politica_descuento: 'solo_cubiertos' o 'todo_lo_posible'.
     """
+    global _executor, _executor_workers
     inicio = time.perf_counter()
 
     if not pedidos:
@@ -137,11 +156,27 @@ def procesar_pedidos_concurrente(
         for i in range(0, len(pedidos), tamano_chunk)
     ]
 
-    # 3. Despachar a los procesos de trabajo
+    # 3. Reutilizar ProcessPoolExecutor. En Windows, CreateProcess por clic cuesta cientos de ms.
+    if _executor is None or _executor_workers != workers:
+        if _executor is not None:
+            _executor.shutdown(wait=False, cancel_futures=True)
+        _executor = ProcessPoolExecutor(max_workers=workers)
+        _executor_workers = workers
+
     todos_resultados: list[ResultadoPedido] = []
-    with ProcessPoolExecutor(max_workers=workers) as executor:
+    try:
         futuros = [
-            executor.submit(_evaluar_fragmento_pedidos, frag, mapa_stock)
+            _executor.submit(_evaluar_fragmento_pedidos, frag, mapa_stock)
+            for frag in fragmentos
+        ]
+        for f in futuros:
+            todos_resultados.extend(f.result())
+    except (BrokenProcessPool, RuntimeError):
+        _cerrar_executor()
+        _executor = ProcessPoolExecutor(max_workers=workers)
+        _executor_workers = workers
+        futuros = [
+            _executor.submit(_evaluar_fragmento_pedidos, frag, mapa_stock)
             for frag in fragmentos
         ]
         for f in futuros:

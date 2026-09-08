@@ -19,9 +19,17 @@ from src.ui.tema import (
     alineacion_center,
     borde_all,
     padding_symmetric,
-    crear_tarjeta_kpi,
     crear_banner_explicativo,
+    crear_barra_herramientas,
     crear_dropdown,
+    crear_encabezado,
+    crear_tarjeta_kpi,
+    crear_titulo_seccion,
+    COLOR_FONDO_APP,
+    envolver_lista,
+    envolver_metricas,
+    estilo_boton_primario,
+    formatear_tiempo_ms,
 )
 
 
@@ -34,7 +42,8 @@ class PantallaTopProductos(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = padding_symmetric(horizontal=16, vertical=10)
+        self.bgcolor = COLOR_FONDO_APP
+        self.padding = padding_symmetric(horizontal=16, vertical=12)
 
         self.ranking_actual = []
         self.orden_ascendente = False
@@ -88,12 +97,12 @@ class PantallaTopProductos(ft.Container):
         self.btn_calcular = ft.FilledButton(
             "Recalcular",
             icon=ft.Icons.LEADERBOARD_ROUNDED,
-            style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
+            style=estilo_boton_primario(),
             on_click=lambda _: self._ejecutar_calculo(),
         )
 
-        self.fila_kpis = ft.Row(spacing=8)
-        self.col_ranking = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
+        self.fila_kpis = ft.Row(spacing=0)
+        self.col_ranking = ft.ListView(spacing=0, expand=True, padding=0)
 
         self._construir_interfaz()
         self._ejecutar_calculo()
@@ -101,22 +110,11 @@ class PantallaTopProductos(ft.Container):
     def _construir_interfaz(self) -> None:
         self.content = ft.Column(
             controls=[
-                ft.Row(
-                    controls=[
-                        ft.Column(
-                            controls=[
-                                ft.Text("Ranking de Productos Más Solicitados (Top-N)", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Comparación algorítmica: Heap O(N log k) acotado en memoria vs. Ordenamiento global O(N log N)", size=12, color=COLOR_TEXTO_SECUNDARIO),
-                            ],
-                            spacing=1,
-                        ),
-                        ft.Container(expand=True),
-                        self.btn_calcular,
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                crear_encabezado(
+                    "Ranking de Productos Más Solicitados (Top-N)",
+                    "Comparación algorítmica: Heap O(N log k) acotado en memoria vs. Ordenamiento global O(N log N)",
+                    self.btn_calcular,
                 ),
-                ft.Divider(height=6, color=COLOR_BORDE),
-                # Banner explicativo didáctico
                 crear_banner_explicativo(
                     titulo="Ranking Top-N y Priorización de Inventario",
                     descripcion="Identifica los artículos con mayor volumen de demanda acumulada para ubicarlos estratégicamente en zonas de picking rápido.",
@@ -124,29 +122,17 @@ class PantallaTopProductos(ft.Container):
                     complejidad_opt="Min-Heap acotado O(N log k)",
                     por_que_importa="El algoritmo con Heap mantiene únicamente los k elementos en memoria, ahorrando espacio y tiempo sin ordenar el catálogo completo.",
                 ),
-                # Panel de control de parámetros y ordenamiento compacto
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            self.dropdown_metodo,
-                            self.dropdown_k,
-                            ft.VerticalDivider(width=1, color=COLOR_BORDE),
-                            self.dropdown_orden,
-                            self.btn_sentido_orden,
-                        ],
-                        spacing=8,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=padding_symmetric(horizontal=10, vertical=5),
-                    bgcolor=COLOR_TARJETA,
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
-                ),
-                self.fila_kpis,
-                ft.Text("Productos con Mayor Demanda en el Lote Activo", size=13, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                self.col_ranking,
+                crear_barra_herramientas([
+                    self.dropdown_metodo,
+                    self.dropdown_k,
+                    self.dropdown_orden,
+                    self.btn_sentido_orden,
+                ]),
+                envolver_metricas(self.fila_kpis),
+                crear_titulo_seccion("Productos con Mayor Demanda en el Lote Activo"),
+                envolver_lista(self.col_ranking),
             ],
-            spacing=6,
+            spacing=10,
             expand=True,
         )
 
@@ -207,7 +193,7 @@ class PantallaTopProductos(ft.Container):
         self.fila_kpis.controls = [
             crear_tarjeta_kpi("Productos en Ranking", f"{len(resultados)} / {k}", f"Top-{k} solicitado", ft.Icons.LEADERBOARD, COLOR_PRIMARIO),
             crear_tarjeta_kpi("Demanda Acumulada", f"{demanda_total_top:,}", "Unidades requeridas", ft.Icons.TRENDING_UP, COLOR_EXITO),
-            crear_tarjeta_kpi("Tiempo de Cómputo", f"{duracion_ms:.3f} ms", alg_desc, ft.Icons.SPEED, COLOR_SECUNDARIO),
+            crear_tarjeta_kpi("Tiempo de Cómputo", formatear_tiempo_ms(duracion_ms), alg_desc, ft.Icons.SPEED, COLOR_SECUNDARIO),
             crear_tarjeta_kpi("Cota de Complejidad", "O(N log k)" if metodo == "heap" else "O(N log N)", "Consumo acotado a k" if metodo == "heap" else "Ordena universo N", ft.Icons.MEMORY, COLOR_PRIMARIO),
         ]
 
@@ -220,7 +206,7 @@ class PantallaTopProductos(ft.Container):
             n_pedidos=len(self.motor.pedidos),
             estrategia=self.motor.estrategia,
             tiempo_ms=duracion_ms,
-            resultado_negocio=f"Top-{k} calculado con {metodo.upper()} en {duracion_ms:.3f} ms",
+            resultado_negocio=f"Top-{k} calculado con {metodo.upper()} en {formatear_tiempo_ms(duracion_ms)}",
         )
         actualizar_control(self)
 

@@ -76,9 +76,7 @@ class TestTemaYComponentes:
         panel = PanelEstado(on_cambiar_estrategia=callback_estrategia)
         assert isinstance(panel, ft.Container)
 
-        # Simular cambio de switch
-        panel.switch_estrategia.value = True
-        panel._al_cambiar_switch(None)
+        panel._elegir("optimizado")
         assert estrategia_recibida == ["optimizado"]
 
 

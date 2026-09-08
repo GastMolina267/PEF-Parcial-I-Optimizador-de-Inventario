@@ -8,6 +8,7 @@ from src.motor.motor_inventario import MotorInventario
 from src.ui.tema import (
     COLOR_BORDE,
     COLOR_EXITO,
+    COLOR_FONDO_APP,
     COLOR_PRIMARIO,
     COLOR_SECUNDARIO,
     COLOR_TARJETA,
@@ -17,9 +18,15 @@ from src.ui.tema import (
     actualizar_control,
     borde_all,
     padding_symmetric,
-    crear_tarjeta_kpi,
     crear_banner_explicativo,
     crear_badge_tiempo,
+    crear_barra_herramientas,
+    crear_encabezado,
+    crear_tarjeta_kpi,
+    crear_titulo_seccion,
+    envolver_metricas,
+    estilo_boton_primario,
+    formatear_tiempo_ms,
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -36,7 +43,8 @@ class PantallaInicio(ft.Container):
         self.notificar = notificar
         self.on_dataset_cambiado = on_dataset_cambiado
         self.expand = True
-        self.padding = padding_symmetric(horizontal=16, vertical=10)
+        self.bgcolor = COLOR_FONDO_APP
+        self.padding = padding_symmetric(horizontal=16, vertical=12)
 
         # Dropdown de datasets estándar
         self.dropdown_datasets = ft.Dropdown(
@@ -59,19 +67,19 @@ class PantallaInicio(ft.Container):
         self.btn_cargar = ft.FilledButton(
             "Recargar",
             icon=ft.Icons.REFRESH,
-            style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
+            style=estilo_boton_primario(),
             on_click=lambda _: self._cargar_dataset_actual(),
         )
 
         self.btn_ejecutar_escenario = ft.FilledButton(
             "Ejecutar Escenario",
             icon=ft.Icons.PLAY_ARROW_ROUNDED,
-            style=ft.ButtonStyle(bgcolor=COLOR_SECUNDARIO, color="#FFFFFF"),
+            style=estilo_boton_primario(),
             on_click=lambda _: self._ejecutar_escenario_completo(),
         )
 
         # Contenedores de KPIs dinámicos
-        self.fila_kpis = ft.Row(spacing=8)
+        self.fila_kpis = ft.Row(spacing=0)
         # Contenedor de resultados del escenario completo
         self.col_resultado_escenario = ft.Column(spacing=4)
         self.fila_tiempo_escenario = ft.Row(spacing=6)
@@ -80,31 +88,13 @@ class PantallaInicio(ft.Container):
         self._actualizar_metricas_visuales()
 
     def _construir_interfaz(self) -> None:
-        self.content = ft.ListView(
+        self.content = ft.Column(
+            expand=True,
             controls=[
-                ft.Row(
-                    controls=[
-                        ft.Column(
-                            controls=[
-                                ft.Text(
-                                    "Optimizador de Inventario y Pedidos",
-                                    size=20,
-                                    weight=ft.FontWeight.BOLD,
-                                    color=COLOR_TEXTO_PRIMARIO,
-                                ),
-                                ft.Text(
-                                    "Primer Parcial – Programación Eficiente (Opción 6) | Universidad Blas Pascal",
-                                    size=12,
-                                    color=COLOR_TEXTO_SECUNDARIO,
-                                ),
-                            ],
-                            spacing=1,
-                        ),
-                        ft.Container(expand=True),
-                    ],
+                crear_encabezado(
+                    "Optimizador de Inventario y Pedidos",
+                    "Primer Parcial – Programación Eficiente (Opción 6) | Universidad Blas Pascal",
                 ),
-                ft.Divider(height=6, color=COLOR_BORDE),
-                # Banner didáctico explicativo
                 crear_banner_explicativo(
                     titulo="Gestión Logística y Optimización a Escala",
                     descripcion="Simulación de almacén inteligente para comparar estrategias ingenuas vs. optimizadas ante catálogos crecientes.",
@@ -112,60 +102,40 @@ class PantallaInicio(ft.Container):
                     complejidad_opt="Flujo integral hash y sub-lineal O(1) a O(L)",
                     por_que_importa="Permite auditar el impacto marginal de cada técnica algorítmica sobre el mismo volumen de datos.",
                 ),
-                # Selector y controles compacto
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            self.dropdown_datasets,
-                            self.btn_cargar,
-                            self.btn_ejecutar_escenario,
-                        ],
-                        spacing=8,
-                        wrap=True,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=padding_symmetric(horizontal=12, vertical=6),
-                    bgcolor=COLOR_TARJETA,
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
-                ),
-                # Métricas del dataset
-                self.fila_kpis,
-                # Panel de ejecución del escenario
+                crear_barra_herramientas([
+                    self.dropdown_datasets,
+                    self.btn_cargar,
+                    self.btn_ejecutar_escenario,
+                ]),
+                envolver_metricas(self.fila_kpis),
                 ft.Container(
                     content=ft.Column(
                         controls=[
                             ft.Row(
                                 controls=[
-                                    ft.Icon(ft.Icons.INSIGHTS_ROUNDED, color=COLOR_PRIMARIO, size=18),
-                                    ft.Text(
-                                        "Diagnóstico y Ejecución Global del Escenario",
-                                        size=14,
-                                        weight=ft.FontWeight.BOLD,
-                                        color=COLOR_TEXTO_PRIMARIO,
-                                    ),
+                                    crear_titulo_seccion("Diagnóstico y Ejecución Global del Escenario"),
                                     ft.Container(expand=True),
                                     self.fila_tiempo_escenario,
                                 ],
-                                spacing=6,
+                                spacing=8,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
                             ),
                             ft.Text(
                                 "Al presionar 'Ejecutar Escenario', el motor procesa secuencialmente pedidos, batch picking, ranking Top-N y cálculo de alternativas sustitutas para faltantes.",
-                                size=11.5,
+                                size=12,
                                 color=COLOR_TEXTO_MUTED,
                             ),
-                            ft.Divider(height=6, color=COLOR_BORDE),
                             self.col_resultado_escenario,
                         ],
-                        spacing=4,
+                        spacing=6,
                     ),
-                    padding=padding_symmetric(horizontal=12, vertical=8),
+                    padding=padding_symmetric(horizontal=12, vertical=10),
                     bgcolor=COLOR_TARJETA,
-                    border_radius=8,
+                    border_radius=6,
                     border=borde_all(1, COLOR_BORDE),
                 ),
             ],
-            spacing=8,
+            spacing=12,
         )
 
     def _al_seleccionar_dataset(self, e):
@@ -187,7 +157,7 @@ class PantallaInicio(ft.Container):
                 n_pedidos=stats["total_pedidos"],
                 estrategia=self.motor.estrategia,
                 tiempo_ms=duracion_ms,
-                resultado_negocio=f"Dataset {nombre} cargado en {duracion_ms:.1f} ms",
+                resultado_negocio=f"Dataset {nombre} cargado en {formatear_tiempo_ms(duracion_ms)}",
             )
             if self.on_dataset_cambiado:
                 self.on_dataset_cambiado(nombre)
@@ -237,7 +207,7 @@ class PantallaInicio(ft.Container):
             inicio_total = time.perf_counter()
 
             # 1. Preparar pedidos
-            res_pedidos = self.motor.procesar_pedidos(descontar_stock=False)
+            res_pedidos = self.motor.procesar_pedidos(concurrente=False, descontar_stock=False)
             # 2. Batch picking
             picking = self.motor.agrupar_pedidos()
             # 3. Top-N
@@ -268,7 +238,7 @@ class PantallaInicio(ft.Container):
                     title=ft.Text(f"Preparación de Pedidos: {res_pedidos.pedidos_procesados} pedidos", size=13, weight=ft.FontWeight.BOLD),
                     subtitle=ft.Text(
                         f"Cubiertos: {res_pedidos.pedidos_cubiertos} | Parciales: {res_pedidos.pedidos_parciales} | "
-                        f"Imposibles: {res_pedidos.pedidos_imposibles} ({res_pedidos.tiempo_ejecucion_ms:.2f} ms)",
+                        f"Imposibles: {res_pedidos.pedidos_imposibles} ({formatear_tiempo_ms(res_pedidos.tiempo_ejecucion_ms)})",
                         size=11,
                         color=COLOR_TEXTO_SECUNDARIO,
                     ),
@@ -302,7 +272,7 @@ class PantallaInicio(ft.Container):
                         leading=ft.Icon(ft.Icons.SWAP_HORIZ, color="#F59E0B", size=18),
                         title=ft.Text(f"Alternativas para Pedido #{pedido_faltante.id_pedido}", size=13, weight=ft.FontWeight.BOLD),
                         subtitle=ft.Text(
-                            f"{res_alternativas.total_combinaciones} combinaciones en {res_alternativas.categoria} ({res_alternativas.tiempo_ejecucion_ms:.2f} ms).",
+                            f"{res_alternativas.total_combinaciones} combinaciones en {res_alternativas.categoria} ({formatear_tiempo_ms(res_alternativas.tiempo_ejecucion_ms)}).",
                             size=11,
                             color=COLOR_TEXTO_SECUNDARIO,
                         ),
@@ -320,6 +290,6 @@ class PantallaInicio(ft.Container):
                 resultado_negocio=f"Escenario ejecutado: {res_pedidos.pedidos_cubiertos}/{res_pedidos.pedidos_procesados} cubiertos",
             )
             actualizar_control(self)
-            self.notificar(f"Escenario completo ejecutado en {duracion_total_ms:.2f} ms.", ft.Icons.DONE_ALL)
+            self.notificar(f"Escenario completo ejecutado en {formatear_tiempo_ms(duracion_total_ms)}.", ft.Icons.DONE_ALL)
         except Exception as err:
             self.notificar(f"Error en ejecución de escenario: {err}", ft.Icons.ERROR)

@@ -17,15 +17,14 @@ import flet as ft
 
 from src.motor.motor_inventario import MotorInventario
 from src.ui.tema import (
-    COLOR_BORDE,
-    COLOR_BORDE_ENFOQUE,
     COLOR_FONDO_APP,
+    COLOR_MARCA,
+    COLOR_NAV,
+    COLOR_NAV_HOVER,
+    COLOR_NAV_MUTED,
+    COLOR_NAV_TEXTO,
     COLOR_PRIMARIO,
-
-    COLOR_SUPERFICIE,
     COLOR_TARJETA,
-    COLOR_TEXTO_PRIMARIO,
-    COLOR_TEXTO_SECUNDARIO,
     crear_dialogo_explicativo_modos,
 )
 from src.ui.componentes.panel_estado import PanelEstado
@@ -45,11 +44,17 @@ def main(page: ft.Page) -> None:
     """Punto de entrada de la aplicación de escritorio Flet."""
     page.title = "Optimizador de Inventario y Pedidos | Programación Eficiente"
     page.bgcolor = COLOR_FONDO_APP
-    page.theme_mode = ft.ThemeMode.DARK
+    page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
     page.theme = ft.Theme(
         font_family="Segoe UI",
-        visual_density=ft.VisualDensity.STANDARD,
+        visual_density=ft.VisualDensity.COMPACT,
+        color_scheme=ft.ColorScheme(
+            primary=COLOR_PRIMARIO,
+            on_primary="#FFFFFF",
+            surface=COLOR_TARJETA,
+            on_surface="#0F141A",
+        ),
     )
     try:
         page.window.width = 1280
@@ -71,12 +76,12 @@ def main(page: ft.Page) -> None:
         sb = ft.SnackBar(
             content=ft.Row(
                 controls=[
-                    ft.Icon(icono, color=color or COLOR_PRIMARIO, size=20),
-                    ft.Text(mensaje, color=COLOR_TEXTO_PRIMARIO, size=13),
+                    ft.Icon(icono, color=color or COLOR_MARCA, size=20),
+                    ft.Text(mensaje, color=COLOR_NAV_TEXTO, size=13),
                 ],
                 spacing=8,
             ),
-            bgcolor=COLOR_TARJETA,
+            bgcolor=COLOR_NAV,
         )
         if hasattr(page, "show_dialog") and hasattr(page, "overlay"):
             try:
@@ -149,7 +154,7 @@ def main(page: ft.Page) -> None:
     actualizar_panel(dataset="demo_oral.json")
 
     # 5. Contenedor dinámico central y caché de vistas para persistencia total de estado
-    contenedor_pantalla = ft.Container(expand=True)
+    contenedor_pantalla = ft.Container(expand=True, bgcolor=COLOR_FONDO_APP)
     vistas: dict[int, ft.Control] = {}
 
     def notificar_recarga_dataset(nombre_dataset: str) -> None:
@@ -194,55 +199,54 @@ def main(page: ft.Page) -> None:
     rail_navegacion = ft.NavigationRail(
         selected_index=0,
         label_type=ft.NavigationRailLabelType.ALL,
-        min_width=105,
-        min_extended_width=160,
-        bgcolor=COLOR_SUPERFICIE,
-        indicator_color=COLOR_TARJETA,
+        min_width=112,
+        min_extended_width=168,
+        bgcolor=COLOR_NAV,
+        indicator_color=COLOR_NAV_HOVER,
         selected_label_text_style=ft.TextStyle(
             size=12,
-            weight=ft.FontWeight.BOLD,
-            color=COLOR_BORDE_ENFOQUE,
+            weight=ft.FontWeight.W_700,
+            color=COLOR_MARCA,
         ),
         unselected_label_text_style=ft.TextStyle(
             size=12,
             weight=ft.FontWeight.W_500,
-            color=COLOR_TEXTO_SECUNDARIO,
+            color=COLOR_NAV_MUTED,
         ),
         destinations=[
-
             ft.NavigationRailDestination(
-                icon=ft.Icons.HOME_OUTLINED,
-                selected_icon=ft.Icons.HOME_ROUNDED,
+                icon=ft.Icon(ft.Icons.HOME_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.HOME_ROUNDED, color=COLOR_MARCA),
                 label="Inicio",
             ),
             ft.NavigationRailDestination(
-                icon=ft.Icons.INVENTORY_2_OUTLINED,
-                selected_icon=ft.Icons.INVENTORY_2_ROUNDED,
+                icon=ft.Icon(ft.Icons.INVENTORY_2_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.INVENTORY_2_ROUNDED, color=COLOR_MARCA),
                 label="Catálogo",
             ),
             ft.NavigationRailDestination(
-                icon=ft.Icons.SHOPPING_BAG_OUTLINED,
-                selected_icon=ft.Icons.SHOPPING_BAG_ROUNDED,
+                icon=ft.Icon(ft.Icons.SHOPPING_BAG_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.SHOPPING_BAG_ROUNDED, color=COLOR_MARCA),
                 label="Pedidos",
             ),
             ft.NavigationRailDestination(
-                icon=ft.Icons.ALL_INBOX_OUTLINED,
-                selected_icon=ft.Icons.ALL_INBOX_ROUNDED,
+                icon=ft.Icon(ft.Icons.ALL_INBOX_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.ALL_INBOX_ROUNDED, color=COLOR_MARCA),
                 label="Agrupación",
             ),
             ft.NavigationRailDestination(
-                icon=ft.Icons.LEADERBOARD_OUTLINED,
-                selected_icon=ft.Icons.LEADERBOARD_ROUNDED,
+                icon=ft.Icon(ft.Icons.LEADERBOARD_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.LEADERBOARD_ROUNDED, color=COLOR_MARCA),
                 label="Top-N",
             ),
             ft.NavigationRailDestination(
-                icon=ft.Icons.SWAP_HORIZ_OUTLINED,
-                selected_icon=ft.Icons.SWAP_HORIZ_ROUNDED,
+                icon=ft.Icon(ft.Icons.SWAP_HORIZ_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.SWAP_HORIZ_ROUNDED, color=COLOR_MARCA),
                 label="Alternativas",
             ),
             ft.NavigationRailDestination(
-                icon=ft.Icons.COMPARE_ARROWS_OUTLINED,
-                selected_icon=ft.Icons.COMPARE_ARROWS_ROUNDED,
+                icon=ft.Icon(ft.Icons.COMPARE_ARROWS_OUTLINED, color=COLOR_NAV_MUTED),
+                selected_icon=ft.Icon(ft.Icons.COMPARE_ARROWS_ROUNDED, color=COLOR_MARCA),
                 label="Comparativa",
             ),
         ],
@@ -256,7 +260,6 @@ def main(page: ft.Page) -> None:
     cuerpo_principal = ft.Row(
         controls=[
             rail_navegacion,
-            ft.VerticalDivider(width=1, color=COLOR_BORDE),
             contenedor_pantalla,
         ],
         spacing=0,

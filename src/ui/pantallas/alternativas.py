@@ -14,9 +14,17 @@ from src.ui.tema import (
     actualizar_control,
     borde_all,
     padding_symmetric,
-    crear_tarjeta_kpi,
     crear_banner_explicativo,
+    crear_barra_herramientas,
     crear_dropdown,
+    crear_encabezado,
+    crear_tarjeta_kpi,
+    crear_titulo_seccion,
+    COLOR_FONDO_APP,
+    envolver_lista,
+    envolver_metricas,
+    estilo_boton_primario,
+    formatear_tiempo_ms,
 )
 
 
@@ -29,7 +37,8 @@ class PantallaAlternativas(ft.Container):
         self.on_actualizar_panel = on_actualizar_panel
         self.notificar = notificar
         self.expand = True
-        self.padding = padding_symmetric(horizontal=16, vertical=10)
+        self.bgcolor = COLOR_FONDO_APP
+        self.padding = padding_symmetric(horizontal=16, vertical=12)
 
         self.combinaciones_actuales = []
         self.orden_ascendente = True
@@ -64,7 +73,7 @@ class PantallaAlternativas(ft.Container):
         self.btn_buscar = ft.FilledButton(
             "Calcular",
             icon=ft.Icons.AUTO_AWESOME_ROUNDED,
-            style=ft.ButtonStyle(bgcolor=COLOR_PRIMARIO, color="#FFFFFF"),
+            style=estilo_boton_primario(),
             on_click=lambda _: self._ejecutar_busqueda(),
         )
 
@@ -87,8 +96,8 @@ class PantallaAlternativas(ft.Container):
             on_click=lambda _: self._alternar_sentido_orden(),
         )
 
-        self.fila_kpis = ft.Row(spacing=8)
-        self.col_combinaciones = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
+        self.fila_kpis = ft.Row(spacing=0)
+        self.col_combinaciones = ft.ListView(spacing=4, expand=True, padding=8)
 
         self._construir_interfaz()
         try:
@@ -99,22 +108,11 @@ class PantallaAlternativas(ft.Container):
     def _construir_interfaz(self) -> None:
         self.content = ft.Column(
             controls=[
-                ft.Row(
-                    controls=[
-                        ft.Column(
-                            controls=[
-                                ft.Text("Cálculo de Alternativas y Combinaciones Sustitutas", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                                ft.Text("Demostración experimental de Memoización: Árbol recursivo exhaustivo O(2^N) vs. Programación Dinámica O(N * P)", size=12, color=COLOR_TEXTO_SECUNDARIO),
-                            ],
-                            spacing=1,
-                        ),
-                        ft.Container(expand=True),
-                        self.btn_buscar,
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                crear_encabezado(
+                    "Cálculo de Alternativas y Combinaciones Sustitutas",
+                    "Demostración experimental de Memoización: Árbol recursivo exhaustivo O(2^N) vs. Programación Dinámica O(N * P)",
+                    self.btn_buscar,
                 ),
-                ft.Divider(height=6, color=COLOR_BORDE),
-                # Banner explicativo didáctico
                 crear_banner_explicativo(
                     titulo="Sustitutos y Programación Dinámica",
                     descripcion="Explora combinaciones de productos dentro de una categoría para suplir faltantes de stock respetando un presupuesto máximo.",
@@ -122,30 +120,18 @@ class PantallaAlternativas(ft.Container):
                     complejidad_opt="Programación Dinámica Memoizada O(N·P)",
                     por_que_importa="La memoización de subproblemas previene la explosión exponencial O(2^N), permitiendo encontrar combinaciones óptimas en menos de 1 milisegundo.",
                 ),
-                # Barra de configuración y parámetros compacta
-                ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            self.dropdown_categoria,
-                            self.input_presupuesto,
-                            self.switch_memo,
-                            ft.VerticalDivider(width=1, color=COLOR_BORDE),
-                            self.dropdown_orden,
-                            self.btn_sentido_orden,
-                        ],
-                        spacing=8,
-                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                    ),
-                    padding=padding_symmetric(horizontal=10, vertical=5),
-                    bgcolor=COLOR_TARJETA,
-                    border_radius=8,
-                    border=borde_all(1, COLOR_BORDE),
-                ),
-                self.fila_kpis,
-                ft.Text("Combinaciones Sustitutas Encontradas (Clic para desplegar productos)", size=13, weight=ft.FontWeight.BOLD, color=COLOR_TEXTO_PRIMARIO),
-                self.col_combinaciones,
+                crear_barra_herramientas([
+                    self.dropdown_categoria,
+                    self.input_presupuesto,
+                    self.switch_memo,
+                    self.dropdown_orden,
+                    self.btn_sentido_orden,
+                ]),
+                envolver_metricas(self.fila_kpis),
+                crear_titulo_seccion("Combinaciones Sustitutas Encontradas (Clic para desplegar productos)"),
+                envolver_lista(self.col_combinaciones),
             ],
-            spacing=6,
+            spacing=10,
             expand=True,
         )
 
@@ -217,7 +203,7 @@ class PantallaAlternativas(ft.Container):
         # Actualizar KPIs
         self.fila_kpis.controls = [
             crear_tarjeta_kpi("Combinaciones Halladas", f"{resultado.total_combinaciones:,}", f"Presupuesto: ${presupuesto:,.0f}", ft.Icons.AUTO_AWESOME, COLOR_PRIMARIO),
-            crear_tarjeta_kpi("Tiempo de Exploración", f"{resultado.tiempo_ejecucion_ms:.3f} ms", f"{'DP con Memo' if usar_memo else 'Árbol Recursivo'}", ft.Icons.SPEED, COLOR_EXITO),
+            crear_tarjeta_kpi("Tiempo de Exploración", formatear_tiempo_ms(resultado.tiempo_ejecucion_ms), f"{'DP con Memo' if usar_memo else 'Árbol Recursivo'}", ft.Icons.SPEED, COLOR_EXITO),
             crear_tarjeta_kpi("Llamadas Reutilizadas", f"{resultado.hits_memo:,}", "Subproblemas cacheados", ft.Icons.SAVED_SEARCH, COLOR_SECUNDARIO),
             crear_tarjeta_kpi("Complejidad Teórica", "O(N * P)" if usar_memo else "O(2^N)", "Pseudo-polinomial" if usar_memo else "Exponencial", ft.Icons.FUNCTIONS, COLOR_PRIMARIO),
         ]
